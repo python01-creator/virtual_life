@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MY LIFE HQ</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-white font-mono flex flex-col items-center justify-center min-h-screen p-4">
+
+  <!-- 헤더 -->
+  <div class="w-full max-w-2xl flex justify-between items-center mb-4 bg-slate-800 p-4 rounded-xl border border-slate-700">
+    <div>
+      <h1 class="text-xl font-bold text-amber-400">🏠 MY LIFE HQ (2D)</h1>
+      <p class="text-xs text-slate-400">방향키(WASD)로 캐릭터를 움직여 가구 근처로 가보세요!</p>
+    </div>
+  </div>
+
+  <!-- 2D 맵 -->
+  <div id="map" class="relative w-full max-w-2xl h-96 bg-slate-800 border-4 border-amber-500 rounded-2xl grid grid-cols-6 grid-rows-5 gap-2 p-4 shadow-2xl">
+    <!-- 가구들 -->
+    <div onclick="openNotion('plan')" class="col-start-2 row-start-2 flex items-center justify-center bg-slate-700 hover:scale-105 border border-slate-600 rounded cursor-pointer text-xs font-bold text-center p-1">인생 계획 책상 📑</div>
+    <div onclick="openNotion('vision')" class="col-start-5 row-start-2 flex items-center justify-center bg-slate-700 hover:scale-105 border border-slate-600 rounded cursor-pointer text-xs font-bold text-center p-1">비전 보드 🖼️</div>
+    <div onclick="openNotion('routine')" class="col-start-2 row-start-4 flex items-center justify-center bg-slate-700 hover:scale-105 border border-slate-600 rounded cursor-pointer text-xs font-bold text-center p-1">루틴 서재 📚</div>
+
+    <!-- 플레이어 -->
+    <div id="player" class="col-start-3 row-start-3 flex items-center justify-center bg-amber-400 text-slate-900 font-extrabold rounded-full w-10 h-10 shadow-lg border-2 border-white transition-all duration-150">ME</div>
+  </div>
+
+  <!-- 열기 버튼 -->
+  <div id="action-btn-container" class="mt-4 h-12"></div>
+
+  <script>
+    // 🔗 여기에 본인 노션 페이지 공개 주소를 넣으세요!
+    const NOTION_PAGES = {
+      plan: 'https://notion.so',
+      vision: 'https://notion.so',
+      routine: 'https://notion.so'
+    };
+
+    let pos = { x: 3, y: 3 };
+
+    function updatePlayer() {
+      const player = document.getElementById('player');
+      player.style.gridColumnStart = pos.x;
+      player.style.gridRowStart = pos.y;
+    }
+
+    function openNotion(key) {
+      window.open(NOTION_PAGES[key], '_blank');
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (['ArrowUp', 'w'].includes(e.key)) pos.y = Math.max(1, pos.y - 1);
+      if (['ArrowDown', 's'].includes(e.key)) pos.y = Math.min(5, pos.y + 1);
+      if (['ArrowLeft', 'a'].includes(e.key)) pos.x = Math.max(1, pos.x - 1);
+      if (['ArrowRight', 'd'].includes(e.key)) pos.x = Math.min(6, pos.x + 1);
+      updatePlayer();
+    });
+  </script>
+</body>
+</html>
