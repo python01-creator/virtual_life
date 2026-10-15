@@ -154,7 +154,7 @@ function lifeRender(){
  if(lifePage==='decorate'){lifeDecorate();return;}if(lifePage==='family'){lifeFamily();return;}
  const k=lifePage;let rows=lifeRecords.filter(r=>r.kind===k);const needle=lifeFilter.toLowerCase();if(needle)rows=rows.filter(r=>[r.title,r.body,r.place,r.people,r.tags].join(' ').toLowerCase().includes(needle));rows.sort((a,b)=>(b.when||b.created).localeCompare(a.when||a.created,'ko'));
  let extra='';if(k==='writing')extra=`<div class="life-note">여기서 글을 쓰거나 Notion 글 주소를 책으로 꽂아 둘 수 있어요. ${safeURL(state.links.notion)?linkButton(state.links.notion,'Notion 글쓰기 홈 열기'):'Notion 홈은 연결 설정에서 넣어 주세요.'} <button class="ghost" data-goto="inspiration">✧ 영감 노트</button></div>`;
- if(k==='inspiration')extra='<div class="life-note">떠오른 한 문장을 적어 두세요. ‘씀’의 글은 복사해 옮길 수 있어요. 현재 자동 연동은 하지 않습니다.</div>';
+ if(k==='inspiration')extra='<div class="life-note">떠오른 한 문장을 적어 두세요. 기존에 쓴 글도 복사해 옮길 수 있어요. 현재 다른 앱과의 자동 연동은 하지 않습니다.</div>';
  if(k==='childhood')extra='<div class="life-note">사진만 남겨도 좋아요. 종이 일기는 사진으로 보관하고, 기억나는 나이와 가족의 이야기를 함께 적어 보세요.</div>';
  if(k==='choco')extra=`<div class="choco-hero"><div class="symbol">💛</div><div><div class="eyebrow">ALWAYS WITH YOU</div><h2>함께한 반려동물에게</h2><blockquote>소중했던 순간과 하고 싶은 말을<br>나만의 기록으로 남겨 보세요.</blockquote><p>사진과 영상 링크, 애칭과 함께한 순간을 천천히 모아두는 자리예요.</p><button class="ghost" id="choco-letter">편지 쓰기</button></div></div>`;
  if(k==='growth')extra='<div class="growth-bed">'+(rows.length?rows.map((r,i)=>`<div class="growth-flower">${['🌱','🌷','🌼','🌻'][i%4]}<span>${lifeText(r.title)}</span></div>`).join(''):'<p>처음 배운 것, 해낸 것, 견뎌낸 시간을 심어 보세요.</p>')+'</div>';

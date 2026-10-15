@@ -14,14 +14,14 @@ const gardenStages=['씨앗','새싹','어린잎','푸른 식물','꽃이 핀 �
 const gardenIcons=['◉','🌱','🪴','🌿','🌸'];
 let garden=null,gardenBusy=false;
 
-lifeCategories.write=['오늘의 글감','한 문장에서 시작하는 조용한 글쓰기','✎'];
-lifeCategories.garden=['창가 정원','천천히 돌보고 함께 자라는 식물','☘'];
+lifeCategories.write=['문장 씨앗','한 문장에서 시작하는 조용한 글쓰기','✎'];
+lifeCategories.garden=['느린빛 온실','나의 기록과 함께 천천히 자라는 식물','☘'];
 
 const baseMenu=lifeMenu;
 lifeMenu=function(){
  baseMenu();
  const decorate=lifeNav.querySelector('[data-life="decorate"]');
- for(const [page,label] of [['write','✎ 오늘의 글감'],['garden','☘ 창가 정원']]){
+ for(const [page,label] of [['write','✎ 문장 씨앗'],['garden','☘ 느린빛 온실']]){
   const b=document.createElement('button');b.dataset.life=page;b.className=lifePage===page?'active':'';b.textContent=label;b.onclick=()=>lifeGo(page);lifeNav.insertBefore(b,decorate);
  }
 };
@@ -40,8 +40,8 @@ function promptToday(){
 }
 function renderWriting(){
  const recent=lifeRecords.filter(r=>r.kind==='writing').sort((a,b)=>(b.updated||'').localeCompare(a.updated||'')).slice(0,6);
- lifeShell.innerHTML=`<div class="life-heading"><div><div class="eyebrow">A SMALL PROMPT FOR YOU</div><h1>✎ 오늘의 글감</h1><p>잘 쓰려고 애쓰지 않아도 괜찮아요. 한 문장에서 시작해요.</p></div></div>
- <section class="prompt-hero"><span>오늘의 글감</span><blockquote>${lifeText(promptToday())}</blockquote><div class="actions"><button class="primary" id="prompt-write">이 글감으로 쓰기</button><button class="ghost" id="prompt-random">다른 글감 보기</button></div></section>
+ lifeShell.innerHTML=`<div class="life-heading"><div><div class="eyebrow">A SMALL PROMPT FOR YOU</div><h1>✎ 문장 씨앗</h1><p>잘 쓰려고 애쓰지 않아도 괜찮아요. 한 문장에서 시작해요.</p></div></div>
+ <section class="prompt-hero"><span>오늘의 문장 씨앗</span><blockquote>${lifeText(promptToday())}</blockquote><div class="actions"><button class="primary" id="prompt-write">이 문장으로 쓰기</button><button class="ghost" id="prompt-random">다른 문장 보기</button></div></section>
  <div class="life-heading"><div><h2>최근에 쓴 글</h2></div><button class="ghost" id="free-write">빈 페이지에서 쓰기</button></div>
  <div class="life-grid">${recent.map(lifeCard).join('')||'<div class="empty-state">아직 글이 없어요.<br>오늘의 한 문장을 천천히 시작해 보세요.</div>'}</div>`;
  lifeBind();$('#prompt-write').onclick=()=>openWriter(promptToday());$('#free-write').onclick=()=>openWriter('');$('#prompt-random').onclick=()=>{const next=prompts[Math.floor(Math.random()*prompts.length)];lifeShell.querySelector('.prompt-hero blockquote').textContent=next;$('#prompt-write').onclick=()=>openWriter(next);};
@@ -50,7 +50,7 @@ function openWriter(prompt){
  const key=lifeKey('gentle-writing-draft');let draft={};try{draft=JSON.parse(localStorage.getItem(key))||{};}catch{}
  lifeShow(`<div class="writer-shell"><div class="eyebrow">QUIET WRITING</div><p class="writer-prompt">${lifeText(prompt||'마음이 가는 곳에서 시작해 보세요.')}</p><form id="gentle-writer"><input name="title" maxlength="180" value="${lifeText(draft.title||'')}" placeholder="제목은 나중에 붙여도 좋아요"><textarea name="body" maxlength="100000" autofocus placeholder="첫 문장을 적어 보세요…">${lifeText(draft.body||'')}</textarea><div class="writer-footer"><span id="writer-count">0자</span><span id="writer-state">서두르지 않아도 괜찮아요.</span></div><div class="actions"><button class="primary">내 글로 저장</button><button class="ghost" type="button" id="writer-draft">임시 보관</button></div></form></div>`);
  const f=$('#gentle-writer'),body=f.elements.body,count=()=>$('#writer-count').textContent=body.value.length+'자';count();body.oninput=()=>{count();clearTimeout(body.draftTimer);body.draftTimer=setTimeout(()=>keepDraft(f,key),700);};$('#writer-draft').onclick=()=>keepDraft(f,key);
- f.onsubmit=async e=>{e.preventDefault();const v=Object.fromEntries(new FormData(f));if(!v.body.trim()){$('#writer-state').textContent='한 문장이라도 적어 주세요.';return;}const now=new Date().toISOString(),record={id:lifeID(),home:lifeHome.id,kind:'writing',title:v.title.trim()||v.body.trim().slice(0,24),body:v.body.trim(),when:lifeDate(),tags:prompt?'오늘의 글감':'자유 글쓰기',prompt,share:false,comments:[],created:now,updated:now};try{await lifePut(record);localStorage.removeItem(key);await rewardWriting();lifeDialog.close();await lifeRefresh();renderWriting();toast('글을 저장했어요. 정원에 햇살 한 조각이 모였어요.');}catch{$('#writer-state').textContent='서버에 저장하지 못했어요. 연결을 확인해 주세요.';}};
+ f.onsubmit=async e=>{e.preventDefault();const v=Object.fromEntries(new FormData(f));if(!v.body.trim()){$('#writer-state').textContent='한 문장이라도 적어 주세요.';return;}const now=new Date().toISOString(),record={id:lifeID(),home:lifeHome.id,kind:'writing',title:v.title.trim()||v.body.trim().slice(0,24),body:v.body.trim(),when:lifeDate(),tags:prompt?'문장 씨앗':'자유 글쓰기',prompt,share:false,comments:[],created:now,updated:now};try{await lifePut(record);localStorage.removeItem(key);await rewardWriting();lifeDialog.close();await lifeRefresh();renderWriting();toast('글을 저장했어요. 온실에 마음빛 하나가 모였어요.');}catch{$('#writer-state').textContent='서버에 저장하지 못했어요. 연결을 확인해 주세요.';}};
  setTimeout(()=>body.focus(),50);
 }
 function keepDraft(f,key){const v=Object.fromEntries(new FormData(f));localStorage.setItem(key,JSON.stringify(v));$('#writer-state').textContent='이 기기에 임시 보관했어요.';}
@@ -60,11 +60,11 @@ async function loadGarden(){if(garden)return garden;garden=await window.lifeClou
 function stage(){return garden.xp>=14?4:garden.xp>=8?3:garden.xp>=4?2:garden.xp>=1?1:0;}
 async function renderGarden(){
  if(gardenBusy)return;gardenBusy=true;try{await loadGarden();const s=stage(),healthy=garden.water>=30&&garden.sun>=30;
- lifeShell.innerHTML=`<div class="life-heading"><div><div class="eyebrow">A GARDEN THAT GROWS WITH YOU</div><h1>☘ 창가 정원</h1><p>조금씩 돌보고, 글을 쓰며 모은 햇살로 천천히 키워요.</p></div><span class="dew">햇살 조각 ${garden.dew||0} ✦</span></div>
+ lifeShell.innerHTML=`<div class="life-heading"><div><div class="eyebrow">A GARDEN THAT GROWS WITH YOU</div><h1>☘ 느린빛 온실</h1><p>조금씩 돌보고, 기록하며 모은 마음빛으로 천천히 키워요.</p></div><span class="dew">마음빛 ${garden.dew||0} ✦</span></div>
  <section class="garden-window ${healthy?'healthy':'sleepy'}"><div class="garden-sky"><i></i><span class="butterfly">❦</span></div><div class="plant-stage" aria-label="${gardenStages[s]}"><span>${gardenIcons[s]}</span></div><div class="pot">${lifeText(garden.plant||'나의 화분')}</div></section>
  <div class="garden-status"><div><span>물</span><meter min="0" max="100" value="${garden.water}"></meter><b>${garden.water}%</b></div><div><span>햇빛</span><meter min="0" max="100" value="${garden.sun}"></meter><b>${garden.sun}%</b></div><div><span>성장</span><meter min="0" max="14" value="${garden.xp}"></meter><b>${gardenStages[s]}</b></div></div>
- <div class="actions garden-actions"><button class="primary" id="garden-water">💧 물 주기</button><button class="ghost" id="garden-sun">☀ 햇빛 쬐기</button><button class="ghost" id="garden-name">화분 이름 붙이기</button></div>
- <p class="life-note">하루에 한 번 물과 햇빛을 챙기면 잘 자라요. 너무 자주 눌러도 식물이 재촉받지는 않아요. 글 한 편을 저장할 때마다 햇살 조각도 하나 생겨요.</p>`;
+ <div class="actions garden-actions"><button class="primary" id="garden-water">💧 물 한 모금</button><button class="ghost" id="garden-sun">☀ 빛자리 열기</button><button class="ghost" id="garden-name">화분 이름 붙이기</button></div>
+ <p class="life-note">하루에 한 번 물과 빛을 챙기면 잘 자라요. 너무 자주 눌러도 식물이 재촉받지는 않아요. 글 한 편을 저장할 때마다 마음빛도 하나 생겨요.</p>`;
  $('#garden-water').onclick=()=>care('water');$('#garden-sun').onclick=()=>care('sun');$('#garden-name').onclick=renamePlant;
  }catch{lifeShell.innerHTML='<div class="empty-state">정원을 불러오지 못했어요.<br>연결 상태를 확인해 주세요.</div>';}finally{gardenBusy=false;}
 }
