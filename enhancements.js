@@ -16,12 +16,13 @@ let garden=null,gardenBusy=false;
 
 lifeCategories.write=['문장 씨앗','한 문장에서 시작하는 조용한 글쓰기','✎'];
 lifeCategories.garden=['느린빛 온실','나의 기록과 함께 천천히 자라는 식물','☘'];
+lifeCategories.shelf=['달의 책장','월별 일기장을 한 권씩 꺼내 보는 곳','▥'];
 
 const baseMenu=lifeMenu;
 lifeMenu=function(){
  baseMenu();
  const decorate=lifeNav.querySelector('[data-life="decorate"]');
- for(const [page,label] of [['write','✎ 문장 씨앗'],['garden','☘ 느린빛 온실']]){
+ for(const [page,label] of [['shelf','▥ 달의 책장'],['write','✎ 문장 씨앗'],['garden','☘ 느린빛 온실']]){
   const b=document.createElement('button');b.dataset.life=page;b.className=lifePage===page?'active':'';b.textContent=label;b.onclick=()=>lifeGo(page);lifeNav.insertBefore(b,decorate);
  }
 };
@@ -31,6 +32,7 @@ lifeRender=function(){
  lifeShell.classList.remove('page-arrive');void lifeShell.offsetWidth;lifeShell.classList.add('page-arrive');
  if(lifePage==='write'){renderWriting();return;}
  if(lifePage==='garden'){renderGarden();return;}
+ if(lifePage==='shelf'){renderShelf();return;}
  baseRender();
 };
 
@@ -71,6 +73,31 @@ async function renderGarden(){
 async function care(kind){const field=kind==='water'?'lastWater':'lastSun',elapsed=Date.now()-(garden[field]||0);if(elapsed<6*3600000){toast(kind==='water'?'아직 흙이 촉촉해요.':'오늘 받은 햇빛이 충분해요.');return;}garden[field]=Date.now();garden[kind]=Math.min(100,(garden[kind]||0)+28);if(garden.water>=30&&garden.sun>=30)garden.xp=Math.min(14,(garden.xp||0)+1);await window.lifeCloud.setSetting('garden',garden);gardenBusy=false;renderGarden();toast(kind==='water'?'물이 흙으로 스며들어요.':'따뜻한 햇살을 받았어요.');}
 function renamePlant(){lifeShow(`<h2>화분 이름 붙이기</h2><form id="plant-name"><label class="field">이름<input name="name" maxlength="30" value="${lifeText(garden.plant||'')}"></label><button class="primary">이 이름으로 부르기</button></form>`);$('#plant-name').onsubmit=async e=>{e.preventDefault();garden.plant=String(new FormData(e.target).get('name')).trim()||'나의 화분';await window.lifeCloud.setSetting('garden',garden);lifeDialog.close();gardenBusy=false;renderGarden();};}
 async function rewardWriting(){await loadGarden();garden.dew=(garden.dew||0)+1;if(garden.dew%3===0)garden.xp=Math.min(14,(garden.xp||0)+1);await window.lifeCloud.setSetting('garden',garden);}
+
+let shelfMonth=lifeDate().slice(0,7),shelfZoom=false;
+function monthLabel(value){const [year,month]=value.split('-');return `${year}년 ${Number(month)}월`;}
+function shelfMonths(){const months=[...new Set(lifeRecords.filter(r=>r.kind==='diary'&&/^\d{4}-\d{2}/.test(r.when||'')).map(r=>r.when.slice(0,7)))];if(!months.includes(lifeDate().slice(0,7)))months.push(lifeDate().slice(0,7));return months.sort().reverse();}
+function renderShelf(){
+ const months=shelfMonths();if(!months.includes(shelfMonth))shelfMonth=months[0];
+ const entries=lifeRecords.filter(r=>r.kind==='diary'&&r.when.startsWith(shelfMonth)).sort((a,b)=>b.when.localeCompare(a.when));
+ const colors=['clay','moss','oat','rose','ink'];
+ lifeShell.innerHTML=`<div class="life-heading"><div><div class="eyebrow">A LIBRARY OF MY DAYS</div><h1>▥ 달의 책장</h1><p>달마다 한 권의 일기장으로 묶여요. 책장을 가까이 보고, 한 권씩 꺼내 읽어 보세요.</p></div><div class="actions"><button class="ghost" id="shelf-zoom">${shelfZoom?'책장 전체 보기':'책장 가까이 보기'}</button><button class="primary" id="shelf-write">오늘 일기 쓰기</button></div></div>
+ <section class="month-shelf ${shelfZoom?'is-zoomed':''}" aria-label="월별 일기 책장"><div class="shelf-wall"><span>MY MONTHLY JOURNALS</span></div><div class="book-row">${months.map((m,i)=>`<button class="month-book ${colors[i%colors.length]} ${m===shelfMonth?'selected':''}" data-month-book="${m}" aria-label="${monthLabel(m)} 일기장"><span class="book-year">${m.slice(0,4)}</span><strong>${Number(m.slice(5))}월</strong><small>${lifeRecords.filter(r=>r.kind==='diary'&&r.when.startsWith(m)).length}편</small></button>`).join('')}</div><div class="wood-shelf"></div></section>
+ <div class="open-journal"><div class="journal-cover"><span>${shelfMonth.slice(0,4)}</span><strong>${Number(shelfMonth.slice(5))}</strong><small>MONTH</small></div><div class="journal-pages"><div class="life-heading"><div><div class="eyebrow">OPEN JOURNAL</div><h2>${monthLabel(shelfMonth)}</h2></div><span class="life-count">${entries.length}개의 기록</span></div><div class="journal-list">${entries.map(r=>`<button data-shelf-diary="${lifeText(r.id)}"><time>${lifeText(r.when.slice(8))}일</time><span>${diaryMoods[r.diary?.mood]||'·'}</span><strong>${lifeText(r.title)}</strong><small>${lifeText((r.diary?.thoughts||r.diary?.events||'').slice(0,70))}</small></button>`).join('')||'<div class="empty-state">이 달의 일기장은 아직 비어 있어요.<br>한 문장부터 첫 페이지를 채워 봐요.</div>'}</div></div></div>`;
+ $('#shelf-zoom').onclick=()=>{shelfZoom=!shelfZoom;renderShelf();};$('#shelf-write').onclick=()=>diaryForm(lifeDate());lifeShell.querySelectorAll('[data-month-book]').forEach(b=>b.onclick=()=>{shelfMonth=b.dataset.monthBook;renderShelf();});lifeShell.querySelectorAll('[data-shelf-diary]').forEach(b=>b.onclick=()=>diaryRead(b.dataset.shelfDiary));
+}
+
+function ensureRoomSpaces(){if(roomPrefs.spaces)return;roomPrefs.activeSpace='current';roomPrefs.spaces={current:{name:roomPrefs.name||'지금의 방',theme:roomPrefs.theme||'sage',layout:{...(roomPrefs.layout||{})}},dream:{name:'언젠가 살고 싶은 집',theme:'cream',layout:{}}};}
+function syncRoomSpace(){ensureRoomSpaces();const key=roomPrefs.activeSpace||'current';roomPrefs.spaces[key]={name:roomPrefs.name,theme:roomPrefs.theme,layout:{...(roomPrefs.layout||{})}};}
+function roomSpaceButtons(){
+ let box=document.querySelector('.space-switch');if(!box){box=document.createElement('div');box.className='space-switch';box.innerHTML='<button data-space="current">⌂ 지금의 방</button><button data-space="dream">✦ 꿈의 집</button>';document.querySelector('.room-top').prepend(box);box.querySelectorAll('button').forEach(b=>b.onclick=()=>switchRoomSpace(b.dataset.space));const shelf=document.createElement('button');shelf.className='ghost';shelf.id='open-bookshelf';shelf.textContent='📚 달의 책장 펼치기';document.querySelector('[aria-label="방 안 행동"]').append(shelf);shelf.onclick=()=>lifeGo('shelf');}
+ ensureRoomSpaces();const active=roomPrefs.activeSpace||'current';box.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.space===active));homeButton.textContent=active==='dream'?'✦ '+roomPrefs.name:'⌂ '+roomPrefs.name;
+}
+function switchRoomSpace(next){ensureRoomSpaces();if(next===roomPrefs.activeSpace)return;syncRoomSpace();const target=roomPrefs.spaces[next];roomPrefs.activeSpace=next;roomPrefs.name=target.name;roomPrefs.theme=target.theme;roomPrefs.layout={...(target.layout||{})};roomApplyLayout();player.x=465;player.y=390;standUp();lifeRoomSave();roomSpaceButtons();document.querySelector('h1').textContent=roomPrefs.name+'에서, 내 속도로.';homeButton.textContent=next==='dream'?'✦ '+roomPrefs.name:'⌂ '+roomPrefs.name;toast(next==='dream'?'꿈의 집으로 건너왔어요.':'지금의 방으로 돌아왔어요.');}
+const originalRoomSave=lifeRoomSave;
+lifeRoomSave=function(){syncRoomSpace();originalRoomSave();};
+window.roomSpaceButtons=roomSpaceButtons;
+roomSpaceButtons();
 
 document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;b.classList.remove('soft-pop');void b.offsetWidth;b.classList.add('soft-pop');});
 lifeMenu();
