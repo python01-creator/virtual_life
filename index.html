@@ -68,7 +68,28 @@ let player={x:465,y:390},keys=new Set(),hover=null,last=0,walk=0;
 const rect=(x,y,w,h,c)=>{ctx.fillStyle=c;ctx.fillRect(Math.round(x),Math.round(y),w,h);};
 function plant(x,y,s=1){ctx.save();ctx.translate(x,y);ctx.scale(s,s);const leaf=(x,y,w,h,c)=>{rect(x+3,y,w-6,h,c);rect(x,y+3,w,h-6,c);};rect(-2,-36,4,42,'#71865c');leaf(-24,-31,23,15,'#8ca873');leaf(1,-43,22,16,'#739564');leaf(-18,-53,20,17,'#a4bb88');leaf(0,-19,23,15,'#8ca873');rect(-12,5,24,19,'#c79678');rect(-9,24,18,4,'#aa775d');rect(-15,3,30,6,'#dfb899');rect(-8,10,3,11,'#eac9a9');if(Date.now()<waterUntil){label('✧',-22,-61);label('✧',22,-39);rect(-21,-8,3,6,'#9ec8d7');rect(20,-3,3,6,'#9ec8d7');}ctx.restore();}
 function label(text,x,y){ctx.font='bold 12px monospace';ctx.textAlign='center';ctx.fillStyle='#564d40';ctx.fillText(text,x,y);}
-function drawRoom(t){ctx.clearRect(0,0,960,650);rect(0,0,960,650,'#dce4cf');for(let y=25;y<650;y+=43)for(let x=14;x<960;x+=47)rect(x+(y%2)*12,y,3,3,'#cdd8be');rect(55,66,850,545,'#a58f71');rect(49,54,862,537,'#6f7760');rect(58,62,844,522,lifeThemes[roomPrefs.theme].floor);rect(66,70,828,110,lifeThemes[roomPrefs.theme].wall);rect(66,171,828,12,'#a79776');for(let x=68;x<894;x+=67){rect(x,184,1,389,'#cdb68e');for(let y=185;y<580;y+=32)rect(x,y,Math.min(65,894-x),1,'#d4bd96');}rect(66,183,828,5,'#b29b77');rect(66,574,828,10,'#9b8366');rect(66,70,7,504,'#b49f7d');rect(887,70,7,504,'#b49f7d');
+function drawDreamRoom3D(t){
+ const poly=(points,color)=>{ctx.fillStyle=color;ctx.beginPath();ctx.moveTo(points[0][0],points[0][1]);for(const p of points.slice(1))ctx.lineTo(p[0],p[1]);ctx.closePath();ctx.fill();};
+ const cube=(x,y,w,h,d,top,front,side)=>{poly([[x,y],[x+w,y-h*.48],[x+w+d,y-h*.48+d*.45],[x+d,y+d*.45]],top);poly([[x+d,y+d*.45],[x+w+d,y-h*.48+d*.45],[x+w+d,y-h*.48+d*.45+h],[x+d,y+d*.45+h]],front);poly([[x,y],[x+d,y+d*.45],[x+d,y+d*.45+h],[x,y+h]],side);};
+ ctx.clearRect(0,0,960,650);const sky=ctx.createLinearGradient(0,0,0,650);sky.addColorStop(0,'#c8dfe8');sky.addColorStop(1,'#f3dfc7');ctx.fillStyle=sky;ctx.fillRect(0,0,960,650);
+ // Isometric shell: two tall walls and a sunlit oak floor.
+ poly([[92,292],[480,96],[868,292],[480,590]],'#d6b78d');poly([[92,292],[480,96],[480,300],[92,494]],'#eee4d3');poly([[480,96],[868,292],[868,494],[480,300]],'#e4d5c2');poly([[92,494],[480,300],[868,494],[480,620]],'#cda36f');
+ for(let i=0;i<8;i++)poly([[112+i*46,485-i*23],[132+i*46,475-i*23],[520+i*43,537-i*4],[500+i*43,545-i*4]],i%2?'#d8b27e':'#c99b65');
+ // Floor-to-ceiling windows and warm evening light.
+ poly([[180,250],[345,167],[345,286],[180,369]],'#7595a0');poly([[191,252],[335,180],[335,274],[191,346]],'#d8edf0');ctx.strokeStyle='#f6ebd4';ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(263,211);ctx.lineTo(263,317);ctx.moveTo(187,299);ctx.lineTo(338,224);ctx.stroke();
+ ctx.fillStyle='#fff3bd45';ctx.beginPath();ctx.ellipse(368,386,160,62,-.3,0,Math.PI*2);ctx.fill();
+ // Loft platform, stairs, sofa, table and a built-in library.
+ cube(520,218,245,18,42,'#d8b77d','#a87a4e','#8d6546');for(let i=0;i<7;i++)cube(500+i*22,300+i*14,52,9,18,'#ead0a5','#b88a61','#916749');
+ cube(550,420,190,62,42,'#cbb99d','#8d8c78','#74745f');cube(566,395,158,39,34,'#eee0ca','#bba98c','#998a72');cube(635,506,92,28,30,'#d5b47d','#a77950','#8b6346');
+ cube(265,424,110,66,28,'#e8d4b4','#ad8460','#8f6a50');cube(284,394,76,34,24,'#faf1df','#c5a982','#9f805f');
+ cube(715,270,92,128,24,'#b18a62','#795f48','#614b3b');for(let row=0;row<3;row++)for(let i=0;i<5;i++)cube(730+i*12,290+row*34,8,24,3,['#78907b','#b77868','#d1b572','#758b96'][i%4],'#6c5948','#554638');
+ // Door back to the present room.
+ poly([[800,238],[854,265],[854,391],[800,364]],'#6e513f');poly([[807,248],[846,268],[846,373],[807,353]],'#c49d76');ctx.fillStyle='#f2d89a';ctx.beginPath();ctx.arc(837,322,4,0,Math.PI*2);ctx.fill();label('지금의 방',828,414);
+ // The same avatar, placed on the isometric floor.
+ const px=190+(player.x-82)/788*570,py=385+(player.y-195)/370*155,bob=Math.sin(t/850)*1.4;ctx.save();ctx.translate(px,py+bob);ctx.fillStyle='#66554428';ctx.beginPath();ctx.ellipse(0,30,20,7,0,0,Math.PI*2);ctx.fill();ctx.fillStyle=roomPrefs.outfit;ctx.beginPath();ctx.roundRect(-13,1,26,27,9);ctx.fill();ctx.fillStyle=roomPrefs.hair;ctx.beginPath();ctx.arc(0,-12,19,0,Math.PI*2);ctx.fill();ctx.fillStyle='#efc7a9';ctx.beginPath();ctx.arc(0,-10,13,0,Math.PI*2);ctx.fill();ctx.fillStyle='#3f382f';ctx.beginPath();ctx.arc(-5,-11,2.2,0,Math.PI*2);ctx.arc(5,-11,2.2,0,Math.PI*2);ctx.fill();ctx.fillStyle='white';ctx.beginPath();ctx.arc(-5.7,-12,0.8,0,Math.PI*2);ctx.arc(4.3,-12,0.8,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#a46f65';ctx.beginPath();ctx.arc(0,-6,3,0,Math.PI);ctx.stroke();ctx.fillStyle='#e6a2a080';ctx.beginPath();ctx.ellipse(-8,-5,3,1.6,0,0,Math.PI*2);ctx.ellipse(8,-5,3,1.6,0,0,Math.PI*2);ctx.fill();ctx.restore();
+ label('3D DREAM LOFT',480,645);$('#room-status').textContent='입체로 펼쳐진 나의 꿈의 집 · 오른쪽 문을 눌러 돌아가기';
+}
+function drawRoom(t){if(roomPrefs.activeSpace==='dream'){drawDreamRoom3D(t);return;}ctx.clearRect(0,0,960,650);rect(0,0,960,650,'#dce4cf');for(let y=25;y<650;y+=43)for(let x=14;x<960;x+=47)rect(x+(y%2)*12,y,3,3,'#cdd8be');rect(55,66,850,545,'#a58f71');rect(49,54,862,537,'#6f7760');rect(58,62,844,522,lifeThemes[roomPrefs.theme].floor);rect(66,70,828,110,lifeThemes[roomPrefs.theme].wall);rect(66,171,828,12,'#a79776');for(let x=68;x<894;x+=67){rect(x,184,1,389,'#cdb68e');for(let y=185;y<580;y+=32)rect(x,y,Math.min(65,894-x),1,'#d4bd96');}rect(66,183,828,5,'#b29b77');rect(66,574,828,10,'#9b8366');rect(66,70,7,504,'#b49f7d');rect(887,70,7,504,'#b49f7d');
 // Window, curtains and a patch of sunlight.
 rect(445,87,139,83,'#8b8f72');rect(452,94,125,69,'#b9d9d1');rect(457,99,52,27,'#d7e9d6');rect(518,99,52,27,'#d7e9d6');rect(510,94,7,69,'#f3e7c9');rect(452,127,125,6,'#f3e7c9');rect(431,83,18,95,'#e9ddbd');rect(580,83,18,95,'#e9ddbd');rect(440,171,150,8,'#a88b64');ctx.fillStyle='#fff0bc30';ctx.beginPath();ctx.moveTo(454,182);ctx.lineTo(570,182);ctx.lineTo(666,380);ctx.lineTo(457,380);ctx.fill();
 // A doorway between the present room and the dream home.
@@ -237,5 +258,5 @@ diaryTransfer=async function(r){const endpoint=localStorage.getItem(lifeKey('dia
 
 if('serviceWorker' in navigator&&location.protocol!=='file:')navigator.serviceWorker.register('./sw.js').catch(()=>{});
 </script>
-<script src="./enhancements.js?v=4"></script>
+<script src="./enhancements.js?v=5"></script>
 </body></html>
