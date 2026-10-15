@@ -99,7 +99,7 @@ const originalRoomSave=lifeRoomSave;
 lifeRoomSave=function(){syncRoomSpace();originalRoomSave();};
 window.roomSpaceButtons=roomSpaceButtons;
 roomSpaceButtons();
-canvas.addEventListener('click',e=>{const r=canvas.getBoundingClientRect(),x=(e.clientX-r.left)*960/r.width,y=(e.clientY-r.top)*650/r.height,isDream=roomPrefs.activeSpace==='dream',onDoor=x>=790&&x<=875&&(isDream?y>=225&&y<=425:y>=70&&y<=205);if(onDoor){e.stopImmediatePropagation();travelRoom(isDream?'current':'dream');}},true);
+canvas.addEventListener('click',e=>{const r=canvas.getBoundingClientRect(),x=(e.clientX-r.left)*960/r.width,y=(e.clientY-r.top)*650/r.height,isDream=roomPrefs.activeSpace==='dream',onDoor=isDream?(x>=92&&x<=185&&y>=145&&y<=370):(x>=790&&x<=875&&y>=70&&y<=205);if(onDoor){e.stopImmediatePropagation();travelRoom(isDream?'current':'dream');}},true);
 
 document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;b.classList.remove('soft-pop');void b.offsetWidth;b.classList.add('soft-pop');});
 lifeMenu();

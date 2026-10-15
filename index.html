@@ -70,36 +70,30 @@ function plant(x,y,s=1){ctx.save();ctx.translate(x,y);ctx.scale(s,s);const leaf=
 function label(text,x,y){ctx.font='bold 12px monospace';ctx.textAlign='center';ctx.fillStyle='#564d40';ctx.fillText(text,x,y);}
 function drawDreamRoom3D(t){
  const poly=(points,color)=>{ctx.fillStyle=color;ctx.beginPath();ctx.moveTo(points[0][0],points[0][1]);for(const p of points.slice(1))ctx.lineTo(p[0],p[1]);ctx.closePath();ctx.fill();};
- const box=(x,y,w,h,d,front='#b49572',top='#d8bf99',side='#876c54')=>{poly([[x,y],[x+w,y],[x+w-d,y-d*.48],[x+d,y-d*.48]],top);poly([[x,y],[x+w,y],[x+w,y+h],[x,y+h]],front);poly([[x+w,y],[x+w-d,y-d*.48],[x+w-d,y+h-d*.48],[x+w,y+h]],side);};
- ctx.clearRect(0,0,960,650);const sky=ctx.createLinearGradient(0,0,0,650);sky.addColorStop(0,'#d7e8ec');sky.addColorStop(1,'#f4e8d8');ctx.fillStyle=sky;ctx.fillRect(0,0,960,650);
- // One-point perspective shell: every wall and floor edge now shares the same horizon.
- const vx=480,vy=345;
- poly([[66,52],[894,52],[770,345],[190,345]],'#eadfce');
- poly([[66,52],[190,345],[190,575],[66,628]],'#f3eadc');
- poly([[894,52],[770,345],[770,575],[894,628]],'#dfd0bc');
- poly([[190,345],[770,345],[894,628],[66,628]],'#cfa873');
- // Straight oak planks, all converging cleanly toward the same vanishing point.
- ctx.strokeStyle='#b88d5c';ctx.lineWidth=2;
- for(let x=80;x<=880;x+=80){ctx.beginPath();ctx.moveTo(x,628);ctx.lineTo(vx+(x-vx)*.29,vy);ctx.stroke();}
- for(let y=382;y<628;y+=42){ctx.beginPath();ctx.moveTo(190-(y-vy)*.44,y);ctx.lineTo(770+(y-vy)*.44,y);ctx.stroke();}
- // Large centered window and a soft patch of daylight.
- rect(332,105,296,160,'#819ba2');rect(343,116,274,138,'#d8edf1');ctx.strokeStyle='#f6eddb';ctx.lineWidth=8;ctx.beginPath();ctx.moveTo(480,116);ctx.lineTo(480,254);ctx.moveTo(343,185);ctx.lineTo(617,185);ctx.stroke();
- ctx.fillStyle='#fff1b845';ctx.beginPath();ctx.moveTo(350,255);ctx.lineTo(610,255);ctx.lineTo(735,518);ctx.lineTo(250,518);ctx.closePath();ctx.fill();
- // Calm lounge on the left: sofa, rug and low table stay out of the walking path.
- poly([[210,470],[450,470],[493,555],[165,555]],'#b8c0a5');
- box(190,430,205,62,28,'#9aa58d','#d9d2bf','#78836f');box(212,393,76,46,20,'#d9d0bb','#eee7d7','#aaa18d');box(300,393,76,46,20,'#d9d0bb','#eee7d7','#aaa18d');
- box(285,510,118,25,22,'#ad8057','#d8b17c','#876044');
- // Slim work desk beneath the window.
- box(410,303,155,20,20,'#a67d59','#d9b989','#806047');rect(425,323,8,63,'#795b45');rect(542,323,8,63,'#795b45');rect(452,270,72,35,'#5e6e69');rect(458,276,60,24,'#d9e7dc');
- // Built-in reading wall and balanced stairway on the right.
- box(666,235,88,205,18,'#80664f','#bb9870','#634d3d');for(let row=0;row<4;row++){rect(678,258+row*40,61,5,'#5f4939');for(let i=0;i<5;i++)rect(681+i*12,235+row*40,8,22-(i%2)*4,['#748b7a','#b77a6a','#d1b676','#718994'][i%4]);}
- for(let i=0;i<7;i++){const sx=580+i*16,sy=430-i*20;box(sx,sy,72,11,14,'#a87a52','#e1c498','#805b42');}
- poly([[572,442],[690,294],[700,299],[582,449]],'#75533d');
- // Door back to the present room, set flush into the right wall.
- poly([[797,207],[856,166],[856,405],[797,386]],'#6e513f');poly([[805,215],[846,187],[846,389],[805,376]],'#c49d76');ctx.fillStyle='#f2d89a';ctx.beginPath();ctx.arc(835,305,4,0,Math.PI*2);ctx.fill();label('지금의 방',827,424);
- // The same avatar, placed on the isometric floor.
- const px=190+(player.x-82)/788*570,py=385+(player.y-195)/370*155,bob=Math.sin(t/850)*1.4;ctx.save();ctx.translate(px,py+bob);ctx.fillStyle='#66554428';ctx.beginPath();ctx.ellipse(0,30,20,7,0,0,Math.PI*2);ctx.fill();ctx.fillStyle=roomPrefs.outfit;ctx.beginPath();ctx.roundRect(-13,1,26,27,9);ctx.fill();ctx.fillStyle=roomPrefs.hair;ctx.beginPath();ctx.arc(0,-12,19,0,Math.PI*2);ctx.fill();ctx.fillStyle='#efc7a9';ctx.beginPath();ctx.arc(0,-10,13,0,Math.PI*2);ctx.fill();ctx.fillStyle='#3f382f';ctx.beginPath();ctx.arc(-5,-11,2.2,0,Math.PI*2);ctx.arc(5,-11,2.2,0,Math.PI*2);ctx.fill();ctx.fillStyle='white';ctx.beginPath();ctx.arc(-5.7,-12,0.8,0,Math.PI*2);ctx.arc(4.3,-12,0.8,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#a46f65';ctx.beginPath();ctx.arc(0,-6,3,0,Math.PI);ctx.stroke();ctx.fillStyle='#e6a2a080';ctx.beginPath();ctx.ellipse(-8,-5,3,1.6,0,0,Math.PI*2);ctx.ellipse(8,-5,3,1.6,0,0,Math.PI*2);ctx.fill();ctx.restore();
- label('3D DREAM LOFT',480,645);$('#room-status').textContent='반듯하게 정돈된 나의 3D 꿈의 집 · 오른쪽 문을 눌러 돌아가기';
+ const box=(x,y,w,h,d,front='#b49572',top='#d8bf99',side='#876c54')=>{poly([[x,y],[x+w,y],[x+w-d,y-d*.42],[x+d,y-d*.42]],top);poly([[x,y],[x+w,y],[x+w,y+h],[x,y+h]],front);poly([[x+w,y],[x+w-d,y-d*.42],[x+w-d,y+h-d*.42],[x+w,y+h]],side);};
+ ctx.clearRect(0,0,960,650);const sky=ctx.createLinearGradient(0,0,0,650);sky.addColorStop(0,'#dbecef');sky.addColorStop(1,'#f6eadb');ctx.fillStyle=sky;ctx.fillRect(0,0,960,650);
+ // A straight dollhouse shell: level back wall, level floor seam, symmetrical side walls.
+ rect(82,58,796,286,'#eee4d5');poly([[82,58],[126,92],[126,344],[82,392]],'#f8efe2');poly([[878,58],[834,92],[834,344],[878,392]],'#dfcfbc');poly([[126,344],[834,344],[898,615],[62,615]],'#d2aa76');
+ ctx.strokeStyle='#ba8d5d';ctx.lineWidth=2;for(let x=82;x<=878;x+=82){ctx.beginPath();ctx.moveTo(x,615);ctx.lineTo(480+(x-480)*.44,344);ctx.stroke();}for(let y=383;y<615;y+=44){const spread=(y-344)*.24;ctx.beginPath();ctx.moveTo(126-spread,y);ctx.lineTo(834+spread,y);ctx.stroke();}
+ // Window and loft are centered, leaving both activity zones balanced.
+ rect(332,96,296,168,'#7c969e');rect(343,107,274,146,'#d8edf1');ctx.strokeStyle='#fff5e2';ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(480,107);ctx.lineTo(480,253);ctx.moveTo(343,180);ctx.lineTo(617,180);ctx.stroke();
+ ctx.fillStyle='#fff0b638';ctx.beginPath();ctx.moveTo(350,264);ctx.lineTo(610,264);ctx.lineTo(726,512);ctx.lineTo(248,512);ctx.closePath();ctx.fill();
+ box(600,286,184,18,24,'#a77b50','#dfbd85','#805c40');rect(624,232,8,54,'#77563e');rect(752,232,8,54,'#77563e');rect(630,229,124,8,'#886548');
+ // Left lounge: compact sofa and round table on a single rug.
+ poly([[145,450],[410,450],[448,566],[112,566]],'#aeb99d');box(150,430,222,65,26,'#8f9d87','#d8d1be','#707c69');box(174,395,82,45,18,'#d9d1be','#f1eadb','#aaa18d');box(266,395,82,45,18,'#d9d1be','#f1eadb','#aaa18d');
+ ctx.fillStyle='#d2aa78';ctx.beginPath();ctx.ellipse(333,520,58,23,0,0,Math.PI*2);ctx.fill();rect(327,520,12,34,'#936b49');
+ // Right reading/work wall: desk, books and a clean staircase.
+ box(592,402,160,25,22,'#a57b57','#d9b889','#7d5d45');rect(610,427,9,60,'#775842');rect(728,427,9,60,'#775842');rect(632,360,76,43,'#5e6d69');rect(639,367,62,29,'#d9e8dd');
+ box(742,190,72,193,16,'#80664f','#b8946d','#624c3c');for(let r=0;r<4;r++){rect(752,219+r*39,48,4,'#594637');for(let i=0;i<4;i++)rect(754+i*11,198+r*39,7,20-(i%2)*3,['#718a7b','#b97868','#d2b777','#718996'][i%4]);}
+ for(let i=0;i<6;i++)box(470+i*20,430-i*22,82,10,14,'#a67a52','#e1c398','#805b42');poly([[461,443],[590,300],[599,305],[470,451]],'#74523c');
+ // Door back to the present room.
+ rect(103,154,73,190,'#70513e');rect(112,164,55,180,'#c69f78');ctx.fillStyle='#f1d594';ctx.beginPath();ctx.arc(155,257,4,0,Math.PI*2);ctx.fill();label('지금의 방',140,368);
+ // Larger, softer avatar with rounded bob hair, lashes and a ribboned dress.
+ const px=120+(player.x-82)/788*720,py=375+(player.y-195)/370*185,moving=keys.size>0,bob=moving?Math.sin(walk*13)*2:Math.sin(t/900)*.6;ctx.save();ctx.translate(px,py+bob);ctx.fillStyle='#68533e24';ctx.beginPath();ctx.ellipse(0,39,23,7,0,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle=roomPrefs.hair;ctx.beginPath();ctx.arc(0,-12,23,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(18,-22,9,0,Math.PI*2);ctx.fill();ctx.fillStyle='#e9bfa2';ctx.beginPath();ctx.ellipse(0,-10,16,18,0,0,Math.PI*2);ctx.fill();ctx.fillStyle=roomPrefs.hair;ctx.beginPath();ctx.arc(0,-23,18,Math.PI,Math.PI*2);ctx.fill();ctx.beginPath();ctx.ellipse(-16,-8,5,13,-.2,0,Math.PI*2);ctx.ellipse(16,-8,5,13,.2,0,Math.PI*2);ctx.fill();
+ ctx.strokeStyle='#433830';ctx.lineWidth=1.3;ctx.beginPath();ctx.arc(-6,-10,3.2,.15,Math.PI-.15);ctx.arc(6,-10,3.2,.15,Math.PI-.15);ctx.stroke();ctx.fillStyle='#e89fa080';ctx.beginPath();ctx.ellipse(-10,-4,4,2,0,0,Math.PI*2);ctx.ellipse(10,-4,4,2,0,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#a36d66';ctx.beginPath();ctx.arc(0,-3,3.8,.1,Math.PI-.1);ctx.stroke();
+ ctx.fillStyle='#f4d6c2';ctx.beginPath();ctx.roundRect(-4,5,8,8,3);ctx.fill();ctx.fillStyle=roomPrefs.outfit;ctx.beginPath();ctx.moveTo(-13,8);ctx.quadraticCurveTo(0,1,13,8);ctx.lineTo(19,33);ctx.quadraticCurveTo(0,39,-19,33);ctx.closePath();ctx.fill();ctx.fillStyle='#fff0df';ctx.beginPath();ctx.moveTo(-7,7);ctx.lineTo(0,14);ctx.lineTo(7,7);ctx.lineTo(0,11);ctx.closePath();ctx.fill();ctx.fillStyle='#d99a94';ctx.beginPath();ctx.arc(0,14,3,0,Math.PI*2);ctx.fill();ctx.fillStyle='#6f746b';ctx.beginPath();ctx.ellipse(-7,38,6,3,0,0,Math.PI*2);ctx.ellipse(7,38,6,3,0,0,Math.PI*2);ctx.fill();ctx.restore();
+ label('3D DREAM HOUSE',480,645);$('#room-status').textContent=moving?'꿈의 집을 산책하는 중 · 방향키나 W A S D로 이동':'움직일 수 있는 나의 3D 꿈의 집 · 방향키나 W A S D로 산책';
 }
 function drawRoom(t){if(roomPrefs.activeSpace==='dream'){drawDreamRoom3D(t);return;}ctx.clearRect(0,0,960,650);rect(0,0,960,650,'#dce4cf');for(let y=25;y<650;y+=43)for(let x=14;x<960;x+=47)rect(x+(y%2)*12,y,3,3,'#cdd8be');rect(55,66,850,545,'#a58f71');rect(49,54,862,537,'#6f7760');rect(58,62,844,522,lifeThemes[roomPrefs.theme].floor);rect(66,70,828,110,lifeThemes[roomPrefs.theme].wall);rect(66,171,828,12,'#a79776');for(let x=68;x<894;x+=67){rect(x,184,1,389,'#cdb68e');for(let y=185;y<580;y+=32)rect(x,y,Math.min(65,894-x),1,'#d4bd96');}rect(66,183,828,5,'#b29b77');rect(66,574,828,10,'#9b8366');rect(66,70,7,504,'#b49f7d');rect(887,70,7,504,'#b49f7d');
 // Window, curtains and a patch of sunlight.
@@ -145,7 +139,7 @@ if(posture==='sit'||posture==='desk'){oval(2,19,11,4,'#7c8c7a');oval(10,24,4,7,'
 ctx.fillStyle='#f9f4e6';ctx.fillRect(x-18,y-43,38,14);label(posture==='lie'?'REST':'ME',x+1,y-32);$('#room-status').textContent=posture!=='stand'?'쉬는 중 · 방향키로 일어나기':nearest?`${nearest.label} · E 키로 열기`:'햇살이 들어오는 작은 운영실';}
 function getNearest(){let best=null,dist=95;for(const o of objects){const dx=Math.max(o.x-player.x,0,player.x-(o.x+o.w)),dy=Math.max(o.y-player.y,0,player.y-(o.y+o.h)),d=Math.hypot(dx,dy);if(d<dist){best=o;dist=d;}}return best;}
 function blocked(x,y){return objects.some(o=>x>o.x-10&&x<o.x+o.w+10&&y>o.y-5&&y<o.y+o.h+12);}
-function move(dx,dy,dt){if(!dx&&!dy)return;if(posture!=='stand')standUp();const nx=Math.min(870,Math.max(82,player.x+dx*dt*245)),ny=Math.min(565,Math.max(195,player.y+dy*dt*245));if(!blocked(nx,player.y))player.x=nx;if(!blocked(player.x,ny))player.y=ny;walk+=dt;}
+function move(dx,dy,dt){if(!dx&&!dy)return;if(posture!=='stand')standUp();const nx=Math.min(870,Math.max(82,player.x+dx*dt*245)),ny=Math.min(565,Math.max(195,player.y+dy*dt*245));if(roomPrefs.activeSpace==='dream'){player.x=nx;player.y=ny;}else{if(!blocked(nx,player.y))player.x=nx;if(!blocked(player.x,ny))player.y=ny;}walk+=dt;}
 function frame(t){const dt=Math.min((t-last)/1000||0,.04);last=t;if(!$('#panel').open&&!lifeDialog.open&&!roomEditing&&lifePage==='room'){let dx=(keys.has('arrowright')||keys.has('d')?1:0)-(keys.has('arrowleft')||keys.has('a')?1:0),dy=(keys.has('arrowdown')||keys.has('s')?1:0)-(keys.has('arrowup')||keys.has('w')?1:0);if(dx&&dy){dx/=Math.SQRT2;dy/=Math.SQRT2;}move(dx,dy,dt);}if(Date.now()>mongle.until){const tx=player.x+45,ty=Math.min(550,player.y+28),dx=tx-mongle.x,dy=ty-mongle.y,d=Math.hypot(dx,dy);mongle.row=0;if(d>55&&posture==='stand'&&!$('#panel').open&&!lifeDialog.open&&!roomEditing&&lifePage==='room'){const step=Math.min(d-45,dt*175),nx=Math.max(85,Math.min(870,mongle.x+dx/d*step)),ny=Math.max(200,Math.min(560,mongle.y+dy/d*step));if(!blocked(nx,mongle.y))mongle.x=nx;if(!blocked(mongle.x,ny))mongle.y=ny;mongle.row=dx>=0?1:2;}}drawRoom(t);requestAnimationFrame(frame);}
 canvas.addEventListener('keydown',e=>{const k=e.key.toLowerCase();if(['arrowup','arrowdown','arrowleft','arrowright','w','a','s','d'].includes(k)){e.preventDefault();if(posture!=='stand')standUp();keys.add(k);}if(['e','enter'].includes(k)){e.preventDefault();const o=getNearest();if(o)openPanel(o.id);}});window.addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));window.addEventListener('blur',()=>keys.clear());canvas.addEventListener('blur',()=>keys.clear());
 function hit(e){const r=canvas.getBoundingClientRect(),x=(e.clientX-r.left)*960/r.width,y=(e.clientY-r.top)*650/r.height;return objects.find(o=>x>=o.x&&x<=o.x+o.w&&y>=o.y&&y<=o.y+o.h);}
@@ -270,5 +264,5 @@ diaryTransfer=async function(r){const endpoint=localStorage.getItem(lifeKey('dia
 
 if('serviceWorker' in navigator&&location.protocol!=='file:')navigator.serviceWorker.register('./sw.js').catch(()=>{});
 </script>
-<script src="./enhancements.js?v=6"></script>
+<script src="./enhancements.js?v=7"></script>
 </body></html>
