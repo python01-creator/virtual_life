@@ -329,6 +329,17 @@ if('serviceWorker' in navigator&&location.protocol!=='file:')navigator.serviceWo
 </script>
 
 <script>
+</script>
+
+
+
+
+
+
+<script>
+</script>
+
+<script>
 /* PLACE_ROOMS_V1 */
 window.placeRoomsReady=(async()=>{
  'use strict';
@@ -346,7 +357,7 @@ window.placeRoomsReady=(async()=>{
  function applyRoom(){const p=place();roomPrefs={...roomPrefs,theme:p.theme,layout:clone(p.layout||{}),activeSpace:'present'};roomApplyLayout();standUp();player.x=465;player.y=390;document.querySelector('main h1').textContent=p.name+'에서, 내 속도로.';badge.textContent='📍 '+p.name;window.dispatchEvent(new CustomEvent('life-place-changed',{detail:{id:p.id,name:p.name,kind:p.kind||(p.id==='work'?'office':p.id==='home'?'home':'other')}}));}
  function select(id,automatic=false,fix=null){if(id===data.active)return;if(!data.places.some(p=>p.id===id))return;
  if(!update(next=>{const old=next.places.find(p=>p.id===next.active);if(old)old.layout=clone(roomPrefs.layout||{});next.active=id;log(next,automatic?'위치로 도착 확인':'방 직접 선택',null,automatic&&next.capture?fix:null);}))return;applyRoom();status=automatic?place().name+'에 도착한 것으로 확인했어요.':'직접 고른 방이에요. GPS 확인 기록은 남기지 않았어요.';render();toast(status);}
- window.placeRooms={current:()=>{const p=place();return {id:p.id,name:p.name,kind:p.kind||(p.id==='work'?'office':p.id==='home'?'home':'other')};},select:id=>select(id)};
+ window.placeRooms={current:()=>{const p=place();return {id:p.id,name:p.name,kind:p.kind||(p.id==='work'?'office':p.id==='home'?'home':'other')};},select:id=>select(id),enableAuto:()=>{if(update(n=>n.auto=true)){epoch++;locate();}},check:()=>locate()};
  const badge=document.createElement('button');badge.className='ghost';badge.textContent='📍 장소별 방';badge.onclick=show;document.querySelector('.header-right').append(badge);
  const nav=document.createElement('button');nav.textContent='📍 장소·할 일';nav.onclick=show;document.querySelector('.life-nav')?.append(nav);
  const dialog=document.createElement('dialog');dialog.id='place-dialog';dialog.setAttribute('aria-label','장소별 방과 일정');document.body.append(dialog);dialog.addEventListener('close',()=>panelOpen=false);
@@ -369,7 +380,7 @@ window.placeRoomsReady=(async()=>{
  function editTask(t){dialog.innerHTML=`<button class="close" id="task-back">×</button><h2>${t?'일정 수정':'이 방의 새 일정'}</h2><form id="place-task-form"><label>할 일<input name="title" required maxlength="160" value="${escape(t?.title||'')}"></label><label>언제<input name="when" type="datetime-local" value="${escape(t?.when||'')}"></label><label>안내·준비물<textarea name="note" maxlength="3000">${escape(t?.note||'')}</textarea></label><p class="place-note">앱이 열려 있을 때 예정 시간 15분 전부터 안내해요.</p><button class="primary">일정 저장</button></form>`;dialog.querySelector('#task-back').onclick=render;dialog.querySelector('form').onsubmit=e=>{e.preventDefault();const f=new FormData(e.target),title=f.get('title').trim();if(!title)return;const when=f.get('when');if(when&&!Number.isFinite(new Date(when).getTime()))return;if(update(n=>{const item={id:t?.id||uid(),placeId:t?.placeId||n.active,title,when,note:f.get('note'),state:t?.state||'todo'};const index=n.tasks.findIndex(x=>x.id===item.id);if(index<0){n.tasks.push(item);log(n,'일정 등록',item);}else n.tasks[index]=item;}))render();};}
  function position(){return new Promise((resolve,reject)=>{if(!navigator.geolocation){reject(Error('이 브라우저는 위치 확인을 지원하지 않아요. 방을 직접 선택해 주세요.'));return;}navigator.geolocation.getCurrentPosition(p=>resolve({lat:p.coords.latitude,lng:p.coords.longitude,accuracy:p.coords.accuracy,at:new Date(p.timestamp).toISOString()}),e=>reject(Error(e.code===1?'위치 권한이 꺼져 있어요. 방은 직접 선택할 수 있어요.':e.code===3?'위치 확인 시간이 길어졌어요. 다시 시도해 주세요.':'현재 위치를 확인하지 못했어요.')), {enableHighAccuracy:true,timeout:12000,maximumAge:0});});}
  function distance(a,b){const rad=x=>x*Math.PI/180,dLat=rad(b.lat-a.lat),dLng=rad(b.lng-a.lng),v=Math.sin(dLat/2)**2+Math.cos(rad(a.lat))*Math.cos(rad(b.lat))*Math.sin(dLng/2)**2;return 6371000*2*Math.atan2(Math.sqrt(v),Math.sqrt(1-v));}
- async function locate(){if(gpsBusy)return;gpsBusy=true;lastCheck=Date.now();const run=epoch;status='현재 위치를 확인하고 있어요…';render();try{const fix=await position();if(run!==epoch||document.hidden)return;lastFix=fix;const matches=data.places.filter(p=>p.point&&distance(fix,p.point)+fix.accuracy<=p.radius);if(matches.length===1){select(matches[0].id,true,fix);status=matches[0].name+' 위치 확인 · 정확도 약 '+Math.round(fix.accuracy)+'m';}else status=matches.length>1?'등록한 장소가 겹쳐요. 방을 직접 골라 주세요.':'위치 오차가 크거나 등록 장소 밖이에요. 방을 직접 선택해 주세요.';}catch(e){status=e.message;}finally{gpsBusy=false;render();}}
+ async function locate(){if(gpsBusy)return;gpsBusy=true;lastCheck=Date.now();const run=epoch;status='현재 위치를 확인하고 있어요…';render();try{const fix=await position();if(run!==epoch||document.hidden)return;lastFix=fix;const matches=data.places.filter(p=>p.point&&distance(fix,p.point)+fix.accuracy<=p.radius);if(matches.length===1){select(matches[0].id,true,fix);window.dispatchEvent(new CustomEvent('life-location-confirmed',{detail:{id:matches[0].id,kind:matches[0].kind||(matches[0].id==='work'?'office':matches[0].id==='home'?'home':'other'),at:Date.now()}}));status=matches[0].name+' 위치 확인 · 정확도 약 '+Math.round(fix.accuracy)+'m';}else status=matches.length>1?'등록한 장소가 겹쳐요. 방을 직접 골라 주세요.':'위치 오차가 크거나 등록 장소 밖이에요. 방을 직접 선택해 주세요.';}catch(e){status=e.message;}finally{gpsBusy=false;render();}}
  async function changeTask(id,state){const t=data.tasks.find(x=>x.id===id);if(!t||t.state===state)return;const targetPlace=t.placeId;let fix=null;
  if(data.capture&&(state==='doing'||state==='done')){status='진행 상태와 함께 현재 위치를 확인하고 있어요…';render();try{fix=await position();}catch(e){status=e.message+' 진행 상태는 GPS 없이 기록해요.';}}
  if(!data.capture)fix=null;
@@ -378,15 +389,11 @@ window.placeRoomsReady=(async()=>{
  const saveRoom=lifeRoomSave;lifeRoomSave=function(){update(n=>{const p=n.places.find(x=>x.id===n.active);if(p){p.layout=clone(roomPrefs.layout||{});p.theme=roomPrefs.theme;}});return saveRoom();};
  // Returning to the app checks once, never requests location when the setting is off.
  document.addEventListener('visibilitychange',()=>{if(document.hidden){epoch++;return;}if(data.auto&&Date.now()-lastCheck>60000)locate();reminders();});
- window.addEventListener('pagehide',()=>epoch++);setInterval(reminders,30000);applyRoom();if(data.auto)locate();reminders();
+ window.addEventListener('pagehide',()=>epoch++);setInterval(()=>{reminders();if(data.auto&&!document.hidden&&Date.now()-lastCheck>60000)locate();},30000);applyRoom();if(data.auto)locate();reminders();
  const style=document.createElement('style');style.textContent='#place-dialog{width:min(680px,94vw);max-height:90vh;padding:30px;border:1px solid #d7ddce;border-radius:22px;background:#faf8f2;color:#3e4b39;overflow:auto}#place-dialog::backdrop{background:#28312677}.place-tabs,.place-heading{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between}.place-tabs{justify-content:flex-start}.place-tabs .selected{background:#536e4d;color:white}.place-status,.place-note{font-size:12px;line-height:1.8;color:#748069}.place-option{display:flex!important;align-items:center;gap:8px;margin:12px 0;font-size:13px}.place-notice{padding:15px;background:#eaf0e2;border-radius:14px;margin:20px 0}.place-notice p,.place-task p{font-size:13px;line-height:1.8;overflow-wrap:anywhere}.place-task{border:1px solid #d9ddcf;border-radius:14px;padding:16px;margin:12px 0}.place-task.due{border-color:#b08e54;background:#fbf2dc}.place-task h4{margin:8px 0}.place-task small,.place-log small{font-size:11px;color:#7b856e}.place-log{padding:12px 0;border-bottom:1px solid #ddd}.place-empty{padding:20px;background:#eeeee5;border-radius:12px;font-size:13px}#place-dialog .actions{display:flex;flex-wrap:wrap;gap:8px}#place-dialog form>label{display:block;margin:16px 0;font-size:13px}#place-dialog form input:not([type=checkbox]),#place-dialog textarea,#place-dialog select{display:block;width:100%;padding:12px;border:1px solid #d6dccd;border-radius:10px;background:white;color:inherit;margin-top:7px;box-sizing:border-box}#place-dialog textarea{min-height:90px}#place-dialog .close{position:sticky;float:right;top:0}#place-dialog fieldset{border:1px solid #ddd;border-radius:12px}';document.head.append(style);
 })();
 
 </script>
-
-
-
-
 
 <script>
 /* WORK_TIME_CORE_V1 */
@@ -411,20 +418,20 @@ window.placeRoomsReady=(async()=>{
 (async()=>{
  if(window.lifeCloud){try{await window.lifeCloud.ready;await window.lifeAppReady;}catch{return;}}await window.placeRoomsReady;
  const C=window.WorkTimeCore,user=window.lifeCloud?(await window.lifeCloud.ready).id:'local',key='life-workday-v1:'+user+':'+lifeHome.id;
- const empty=()=>({version:1,rows:[],active:null,personal:false,mode:'office',log:[]}),copy=x=>JSON.parse(JSON.stringify(x));let data=empty(),message='',route=null,office=false;
+ const empty=()=>({version:1,rows:[],active:null,autoStart:false,autoHold:false,personal:false,mode:'office',log:[]}),copy=x=>JSON.parse(JSON.stringify(x));let data=empty(),message='',route=null,office=false;
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  function read(){try{const x=JSON.parse(localStorage.getItem(key));if(x?.version===1&&Array.isArray(x.rows)&&Array.isArray(x.log))data=x;}catch{}}
  function write(next){try{localStorage.setItem(key,JSON.stringify(next));data=next;return true;}catch{toast('근무 기록을 저장하지 못했어요. 저장 공간을 확인해 주세요.');return false;}}
  function record(n,type,mode){n.log.unshift({at:Date.now(),type,mode});}
  const fmt=ms=>{const mins=Math.floor(Math.max(0,ms)/60000);return Math.floor(mins/60)+'시간 '+mins%60+'분';};
  function stats(){return C.stats(data.rows,data.active,Date.now());}
- function stop(reason='근무 종료'){read();if(!data.active)return;const n=copy(data),a=n.active;n.rows.push({...a,end:Math.max(a.start,Math.min(Date.now(),a.stopAt))});n.active=null;record(n,reason,a.mode);if(write(n)){route=null;standUp();message=reason+' · 기록을 저장했어요.';render();}}
- function start(mode){read();if(data.active){message='진행 중인 근무를 먼저 쉬거나 종료해 주세요.';render();return;}const now=Date.now(),reason=dialog.querySelector('[name=exception]')?.value.trim()||'',personal=data.personal===true,problem=personal?C.policy(now,mode,!!reason):'';
+ function stop(reason='근무 종료'){read();if(!data.active)return;const n=copy(data),a=n.active;n.rows.push({...a,end:Math.max(a.start,Math.min(Date.now(),a.stopAt))});n.active=null;n.autoHold=true;n.holdDate=C.dateKey(Date.now());record(n,reason,a.mode);if(write(n)){route=null;standUp();message=reason+' · 기록을 저장했어요.';render();}}
+ function start(mode,automatic=false){read();if(data.active){message='진행 중인 근무를 먼저 쉬거나 종료해 주세요.';render();return;}const now=Date.now(),reason=automatic?'':dialog.querySelector('[name=exception]')?.value.trim()||'',personal=data.personal===true,problem=personal?C.policy(now,mode,!!reason):'';
  if(problem){message=problem;render();return;}if(personal&&C.inLunch(now)){message='13~14시는 휴게시간이에요. 14시부터 근무를 시작할 수 있어요.';render();return;}
  const used=stats().weekRemote;if(personal&&mode==='remote'&&used>=20*C.hour){message='이번 주 재택 20시간을 모두 사용했어요. 회사 근무로 시작해 주세요.';render();return;}
  let end=personal?C.cutoff(now,mode,!!reason):Number.MAX_SAFE_INTEGER;
  if(personal&&mode==='remote'){const remaining=20*C.hour-used;let lo=now,hi=end;if(C.effective(now,hi)>remaining){for(let i=0;i<45;i++){const mid=(lo+hi)/2;if(C.effective(now,mid)>remaining)hi=mid;else lo=mid;}end=Math.floor(lo);}}
- const n=copy(data);n.mode=mode;n.active={id:crypto.randomUUID(),start:now,mode,personal,stopAt:end,exception:personal?reason:''};record(n,'근무 시작',mode);if(!write(n))return;message=personal?(mode==='remote'?'재택':'회사')+' 근무를 시작했어요.':'근무를 시작했어요.';if(office)walkToDesk();else if(mode==='remote')pose('desk');render();}
+ const n=copy(data);n.mode=mode;n.autoHold=false;n.active={id:crypto.randomUUID(),start:now,mode,personal,automatic,stopAt:end,exception:personal?reason:''};record(n,automatic?'회사 위치 확인 · 자동 시작':'근무 시작',mode);if(!write(n))return;message=personal?(mode==='remote'?'재택':'회사')+' 근무를 시작했어요.':'근무를 시작했어요.';if(office)walkToDesk();else if(mode==='remote')pose('desk');render();}
  const strip=document.createElement('section');strip.className='work-strip';document.querySelector('.room-wrap').before(strip);
  const dialog=document.createElement('dialog');dialog.id='workday-dialog';dialog.setAttribute('aria-label','근무 시간 관리');document.body.append(dialog);
  const button=document.createElement('button');button.className='ghost';button.textContent='◷ 근무 시간';button.onclick=show;document.querySelector('.header-right').append(button);
@@ -436,12 +443,18 @@ window.placeRoomsReady=(async()=>{
  if(dialog.open&&!force&&dialog.contains(document.activeElement)&&document.activeElement.matches("input,textarea,select"))return;
  const today=C.dateKey(now),rows=data.rows.filter(r=>C.dateKey(r.start)===today);
  const finish=a?C.finishAt(now,remaining,a.stopAt):null,eta=a?(remaining<=0?'오늘 8시간 목표를 채웠어요.':finish?'지금부터 계속 근무하면 '+new Date(finish).toLocaleTimeString('ko-KR',{timeZone:'Asia/Seoul',hour:'2-digit',minute:'2-digit'})+'에 8시간 달성':'현재 근무 가능 시간 안에는 8시간을 채우기 어려워요.'):'근무를 시작하면 휴게시간을 반영한 예상 종료 시각을 보여줘요.';
+ const expanded=Array.from(dialog.querySelectorAll('details[open]')).map(d=>d.querySelector('summary')?.textContent);
  dialog.innerHTML=`<button class="close" id="work-close" aria-label="근무창 닫기">×</button><div class="eyebrow">WORK & REST</div><h2>내 속도로 일하는 하루</h2><div class="work-metrics"><div><small>오늘 실근무</small><strong>${fmt(s.today)}</strong><span>${s.today>=8*C.hour?'오늘 목표를 채웠어요':'8시간까지 '+fmt(Math.ceil(remaining/60000)*60000)}</span></div><div><small>주간 재택 · 월~일</small><strong>${fmt(s.weekRemote)}</strong><span>20시간까지 ${fmt(remote)}</span></div></div><p class="work-status" role="status">${esc(message|| (a?(lunch?'휴게 중 · 지금은 시간이 쌓이지 않아요. 14시에 다시 계산돼요.':'근무 시간을 기록하고 있어요.'):'실제 업무를 시작할 때 시작 버튼을 눌러 주세요.'))}</p><p class="work-note">${esc(eta)}</p><div class="work-rules"><p>하루 실근무 8시간 · 휴게 13~14시 자동 제외</p><p>월·화·목·금 11~16시 회사 근무 · 수요일은 코어타임에도 재택 가능</p><p>22시 이후 근무 제한 · 제한 시각에 자동으로 일시정지해요.</p></div>${a?`<p>${a.mode==='remote'?'재택':'회사'} · ${esc(new Date(a.start).toLocaleTimeString('ko-KR',{timeZone:'Asia/Seoul',hour:'2-digit',minute:'2-digit'}))} 시작${a.exception?' · 특별근무: '+esc(a.exception):''}</p><div class="actions"><button class="ghost" id="work-pause">잠깐 쉬기</button><button class="primary" id="work-stop">오늘 근무 종료</button></div>`:`<div class="actions"><button class="primary" id="work-office">회사 근무 시작</button><button class="ghost" id="work-remote">재택 근무 시작</button></div><details><summary>특별근무가 필요한 날</summary><label>예외 사유<input name="exception" maxlength="200" placeholder="승인받은 특별근무 사유를 남겨 주세요"></label><p class="work-note">사유를 남겨도 회사의 근무 승인을 대신하지 않아요. 예외 근무도 13~14시 휴게는 제외해요.</p></details>`}<details><summary>오늘의 근무 기록 (${rows.length})</summary>${rows.map(r=>`<article class="work-row"><strong>${r.mode==='remote'?'재택':'회사'} · ${fmt(C.effective(r.start,r.end))}</strong><p>${esc(new Date(r.start).toLocaleTimeString('ko-KR',{timeZone:'Asia/Seoul'}))} ~ ${esc(new Date(r.end).toLocaleTimeString('ko-KR',{timeZone:'Asia/Seoul'}))}</p>${r.exception?'<small>'+esc(r.exception)+'</small>':''}<button class="ghost" data-correct="${r.id}">시간 수정</button></article>`).join('')||'<p>종료한 근무 기록이 없어요.</p>'}</details><button class="ghost" id="work-backup">전체 근무 기록 백업</button><p class="work-note">시작·쉬기·종료로 기록하는 개인 시간표예요. 실제 근무 여부를 자동 판정하지 않아요. 이 기기에 저장되며, 앱을 닫아도 시작한 기록은 종료 시각까지 계산돼요. 제한 시간 이후는 계산하지 않아요. 자정 이후에는 새로 시작해 주세요.</p>`;
 
  if(!personal){dialog.innerHTML=`<button class="close" id="work-close" aria-label="근무창 닫기">×</button><div class="eyebrow">MY WORK TIME</div><h2>간단한 근무 기록</h2><div class="work-metrics"><div><small>오늘 근무</small><strong>${fmt(s.today)}</strong><span>별도 시간 제한 없이 기록해요</span></div></div><p class="work-status" role="status">${esc(message||(a?'근무 중이에요. 쉬거나 마칠 때 눌러 주세요.':'업무를 시작할 때 눌러 주세요.'))}</p><div class="actions">${a?'<button class="ghost" id="work-pause">잠깐 쉬기</button><button class="primary" id="work-stop">근무 종료</button>':'<button class="primary" id="work-office">근무 시작</button>'}</div><details><summary>오늘의 근무 기록 (${rows.length})</summary>${rows.map(r=>`<article class="work-row"><strong>${fmt(r.personal===false?r.end-r.start:C.effective(r.start,r.end))}</strong><p>${esc(new Date(r.start).toLocaleTimeString('ko-KR',{timeZone:'Asia/Seoul'}))} ~ ${esc(new Date(r.end).toLocaleTimeString('ko-KR',{timeZone:'Asia/Seoul'}))}</p><button class="ghost" data-correct="${r.id}">시간 수정</button></article>`).join('')||'<p>아직 종료한 기록이 없어요.</p>'}</details><button class="ghost" id="work-backup">전체 근무 기록 백업</button><p class="work-note">시작부터 종료까지 계산하고 직접 누른 휴식은 제외해요. 정해진 점심시간이나 회사·재택 제한은 자동 적용하지 않아요. 기록은 이 기기에 저장돼요.</p>`;}
  const option=document.createElement('label');option.className='work-note';option.innerHTML=`<input type="checkbox" id="work-personal" ${personal?'checked':''} ${a?'disabled':''} style="display:inline;width:auto"> 내 회사 근무규칙 사용`;dialog.querySelector('#work-backup').before(option);
  const help=document.createElement('p');help.className='work-note';help.textContent='선택 사항: 하루 8시간 · 13~14시 휴게 · 주간 재택 20시간 · 코어타임·22시 제한. 본인에게 해당할 때만 켜세요. 변경은 다음 근무부터 적용돼요.';option.after(help);const settings=document.createElement('details');settings.innerHTML='<summary>개인 근무규칙 설정</summary>';option.before(settings);settings.append(option,help);
+
+ const automaticOption=document.createElement('label');automaticOption.className='work-note';automaticOption.innerHTML=`<input type="checkbox" id="work-auto-start" ${data.autoStart?'checked':''} style="display:inline;width:auto"> 회사 위치가 확인되면 자동 근무 시작`;settings.append(automaticOption);
+ const automaticHelp=document.createElement('p');automaticHelp.className='work-note';automaticHelp.textContent='회사 위치를 먼저 등록해 주세요. 켜면 앱을 보고 있는 동안 약 1분마다 위치를 확인해요. 방을 직접 고를 때는 시작하지 않아요. 자동으로 시작한 회사 근무는 다른 등록 장소 도착이 확인되면 쉬기로 바뀌어요. 직접 쉬기·종료를 누른 뒤에는 같은 날 회사에 머무는 동안 다시 자동 시작하지 않아요. 재택은 집에 도착했다는 이유만으로 시작하지 않아요.';settings.append(automaticHelp);
+ dialog.querySelector('#work-auto-start').onchange=e=>{read();const n=copy(data);n.autoStart=e.target.checked;n.autoHold=false;if(write(n)){message=n.autoStart?'회사 위치 확인 후 자동 시작을 켰어요.':'자동 시작만 껐어요. 위치 확인은 장소 설정에서 끌 수 있고 진행 중인 기록은 종료 버튼으로 마칠 수 있어요.';render(true);if(n.autoStart)window.placeRooms?.enableAuto();}};
  dialog.querySelector('#work-personal').onchange=e=>{read();if(data.active)return;const n=copy(data);n.personal=e.target.checked;if(write(n)){message=n.personal?'내 회사 규칙을 켰어요. 다음 근무부터 적용돼요.':'기본 시작·종료 모드로 바꿨어요.';render(true);}};
+ for(const detail of dialog.querySelectorAll('details'))if(expanded.includes(detail.querySelector('summary')?.textContent))detail.open=true;
  dialog.querySelector('#work-close').onclick=()=>dialog.close();if(a){dialog.querySelector('#work-pause').onclick=()=>stop('휴식 시작');dialog.querySelector('#work-stop').onclick=()=>stop('근무 종료');}else{dialog.querySelector('#work-office').onclick=()=>start('office');if(dialog.querySelector('#work-remote'))dialog.querySelector('#work-remote').onclick=()=>start('remote');}
  dialog.querySelectorAll('[data-correct]').forEach(b=>b.onclick=()=>correct(b.dataset.correct));dialog.querySelector('#work-backup').onclick=()=>{const url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})),link=document.createElement('a');link.href=url;link.download='근무기록-'+today+'.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
  }
@@ -453,6 +466,18 @@ window.placeRoomsReady=(async()=>{
  function walkToDesk(){if(!office)return;posture='stand';player.x=500;player.y=550;route=[{x:500,y:430},{x:500,y:410}];}
  function placeChanged(p){office=p?.kind==='office';document.querySelector('.room-top>span').textContent=office?'MY OFFICE':'HOME OFFICE';roomApplyLayout();route=null;if(office){roomPrefs.activeSpace='office';walkToDesk();}else{if(roomPrefs.activeSpace==='office')roomPrefs.activeSpace='present';if(data.active?.mode==='remote'&&!C.inLunch(Date.now()))pose('desk');}}
  window.addEventListener('life-place-changed',e=>placeChanged(e.detail));
+ function onLocation(e){
+ read();if(!data.autoStart||document.hidden)return;const p=e.detail;if(!p||Date.now()-p.at>30000)return;
+ if(p.kind==='office'){
+ if(data.autoHold&&data.holdDate===C.dateKey(Date.now()))return;
+ if(!data.active)start('office',true);
+ }else{
+ if(data.active?.automatic&&data.active.mode==='office')stop('다른 장소 도착 확인 · 자동 휴식');
+ read();if(data.autoHold){const n=copy(data);n.autoHold=false;write(n);}
+ }
+ }
+ window.addEventListener('life-location-confirmed',onLocation);
+
  drawRoom=function(t){if(!office)return baseDraw(t);const dt=Math.min((t-lastT)/1000||0,.04);lastT=t;
  if(route&&!document.hidden){const next=route[0],dx=next.x-player.x,dy=next.y-player.y,d=Math.hypot(dx,dy),step=dt*115;if(d<=step+1){player.x=next.x;player.y=next.y;route.shift();if(!route.length){route=null;posture='desk';}}else{player.x+=dx/d*step;player.y+=dy/d*step;walk+=dt;}}
  ctx.clearRect(0,0,960,650);rect(0,0,960,650,'#d9e2df');rect(55,60,850,535,'#849a94');rect(64,70,832,510,'#e6e9e1');rect(64,185,832,395,'#d5c5a9');for(let y=185;y<580;y+=45)rect(64,y,832,1,'#c9b99e');for(let x=64;x<896;x+=100)rect(x,185,1,395,'#c9b99e');
