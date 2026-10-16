@@ -47,10 +47,18 @@
   }
   async function listRecords() {
     await requireUser();
-    const { data, error } = await client.from('life_records').select('payload').order('updated_at', { ascending: false });
-    if (error) throw error;
-    return (data || []).map(row => row.payload);
+    const records = [];
+    const batch = 400;
+    for (let from = 0; ; from += batch) {
+      const { data, error } = await client.from('life_records')
+        .select('payload').order('id', { ascending: true }).range(from, from + batch - 1);
+      if (error) throw error;
+      records.push(...(data || []).map(row => row.payload));
+      if (!data || data.length < batch) break;
+    }
+    return records;
   }
+
   async function putRecord(record) {
     const user = await requireUser();
     const clean = JSON.parse(JSON.stringify(record));
@@ -134,3 +142,4 @@
     });
   });
 })();
+
