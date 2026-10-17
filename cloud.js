@@ -98,6 +98,22 @@
 
   window.lifeCloud = { configured, ready, listRecords, putRecord, deleteRecord, getSetting, setSetting, countRecords };
 
+/* PRIVATE_ALBUM_API_V1 */
+const albumResult=async request=>{const {data,error}=await request;if(error)throw error;return data;};
+window.lifeCloud.albums={
+ list:async()=>{await requireUser();return albumResult(client.from('life_albums').select('*').order('created_at'));},
+ create:async(title,home,isFamily=false)=>{await requireUser();return albumResult(client.from('life_albums').insert({title,home_id:home,is_family:isFamily}).select().single());},
+ entries:async id=>{await requireUser();return albumResult(client.from('life_album_entries').select('*').eq('album_id',id).order('created_at'));},
+ addEntry:async row=>{await requireUser();return albumResult(client.from('life_album_entries').insert(row).select().single());},
+ members:async id=>{await requireUser();return albumResult(client.from('life_album_members').select('email,user_id,accepted_at').eq('album_id',id));},
+ invite:async(id,email)=>{await requireUser();return albumResult(client.rpc('life_invite_album',{a:id,invited_email:email}));},
+ revoke:async(id,email)=>{await requireUser();return albumResult(client.rpc('life_revoke_album',{a:id,invited_email:email}));},
+ invitations:async()=>{await requireUser();return albumResult(client.rpc('life_album_invitations'));},
+ accept:async id=>{await requireUser();return albumResult(client.rpc('life_accept_album',{a:id}));},
+ comments:async id=>{await requireUser();return albumResult(client.from('life_album_comments').select('id,body,created_at,user_id').eq('entry_id',id).order('created_at'));},
+ comment:async(id,body)=>{const user=await requireUser();return albumResult(client.from('life_album_comments').insert({entry_id:id,body,user_id:user.id}));}
+};
+
   document.addEventListener('DOMContentLoaded', async () => {
     if (!configured) {
       show('setup');
@@ -142,4 +158,5 @@
     });
   });
 })();
+
 
