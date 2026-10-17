@@ -147,7 +147,7 @@ ctx.restore();
 roomTransform('rest');
 rect(548,428,282,133,'#c0b793');rect(554,434,270,121,'#d8c9a2');for(let x=562;x<817;x+=12){rect(x,438,4,2,'#b4aa86');rect(x,549,4,2,'#b4aa86');}rect(592,456,207,64,'#6b7e60');rect(600,446,191,42,lifeThemes[roomPrefs.theme].sofa);rect(604,451,183,25,'#a2ae85');rect(601,488,90,28,'#99a57b');rect(696,488,93,28,'#99a57b');rect(584,474,19,47,'#82946c');rect(791,474,19,47,'#82946c');rect(596,521,10,8,'#7b674b');rect(787,521,10,8,'#7b674b');rect(615,464,29,23,'#e3c3a1');rect(748,463,28,24,'#c7d2b0');rect(843,458,29,48,'#82694f');rect(849,465,17,12,'#bdab81');rect(849,483,17,16,'#5d6151');label('OFF DUTY',693,578);
 ctx.restore();
-plant(110,509,1.15);rect(311,476,106,59,'#b29671');rect(318,483,92,45,'#e0caa0');rect(331,493,27,25,'#c0a981');rect(368,493,27,25,'#a5b18a');label('HOME, SWEET HOME',362,556);
+plant(110,509,1.15);
 if(night){rect(66,70,828,504,'#28314965');ctx.fillStyle='#ffe6a838';ctx.beginPath();ctx.arc(185,320,95,0,Math.PI*2);ctx.fill();}const nearest=getNearest();objects.forEach(o=>{if(hover===o.id||nearest?.id===o.id){ctx.strokeStyle=hover===o.id?'#f9edbf':'#879b72';ctx.lineWidth=2;ctx.strokeRect(o.x-5,o.y-5,o.w+10,o.h+10);}});
 drawLifeObjects(t);drawMongle(t);
 const x=Math.round(player.x),y=Math.round(player.y);drawModernAvatar(x,y,t,.86);ctx.fillStyle='#f9f4e6';ctx.fillRect(x-18,y-90,38,14);label(posture==='lie'?'REST':'ME',x+1,y-79);$('#room-status').textContent=posture!=='stand'?'쉬는 중 · 방향키로 일어나기':nearest?`${nearest.label} · E 키로 열기`:'햇살이 들어오는 작은 운영실';}
@@ -279,7 +279,8 @@ diaryTransfer=async function(r){const endpoint=localStorage.getItem(lifeKey('dia
 
 if('serviceWorker' in navigator&&location.protocol!=='file:')navigator.serviceWorker.register('./sw.js').catch(()=>{});
 </script>
-<script src="./enhancements.js?v=9">
+<script src="./enhancements.js?v=11"></script><script>
+
 /* ROOM_CALENDAR_V1: private Google events, memory-only access token. */
 (() => {
  const scope='https://www.googleapis.com/auth/calendar.events.readonly';
@@ -326,9 +327,9 @@ if('serviceWorker' in navigator&&location.protocol!=='file:')navigator.serviceWo
  const css=document.createElement('style');css.textContent='.room-cal-toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:20px 0}.room-cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}.room-cal-week{text-align:center;font-size:12px;color:#78816f;padding:6px}.room-cal-day{border:1px solid transparent;border-radius:12px;background:#f0f1e8;color:#3f4e3b;min-height:42px;position:relative;padding:8px 2px 13px}.room-cal-day.today{border-color:#77916b}.room-cal-day.selected{background:#526d4b;color:white}.room-cal-day i{position:absolute;bottom:5px;left:calc(50% - 2px);width:4px;height:4px;border-radius:50%;background:currentColor}.room-cal-status,.room-cal-note,.room-cal-empty{font-size:12px;color:#77816f;line-height:1.7}.room-cal-status{min-height:2em}.room-cal-event{padding:12px 0;border-top:1px solid #ddd}.room-cal-event span{display:block;font-size:12px;color:#738168;margin-bottom:5px}.room-cal-event strong{overflow-wrap:anywhere}.room-cal-event p{margin:4px 0;font-size:12px}#room-calendar .actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}#room-calendar button:disabled{opacity:.55;cursor:default}';document.head.append(css);
 })();
 
+
 </script>
-<script src="./enhancements.js?v=10">
-</script>
+
 <script>
 </script>
 <script>
@@ -640,17 +641,18 @@ window.placeRoomsReady=(async()=>{
 
 
 
+
 <script>
 /* OBJECT_NAV_V1 */
 (async()=>{
- if(window.lifeCloud){try{await window.lifeCloud.ready;await window.lifeAppReady;}catch{return;}}await window.placeRoomsReady;
+
  const headerButtons=()=>Array.from(document.querySelectorAll('.header-right button'));
  function runHeader(text){const b=headerButtons().find(b=>b.textContent.includes(text));if(b)b.click();else toast('아직 사용할 수 없는 기능이에요.');}
  function choices(title,description,items){lifeShow('<div class="eyebrow">MY LITTLE ROOM</div><h2>'+lifeText(title)+'</h2><p>'+lifeText(description)+'</p><div class="object-menu">'+items.map(([label],i)=>'<button class="ghost" data-object-action="'+i+'">'+lifeText(label)+'</button>').join('')+'</div>');lifeDialog.querySelectorAll('[data-object-action]').forEach(b=>b.onclick=()=>{lifeDialog.close();items[Number(b.dataset.objectAction)][1]();});}
  const page=k=>()=>lifeGo(lifeCategories[k]?k:'home');
  function story(){choices('MY STORY · 나의 기록','이 책에서 기록을 쓰고, 지난 기억을 펼쳐 보세요.',[['📓 오늘 일기 쓰기',()=>diaryForm(lifeDate())],['✍ 글 쓰기',()=>lifeEdit(null,'writing')],['🧵 나의 이야기 남기기',()=>lifeEdit(null,'journey')],...['diary','writing','inspiration','journey','travel','childhood','growth','choco','family'].map(k=>[lifeCategories[k]?.[0]||k,page(k)]),['🏅 해낸 일·업적장',()=>runHeader('해낸 일')]]);}
  function settings(){choices('설정','공간과 연결을 내게 맞게 바꿔요.',[['연결 주소 설정',()=>openPanel('settings')],['집 꾸미기',page('decorate')],['내 집·프로필',()=>document.querySelector('#life-profile').click()],['장소·자동 전환 설정',()=>runHeader('📍')],['앱 설치 안내',()=>{const b=headerButtons().find(b=>b.textContent.includes('앱으로 설치')&&!b.hidden);if(b)b.click();else lifeShow('<h2>앱으로 사용하기</h2><p>휴대폰 브라우저 메뉴에서 ‘홈 화면에 추가’ 또는 ‘앱 설치’를 선택해 주세요.</p>');}],['기록 백업·가족 앨범',page('family')]]);}
- lifeMenu=function(){lifeNav.innerHTML='<button id="room-settings-only">⚙ 설정</button>';document.querySelector('#room-settings-only').onclick=settings;};lifeMenu();
+ const onlySettingsMenu=function(){lifeNav.innerHTML='<button id="room-settings-only">⚙ 설정</button>';document.querySelector('#room-settings-only').onclick=settings;};lifeMenu=onlySettingsMenu;lifeMenu();new MutationObserver(()=>{if(lifeNav.children.length!==1||!lifeNav.querySelector('#room-settings-only')){lifeMenu=onlySettingsMenu;onlySettingsMenu();}}).observe(lifeNav,{childList:true});
  function backButton(){if(lifePage==='room')return;if(lifeShell.querySelector('.object-back'))return;const b=document.createElement('button');b.className='ghost object-back';b.textContent='← 방으로 돌아가기';b.onclick=()=>lifeGo('room');lifeShell.prepend(b);}
  const oldGo=lifeGo;lifeGo=async function(k){await oldGo(k);lifeMenu();backButton();};
  const oldRender=lifeRender;lifeRender=function(){const result=oldRender();backButton();return result;};
@@ -664,6 +666,7 @@ window.placeRoomsReady=(async()=>{
 
 </script>
 </body></html>
+
 
 
 
