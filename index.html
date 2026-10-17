@@ -652,7 +652,7 @@ window.placeRoomsReady=(async()=>{
  const page=k=>()=>lifeGo(lifeCategories[k]?k:'home');
  function story(){choices('MY STORY · 나의 기록','이 책에서 기록을 쓰고, 지난 기억을 펼쳐 보세요.',[['📓 오늘 일기 쓰기',()=>diaryForm(lifeDate())],['✍ 글 쓰기',()=>lifeEdit(null,'writing')],['🧵 나의 이야기 남기기',()=>lifeEdit(null,'journey')],...['diary','writing','inspiration','journey','travel','childhood','growth','choco','family'].map(k=>[lifeCategories[k]?.[0]||k,page(k)]),['🏅 해낸 일·업적장',()=>runHeader('해낸 일')]]);}
  function settings(){choices('설정','공간과 연결을 내게 맞게 바꿔요.',[['연결 주소 설정',()=>openPanel('settings')],['집 꾸미기',page('decorate')],['내 집·프로필',()=>document.querySelector('#life-profile').click()],['장소·자동 전환 설정',()=>runHeader('📍')],['앱 설치 안내',()=>{const b=headerButtons().find(b=>b.textContent.includes('앱으로 설치')&&!b.hidden);if(b)b.click();else lifeShow('<h2>앱으로 사용하기</h2><p>휴대폰 브라우저 메뉴에서 ‘홈 화면에 추가’ 또는 ‘앱 설치’를 선택해 주세요.</p>');}],['기록 백업·가족 앨범',page('family')]]);}
- const onlySettingsMenu=function(){lifeNav.innerHTML='<button id="room-settings-only">⚙ 설정</button>';document.querySelector('#room-settings-only').onclick=settings;};lifeMenu=onlySettingsMenu;lifeMenu();new MutationObserver(()=>{if(lifeNav.children.length!==1||!lifeNav.querySelector('#room-settings-only')){lifeMenu=onlySettingsMenu;onlySettingsMenu();}}).observe(lifeNav,{childList:true});
+ window.lifeCharacterSettings=settings;const onlySettingsMenu=function(){lifeNav.innerHTML='<button id="room-settings-only">⚙ 설정</button>';document.querySelector('#room-settings-only').onclick=settings;};lifeMenu=onlySettingsMenu;lifeMenu();new MutationObserver(()=>{if(lifeNav.children.length!==1||!lifeNav.querySelector('#room-settings-only')){lifeMenu=onlySettingsMenu;onlySettingsMenu();}}).observe(lifeNav,{childList:true});
  function backButton(){if(lifePage==='room')return;if(lifeShell.querySelector('.object-back'))return;const b=document.createElement('button');b.className='ghost object-back';b.textContent='← 방으로 돌아가기';b.onclick=()=>lifeGo('room');lifeShell.prepend(b);}
  const oldGo=lifeGo;lifeGo=async function(k){await oldGo(k);lifeMenu();backButton();};
  const oldRender=lifeRender;lifeRender=function(){const result=oldRender();backButton();return result;};
@@ -668,7 +668,30 @@ window.placeRoomsReady=(async()=>{
 <script>
 /* TODO_FURNITURE_V1 */
 (()=>{const css=document.createElement('style');css.textContent='aside .card:has(#side-tasks){display:none}.todo-furniture-hit{position:absolute;background:transparent;border:2px solid transparent;border-radius:7px;cursor:pointer}.todo-furniture-hit:hover,.todo-furniture-hit:focus-visible{border-color:#f9e5ac;outline:none}.todo-furniture-hit[hidden]{display:none}';document.head.append(css);const b=document.createElement('button');b.className='todo-furniture-hit';b.setAttribute('aria-label','TO-DO LIST · 오늘 할 일');b.title='TO-DO LIST · 오늘 할 일';b.onclick=()=>openPanel('today');document.querySelector('.canvas-wrap').append(b);const draw=drawRoom;drawRoom=function(t){const o=objects.find(o=>o.id==='today');b.hidden=roomPrefs.activeSpace==='dream'||roomEditing;b.style.left=o.x/9.6+'%';b.style.top=o.y/6.5+'%';b.style.width=o.w/9.6+'%';b.style.height=o.h/6.5+'%';return draw(t);};})();
-</script></body></html>
+</script><script>
+/* CHARACTER_CONTROLS_V1 */
+(async()=>{
+ if(window.lifeCloud){try{await window.lifeCloud.ready;await window.lifeAppReady;}catch{return;}}await window.placeRoomsReady;
+ const wrap=document.querySelector('.canvas-wrap'),key=lifeKey('room-light-controls-v1');let saved={};try{saved=JSON.parse(localStorage.getItem(key))||{};}catch{}let currentRoom='',editing=false,drag=null;
+ function roomKey(){return roomPrefs.activeSpace==='dream'?'dream':'place:'+(window.placeRooms?.current()?.id||'home');}
+ function light(){const id=roomKey();if(!saved[id])saved[id]={on:true,x:id==='dream'?20:88.7,y:id==='dream'?35:23};return saved[id];}
+ function persist(){try{localStorage.setItem(key,JSON.stringify(saved));}catch{toast('이 기기에 스위치 설정을 저장하지 못했어요.');}}
+ const oldSwitch=document.querySelector('.wall-light-switch');const sw=oldSwitch.cloneNode(false);oldSwitch.replaceWith(sw);
+ function sync(){const v=light();night=!v.on;sw.style.left=v.x+'%';sw.style.top=v.y+'%';sw.setAttribute('aria-checked',String(v.on));sw.title=editing?'드래그하거나 방향키로 옮기기':v.on?'이 방 조명 끄기':'이 방 조명 켜기';sw.innerHTML='<span class="switch-rocker"></span><small>'+(v.on?'ON':'OFF')+'</small>';sw.classList.toggle('placing-switch',editing);}
+ sw.onclick=e=>{e.stopPropagation();if(editing)return;light().on=!light().on;persist();sync();};
+ const done=document.createElement('button');done.className='primary switch-place-done';done.textContent='스위치 배치 완료';done.hidden=true;wrap.append(done);done.onclick=()=>{editing=false;drag=null;done.hidden=true;persist();sync();toast('이 방의 스위치 위치를 저장했어요.');};
+ function begin(){document.querySelectorAll('dialog[open]').forEach(d=>d.close());editing=true;done.hidden=false;sync();toast('스위치를 끌어 옮긴 뒤 배치 완료를 눌러 주세요.');sw.focus();}
+ function place(e){const r=wrap.getBoundingClientRect(),v=light();v.x=Math.max(7,Math.min(91,(e.clientX-r.left-drag.dx)/r.width*100));v.y=Math.max(8,Math.min(83,(e.clientY-r.top-drag.dy)/r.height*100));sync();}
+ sw.onpointerdown=e=>{if(!editing)return;e.preventDefault();e.stopPropagation();const r=sw.getBoundingClientRect();drag={dx:e.clientX-r.left,dy:e.clientY-r.top};sw.setPointerCapture(e.pointerId);};sw.onpointermove=e=>{if(editing&&drag)place(e);};sw.onpointerup=e=>{if(!drag)return;place(e);drag=null;persist();};sw.onpointercancel=()=>{drag=null;};sw.onkeydown=e=>{if(!editing)return;const offsets={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]};if(offsets[e.key]){e.preventDefault();const [x,y]=offsets[e.key],v=light();v.x=Math.max(7,Math.min(91,v.x+x));v.y=Math.max(8,Math.min(83,v.y+y));sync();persist();}if(e.key==='Escape')done.click();};
+ const avatar=document.createElement('button');avatar.className='avatar-interaction';avatar.setAttribute('aria-label','내 캐릭터 · 상호작용과 설정');avatar.title='나를 눌러 설정 열기';wrap.append(avatar);avatar.onclick=()=>{window.lifeCharacterSettings();const box=document.createElement('div');box.className='actions';const b=document.createElement('button');b.className='ghost';b.textContent='이 방 스위치 위치 바꾸기';b.onclick=begin;box.append(b);document.querySelector('#life-content').append(box);};
+ const drawAvatar=drawModernAvatar;drawModernAvatar=function(x,y,t,scale=1){drawAvatar(x,y,t,scale);const h=(posture==='lie'?40:posture==='sit'||posture==='desk'?51:65)*scale;avatar.style.left=(x-27*scale)/9.6+'%';avatar.style.top=(y-h)/6.5+'%';avatar.style.width=54*scale/9.6+'%';avatar.style.height=(h+6)/6.5+'%';};
+ const draw=drawRoom;drawRoom=function(t){const next=roomKey();if(next!==currentRoom){currentRoom=next;editing=false;drag=null;done.hidden=true;sync();}night=!light().on;const result=draw(t);if(night&&(roomPrefs.activeSpace==='dream'||roomPrefs.activeSpace==='office'))rect(66,70,828,504,'#28314965');return result;};
+ const css=document.createElement('style');css.textContent='.life-nav{display:none!important}.avatar-interaction{position:absolute;background:transparent;border:2px solid transparent;border-radius:50%;cursor:pointer;z-index:3}.avatar-interaction:hover,.avatar-interaction:focus-visible{border-color:#f7e4a8;outline:none}.wall-light-switch{width:clamp(14px,2.1%,21px)!important;height:clamp(23px,5%,31px)!important;z-index:5;touch-action:none}.wall-light-switch.placing-switch{cursor:move;outline:2px dashed #638758;outline-offset:4px}.switch-place-done{position:absolute;right:12px;bottom:12px;z-index:6;font-size:12px}.switch-place-done[hidden]{display:none}';document.head.append(css);sync();
+})();
+
+</script>
+</body></html>
+
 
 
 
