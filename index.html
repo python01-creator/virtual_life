@@ -650,7 +650,7 @@ window.placeRoomsReady=(async()=>{
  function runHeader(text){const b=headerButtons().find(b=>b.textContent.includes(text));if(b)b.click();else toast('아직 사용할 수 없는 기능이에요.');}
  function choices(title,description,items){lifeShow('<div class="eyebrow">MY LITTLE ROOM</div><h2>'+lifeText(title)+'</h2><p>'+lifeText(description)+'</p><div class="object-menu">'+items.map(([label],i)=>'<button class="ghost" data-object-action="'+i+'">'+lifeText(label)+'</button>').join('')+'</div>');lifeDialog.querySelectorAll('[data-object-action]').forEach(b=>b.onclick=()=>{lifeDialog.close();items[Number(b.dataset.objectAction)][1]();});}
  const page=k=>()=>lifeGo(lifeCategories[k]?k:'home');
- function story(){choices('MY STORY · 나의 기록','이 책에서 기록을 쓰고, 지난 기억을 펼쳐 보세요.',[['📓 오늘 일기 쓰기',()=>diaryForm(lifeDate())],['✍ 글 쓰기',()=>lifeEdit(null,'writing')],['🧵 나의 이야기 남기기',()=>lifeEdit(null,'journey')],...['diary','writing','inspiration','journey','travel','childhood','choco','family'].map(k=>[lifeCategories[k]?.[0]||k,page(k)]),['🏅 해낸 일·업적장',()=>runHeader('해낸 일')]]);}
+ function story(){choices('MY STORY · 나의 기록','이 책에서 기록을 쓰고, 지난 기억을 펼쳐 보세요.',[['📓 오늘 일기 쓰기',()=>diaryForm(lifeDate())],['✍ 글 쓰기',()=>lifeEdit(null,'writing')],['🧵 나의 이야기 남기기',()=>lifeEdit(null,'journey')],...['diary','writing','inspiration','journey','travel','childhood','family'].map(k=>[lifeCategories[k]?.[0]||k,page(k)]),['🏅 해낸 일·업적장',()=>runHeader('해낸 일')]]);}
  function settings(){choices('설정','공간과 연결을 내게 맞게 바꿔요.',[['연결 주소 설정',()=>openPanel('settings')],['집 꾸미기',page('decorate')],['내 집·프로필',()=>document.querySelector('#life-profile').click()],['장소·자동 전환 설정',()=>runHeader('📍')],['앱 설치 안내',()=>{const b=headerButtons().find(b=>b.textContent.includes('앱으로 설치')&&!b.hidden);if(b)b.click();else lifeShow('<h2>앱으로 사용하기</h2><p>휴대폰 브라우저 메뉴에서 ‘홈 화면에 추가’ 또는 ‘앱 설치’를 선택해 주세요.</p>');}],['기록 백업·가족 앨범',page('family')]]);}
  window.lifeCharacterSettings=settings;const onlySettingsMenu=function(){lifeNav.innerHTML='<button id="room-settings-only">⚙ 설정</button>';document.querySelector('#room-settings-only').onclick=settings;};lifeMenu=onlySettingsMenu;lifeMenu();new MutationObserver(()=>{if(lifeNav.children.length!==1||!lifeNav.querySelector('#room-settings-only')){lifeMenu=onlySettingsMenu;onlySettingsMenu();}}).observe(lifeNav,{childList:true});
  function backButton(){if(lifePage==='room')return;if(lifeShell.querySelector('.object-back'))return;const b=document.createElement('button');b.className='ghost object-back';b.textContent='← 방으로 돌아가기';b.onclick=()=>lifeGo('room');lifeShell.prepend(b);}
@@ -884,6 +884,7 @@ window.placeRoomsReady=(async()=>{
 
 </script>
 </body></html>
+
 
 
 
