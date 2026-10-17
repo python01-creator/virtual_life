@@ -711,18 +711,28 @@ window.placeRoomsReady=(async()=>{
 <script>
 /* POPUP_LAYOUT_V1 */
 (()=>{
- // Require both press and release outside: selecting text into the backdrop must not close an editor.
- let pressedOutside=null;
- function outside(d,e){const r=d.getBoundingClientRect();return e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom;}
- document.addEventListener('pointerdown',e=>{const d=Array.from(document.querySelectorAll('dialog[open]')).at(-1);pressedOutside=d&&outside(d,e)?d:null;},true);
- document.addEventListener('click',e=>{const d=pressedOutside;pressedOutside=null;if(!d?.open||!outside(d,e))return;e.stopPropagation();const close=d.querySelector('button.close,button[aria-label$="닫기"]');if(close){close.click();}else{const event=new Event('cancel',{cancelable:true});if(d.dispatchEvent(event))d.close();}},true);
- document.addEventListener('pointercancel',()=>{pressedOutside=null;},true);
- document.addEventListener('click',e=>{if(e.target.closest('#layout-edit')){window.lifeSwitchPlacement?.begin();const finish=document.querySelector('#layout-toggle');if(finish){document.querySelector('.room-wrap').append(finish);finish.classList.add('layout-finish-visible');finish.hidden=false;}}if(e.target.closest('#layout-toggle'))window.lifeSwitchPlacement?.finish();},false);
+  document.addEventListener('click',e=>{if(e.target.closest('#layout-edit')){window.lifeSwitchPlacement?.begin();const finish=document.querySelector('#layout-toggle');if(finish){document.querySelector('.room-wrap').append(finish);finish.classList.add('layout-finish-visible');finish.hidden=false;}}if(e.target.closest('#layout-toggle'))window.lifeSwitchPlacement?.finish();},false);
  const css=document.createElement('style');css.textContent='.layout-finish-visible{position:absolute;right:20px;bottom:55px;z-index:8;background:#faf8ec!important;box-shadow:0 3px 12px #33442222}.layout-finish-visible[hidden]{display:none!important}';document.head.append(css);
 })();
 
 </script>
+
+<script>
+/* BACKDROP_DISMISS_V2 */
+(()=>{
+ let start=null,swallow=null;
+ const top=()=>Array.from(document.querySelectorAll('dialog[open]')).at(-1);
+ function outside(d,e){const r=d.getBoundingClientRect();return e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom;}
+ function dismiss(d){const button=d.querySelector('button.close,button[aria-label$="닫기"]');if(button){button.click();return;}const event=new Event('cancel',{cancelable:true});if(d.dispatchEvent(event))d.close();}
+ window.addEventListener('pointerdown',e=>{const d=top();start=d?{dialog:d,inside:!outside(d,e)}:null;},true);
+ window.addEventListener('pointerup',e=>{const d=top();if(!d||!outside(d,e)||start?.dialog===d&&start.inside)return;swallow={x:e.clientX,y:e.clientY,at:Date.now()};e.preventDefault();e.stopImmediatePropagation();start=null;dismiss(d);},true);
+ window.addEventListener('click',e=>{if(!e.isTrusted)return;if(swallow&&Date.now()-swallow.at<500&&Math.hypot(e.clientX-swallow.x,e.clientY-swallow.y)<8){swallow=null;e.preventDefault();e.stopImmediatePropagation();return;}const d=top();if(!d||e.detail===0||!outside(d,e)||start?.dialog===d&&start.inside)return;e.preventDefault();e.stopImmediatePropagation();start=null;dismiss(d);},true);
+ window.addEventListener('pointercancel',()=>{start=null;swallow=null;},true);
+})();
+
+</script>
 </body></html>
+
 
 
 
