@@ -1,3 +1,9 @@
+/* LOGIN_MAIL_ERROR_V1 */
+(function(root){
+ function explain(error){const code=String(error?.code||''),msg=String(error?.message||''),seconds=msg.match(/after\s+(\d+)\s+seconds?/i);if(seconds)return {text:'로그인 메일을 이미 요청했어요. '+seconds[1]+'초 뒤에 다시 요청할 수 있어요. 받은편지함과 스팸함을 먼저 확인해 주세요.',wait:Math.min(3600,Math.max(1,Number(seconds[1])))};if(error?.status===429||code.startsWith('over_'))return {text:'로그인 메일 요청 한도에 걸렸어요. 이미 받은 메일을 먼저 확인하고 잠시 뒤 다시 시도해 주세요.',wait:60};if(code==='email_address_not_authorized')return {text:'현재 메일 발송 설정으로는 이 주소에 로그인 메일을 보낼 수 없어요. 관리자에게 메일 발송 설정 확인을 요청해 주세요.',wait:0};if(['email_address_invalid','validation_failed'].includes(code))return {text:'이메일 주소의 철자와 형식을 확인해 주세요.',wait:0};if(code==='captcha_failed')return {text:'보안 확인이 완료되지 않았어요. 화면을 새로 열고 다시 시도해 주세요.',wait:0};if(error?.status>=500)return {text:'인증 서버가 메일을 보내지 못했어요. 잠시 뒤 다시 시도해 주세요.',wait:0};return {text:'로그인 메일을 요청하지 못했어요. 인터넷 연결과 이메일 주소를 확인하고 다시 시도해 주세요.',wait:0};}
+ if(typeof module!=='undefined'&&module.exports)module.exports={explain};else root.LifeLoginMail={explain};
+})(typeof window!=='undefined'?window:globalThis);
+
 (function () {
   'use strict';
 
@@ -122,19 +128,24 @@ window.lifeCloud.albums={
     }
     show('login');
     const form = el('auth-form');
+
+    /* AUTH_MAIL_COOLDOWN_V1 */
+    const sendButton=form.querySelector('button'),cooldownKey='life-auth-mail-cooldown-v1';let until=0,timer,sending=false;
+    try{until=Number(localStorage.getItem(cooldownKey))||0;if(until>Date.now()+3600000)until=0;}catch{}
+    function tick(){const seconds=Math.max(0,Math.ceil((until-Date.now())/1000));sendButton.disabled=sending||seconds>0;sendButton.textContent=sending?'보내는 중…':seconds?seconds+'초 후 다시 요청':'로그인 링크 받기';if(!seconds){clearInterval(timer);try{localStorage.removeItem(cooldownKey);}catch{}}}
+    function cool(seconds){until=Date.now()+seconds*1000;try{localStorage.setItem(cooldownKey,String(until));}catch{}clearInterval(timer);timer=setInterval(tick,1000);tick();}
+    if(until>Date.now()){message('메일 재요청 대기 중이에요. 이미 받은 로그인 메일이 있는지 먼저 확인해 주세요.');timer=setInterval(tick,1000);}tick();
     form.onsubmit = async event => {
-      event.preventDefault();
+      event.preventDefault();if(sending||until>Date.now()){tick();return;}
       const email = new FormData(form).get('email').trim();
-      const button = form.querySelector('button');
-      button.disabled = true;
-      message('로그인 링크를 보내는 중…');
-      const { error } = await client.auth.signInWithOtp({
-        email,
-        options: { emailRedirectTo: location.origin + location.pathname }
-      });
-      button.disabled = false;
-      message(error ? '링크를 보내지 못했어요. 이메일과 Supabase 설정을 확인해 주세요.' : '이메일로 보낸 로그인 링크를 열어 주세요.', !!error);
+      sending=true;tick();message('로그인 링크를 보내는 중…');
+      try{const {error}=await client.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname}});
+        if(error){const detail=window.LifeLoginMail.explain(error);message(detail.text,true);if(detail.wait)cool(detail.wait);}
+        else{message('로그인 메일을 보냈어요. 가장 최근에 받은 메일의 링크를 열어 주세요. 스팸함도 확인해 주세요.');cool(60);}
+      }catch(error){message(window.LifeLoginMail.explain(error).text,true);}
+      finally{sending=false;tick();}
     };
+
     try {
       const { data, error } = await client.auth.getSession();
       if (error) throw error;
@@ -158,5 +169,6 @@ window.lifeCloud.albums={
     });
   });
 })();
+
 
 
