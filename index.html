@@ -383,7 +383,7 @@ if('serviceWorker' in navigator&&location.protocol!=='file:')navigator.serviceWo
  async function show(kind='tasks'){page=kind;if(!dialog.open)dialog.showModal();keys.clear();render();try{await refresh();error='';render();}catch{error='서버 기록을 불러오지 못했어요. 연결을 확인하고 다시 시도해 주세요.';render();}}
  function baseRecord(kind,title){const now=new Date().toISOString();return {id:crypto.randomUUID(),home,kind,title,body:'',photo:'',share:false,deleted:false,created:now,updated:now,comments:[]};}
  async function put(record){await lifePut(record);const i=rows.findIndex(r=>r.id===record.id);if(i<0)rows.push(record);else rows[i]=record;lifeRecords=rows.filter(r=>r.home===home&&!r.deleted);updateOrnaments();renderSidebar();}
- function wrap(content){return `<button class="close" id="legacy-close" aria-label="할 일 업적창 닫기">×</button><div class="eyebrow">SMALL STEPS · MY STORY</div><div class="legacy-tabs"><button class="ghost" data-tab="tasks">할 일</button><button class="ghost" data-tab="summary">해낸 일</button><button class="ghost" data-tab="awards">업적장</button><button class="ghost" data-tab="storage">저장·백업</button></div>${error?'<p role="alert">'+text(error)+'</p>':''}${content}`;}
+ function wrap(content){return `<button class="close" id="legacy-close" aria-label="할 일 업적창 닫기">×</button><div class="eyebrow">SMALL STEPS · MY STORY</div>${page==='awards'?'':`<div class="legacy-tabs"><button class="ghost" data-tab="tasks">할 일</button><button class="ghost" data-tab="summary">해낸 일</button><button class="ghost" data-tab="awards">업적장</button><button class="ghost" data-tab="storage">저장·백업</button></div>`}${error?'<p role="alert">'+text(error)+'</p>':''}${content}`;}
  function bind(){dialog.querySelector('#legacy-close').onclick=()=>dialog.close();dialog.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{page=b.dataset.tab;error='';render();});}
  function render(){if(!dialog.open)return;let html='';
  if(page==='tasks'){
@@ -896,6 +896,7 @@ window.placeRoomsReady=(async()=>{
 })();
 </script>
 </body></html>
+
 
 
 
