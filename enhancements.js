@@ -58,7 +58,7 @@ function openWriter(prompt){
 function keepDraft(f,key){const v=Object.fromEntries(new FormData(f));localStorage.setItem(key,JSON.stringify(v));$('#writer-state').textContent='이 기기에 임시 보관했어요.';}
 
 function freshGarden(){return {plant:'나의 첫 화분',xp:0,water:70,sun:70,lastWater:0,lastSun:0,lastVisit:Date.now(),dew:0};}
-async function loadGarden(){if(garden)return garden;garden=await window.lifeCloud.getSetting('garden')||freshGarden();garden.water=Math.max(0,(garden.water||0)-Math.floor((Date.now()-(garden.lastVisit||Date.now()))/21600000)*5);garden.sun=Math.max(0,(garden.sun||0)-Math.floor((Date.now()-(garden.lastVisit||Date.now()))/28800000)*4);garden.lastVisit=Date.now();await window.lifeCloud.setSetting('garden',garden);return garden;}
+async function loadGarden(){garden=await window.lifeCloud.getSetting('garden')||freshGarden();garden.water=Math.max(0,(garden.water||0)-Math.floor((Date.now()-(garden.lastVisit||Date.now()))/21600000)*5);garden.sun=Math.max(0,(garden.sun||0)-Math.floor((Date.now()-(garden.lastVisit||Date.now()))/28800000)*4);garden.lastVisit=Date.now();await window.lifeCloud.setSetting('garden',garden);return garden;}
 function stage(){return garden.xp>=14?4:garden.xp>=8?3:garden.xp>=4?2:garden.xp>=1?1:0;}
 async function renderGarden(){
  if(gardenBusy)return;gardenBusy=true;try{await loadGarden();const s=stage(),healthy=garden.water>=30&&garden.sun>=30;
@@ -104,3 +104,4 @@ canvas.addEventListener('click',e=>{const r=canvas.getBoundingClientRect(),x=(e.
 document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;b.classList.remove('soft-pop');void b.offsetWidth;b.classList.add('soft-pop');});
 lifeMenu();
 })();
+
