@@ -198,8 +198,8 @@ function lifeCard(r){return `<article class="memory-card ${r.kind==='writing'?'s
 function lifeRender(){
  if(lifePage==='diary'){diaryRender();return;}if(lifePage==='home'){lifeShell.innerHTML=lifeHomeRender();lifeBind();return;}
  if(lifePage==='decorate'){lifeDecorate();return;}if(lifePage==='family'){lifeFamily();return;}
- const k=lifePage;let rows=lifeRecords.filter(r=>r.kind===k);const needle=lifeFilter.toLowerCase();if(needle)rows=rows.filter(r=>[r.title,r.body,r.place,r.people,r.tags].join(' ').toLowerCase().includes(needle));rows.sort((a,b)=>(b.when||b.created).localeCompare(a.when||a.created,'ko'));
- let extra='';if(k==='writing')extra=`<div class="life-note">여기서 글을 쓰거나 Notion 글 주소를 책으로 꽂아 둘 수 있어요. ${safeURL(state.links.notion)?linkButton(state.links.notion,'Notion 글쓰기 홈 열기'):'Notion 홈은 연결 설정에서 넣어 주세요.'} <button class="ghost" data-goto="inspiration">✧ 영감 노트</button></div>`;
+ const k=lifePage;let rows=lifeRecords.filter(r=>k==='writing'?['writing','inspiration'].includes(r.kind):r.kind===k);const needle=lifeFilter.toLowerCase();if(needle)rows=rows.filter(r=>[r.title,r.body,r.place,r.people,r.tags].join(' ').toLowerCase().includes(needle));rows.sort((a,b)=>(b.when||b.created).localeCompare(a.when||a.created,'ko'));
+ let extra='';if(k==='writing')extra='<div class="life-note">자유롭게 쓴 글과 떠오른 영감을 함께 모아요. 예전에 영감 노트에 쓴 기록도 여기서 볼 수 있어요.</div>';
  if(k==='inspiration')extra='<div class="life-note">떠오른 한 문장을 적어 두세요. 기존에 쓴 글도 복사해 옮길 수 있어요. 현재 다른 앱과의 자동 연동은 하지 않습니다.</div>';
  if(k==='childhood')extra='<div class="life-note">사진만 남겨도 좋아요. 종이 일기는 사진으로 보관하고, 기억나는 나이와 가족의 이야기를 함께 적어 보세요.</div>';
  if(k==='choco')extra=`<div class="choco-hero"><div class="symbol">💛</div><div><div class="eyebrow">ALWAYS WITH YOU</div><h2>함께한 반려동물에게</h2><blockquote>소중했던 순간과 하고 싶은 말을<br>나만의 기록으로 남겨 보세요.</blockquote><p>사진과 영상 링크, 애칭과 함께한 순간을 천천히 모아두는 자리예요.</p><button class="ghost" id="choco-letter">편지 쓰기</button></div></div>`;
@@ -650,7 +650,7 @@ window.placeRoomsReady=(async()=>{
  function runHeader(text){const b=headerButtons().find(b=>b.textContent.includes(text));if(b)b.click();else toast('아직 사용할 수 없는 기능이에요.');}
  function choices(title,description,items){lifeShow('<div class="eyebrow">MY LITTLE ROOM</div><h2>'+lifeText(title)+'</h2><p>'+lifeText(description)+'</p><div class="object-menu">'+items.map(([label],i)=>'<button class="ghost" data-object-action="'+i+'">'+lifeText(label)+'</button>').join('')+'</div>');lifeDialog.querySelectorAll('[data-object-action]').forEach(b=>b.onclick=()=>{lifeDialog.close();items[Number(b.dataset.objectAction)][1]();});}
  const page=k=>()=>lifeGo(lifeCategories[k]?k:'home');
- function story(){choices('MY STORY · 나의 기록','일기는 일기장에, 자유로운 글과 영감은 따로 모아요.',[['📓 나의 일기장',page('diary')],['✍ 자유 글 · 쓰고 모아보기',page('writing')],['✧ 영감 노트',page('inspiration')],['지난 이야기',()=>choices('지난 이야기','이전에 남긴 기록을 그대로 보관했어요.',[['나의 여정',page('journey')],['가본 곳',page('travel')],['어릴 때의 나',page('childhood')]])]]);}
+ function story(){lifeGo('diary');}
  function settings(){choices('설정','공간과 연결을 내게 맞게 바꿔요.',[['연결 주소 설정',()=>openPanel('settings')],['집 꾸미기',page('decorate')],['내 집·프로필',()=>document.querySelector('#life-profile').click()],['장소·자동 전환 설정',()=>runHeader('📍')],['앱 설치 안내',()=>{const b=headerButtons().find(b=>b.textContent.includes('앱으로 설치')&&!b.hidden);if(b)b.click();else lifeShow('<h2>앱으로 사용하기</h2><p>휴대폰 브라우저 메뉴에서 ‘홈 화면에 추가’ 또는 ‘앱 설치’를 선택해 주세요.</p>');}],['기록 백업·가족 앨범',page('family')]]);}
  window.lifeCharacterSettings=settings;const onlySettingsMenu=function(){lifeNav.innerHTML='<button id="room-settings-only">⚙ 설정</button>';document.querySelector('#room-settings-only').onclick=settings;};lifeMenu=onlySettingsMenu;lifeMenu();new MutationObserver(()=>{if(lifeNav.children.length!==1||!lifeNav.querySelector('#room-settings-only')){lifeMenu=onlySettingsMenu;onlySettingsMenu();}}).observe(lifeNav,{childList:true});
  function backButton(){if(lifePage==='room')return;if(lifeShell.querySelector('.object-back'))return;const b=document.createElement('button');b.className='ghost object-back';b.textContent='← 방으로 돌아가기';b.onclick=()=>lifeGo('room');lifeShell.prepend(b);}
@@ -896,7 +896,22 @@ window.placeRoomsReady=(async()=>{
  const s=document.createElement('style');s.textContent='.story-room-item{position:absolute;padding:0;border:0;background:transparent;cursor:pointer;z-index:2;line-height:0}.story-room-item svg{width:100%;height:100%;filter:drop-shadow(1px 2px 1px #65543b26)}.story-room-item:hover,.story-room-item:focus-visible{outline:2px solid #f6df97;outline-offset:3px;border-radius:3px}.story-room-item[hidden]{display:none}.story-family-door{left:60%;top:12%;width:6.8%;height:18.5%}.story-dream-door{left:82.3%;top:12%;width:6.8%;height:18.5%}.story-award-frame{left:48%;top:15%;width:9.4%;height:11.1%}';document.head.append(s);
 })();
 </script>
+<script>
+/* WRITING_ALBUM_FURNITURE_V1 */
+(async()=>{
+ if(window.lifeCloud){try{await window.lifeCloud.ready;await window.lifeAppReady;}catch{return;}}
+ lifeCategories.writing=['글과 영감','한 문장부터 긴 글까지, 나의 문장을 모아요.','✍'];
+ const go=lifeGo;lifeGo=function(k){if(k==='inspiration')k='writing';return go(k);};
+ const wrap=document.querySelector('.canvas-wrap');
+ function object(cls,label,svg,action){const b=document.createElement('button');b.className='writing-room-object '+cls;b.setAttribute('aria-label',label);b.title=label;b.innerHTML=svg;b.onclick=action;wrap.append(b);return b;}
+ const writing=object('writing-notebook','글과 영감 · 쓰고 모아보기','<svg viewBox="0 0 100 75" aria-hidden="true"><rect x="7" y="12" width="76" height="51" rx="6" fill="#bca6ba" stroke="#8c788d" stroke-width="3"/><rect x="18" y="15" width="60" height="44" rx="2" fill="#fff2dc"/><path d="M27 28h36m-36 9h28m-28 9h33" stroke="#b8ad91" stroke-width="3"/><path d="M78 4l9 5-23 40-9 5 1-11z" fill="#b0c19d" stroke="#6d8864" stroke-width="2"/><text x="49" y="73" text-anchor="middle" font-size="9" fill="#5b604d">글과 영감</text></svg>',()=>{lifeFilter='';lifeGo('writing');});
+ const album=object('past-story-album','책장 앨범 · 지난 이야기','<svg viewBox="0 0 70 82" aria-hidden="true"><rect x="5" y="3" width="59" height="73" rx="3" fill="#afbaa0" stroke="#718269" stroke-width="3"/><path d="M14 5v69" stroke="#839377" stroke-width="4"/><rect x="23" y="16" width="31" height="31" rx="2" fill="#f4ead3"/><path d="M27 40l8-10 7 6 6-7 3 11" fill="#a8b7a0"/><circle cx="45" cy="24" r="4" fill="#d6b97e"/><text x="38" y="61" text-anchor="middle" font-size="8" fill="#fff6df">STORIES</text></svg>',()=>{lifeShow('<h2>지난 이야기</h2><p>나의 여정, 여행과 어린 시절의 기억을 앨범에서 펼쳐 보세요.</p><div class="object-menu">'+[['journey','나의 여정'],['travel','가본 곳'],['childhood','어릴 때의 나']].map(([id,title])=>'<button class="ghost" data-past-page="'+id+'">'+title+'</button>').join('')+'</div>');lifeDialog.querySelectorAll('[data-past-page]').forEach(b=>b.onclick=()=>{lifeDialog.close();lifeFilter='';lifeGo(b.dataset.pastPage);});});
+ const draw=drawRoom;drawRoom=function(t){writing.hidden=album.hidden=roomEditing||['dream','office','family'].includes(roomPrefs.activeSpace);return draw(t);};
+ const s=document.createElement('style');s.textContent='.writing-room-object{position:absolute;border:0;background:transparent;padding:0;cursor:pointer;z-index:2;line-height:0}.writing-room-object svg{width:100%;height:100%;filter:drop-shadow(1px 2px 1px #66563b22)}.writing-room-object[hidden]{display:none}.writing-room-object:hover,.writing-room-object:focus-visible{outline:2px solid #f4df9a;outline-offset:2px;border-radius:4px}.writing-notebook{left:45%;top:43%;width:10.4%;height:11.5%}.past-story-album{left:35%;top:30%;width:4.1%;height:7.1%}';document.head.append(s);
+})();
+</script>
 </body></html>
+
 
 
 
