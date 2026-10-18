@@ -20,3 +20,16 @@ Project URL과 publishable/anon key는 브라우저 앱에 공개되는 값입�
 - `auth.users`: Supabase Auth가 관리하는 로그인 이메일과 세션
 
 브라우저 저장소는 기존 사용자의 데이터를 서버로 한 번 옮기기 위한 마이그레이션 원본과 작성 중 임시 초안에만 사용합니다. 정식 저장과 다른 기기 동기화는 Supabase를 기준으로 합니다.
+
+## 코드 구조
+
+- `index.html`: 화면의 기본 마크업과 공통 스타일
+- `features/room-core.js`: 방 캔버스와 캐릭터의 핵심 동작
+- `features/today-room.js`: Today 보드와 방 안 이동
+- `features/calendar.js`: Google 캘린더 읽기 화면
+- `features/plant.js`, `features/growth.js`: 느린빛 식물과 활동별 성장
+- `features/study.js`, `features/writing-*.js`: 공부 기록과 글쓰기
+- `features/navigation.js`, `features/room-*.js`: 화면·방 이동과 배치
+- `assets/`: 캐릭터와 반려동물 이미지
+
+기능 스크립트는 `index.html`에 적힌 순서대로 불러옵니다. 전역 상태를 단계적으로 확장하는 구조이므로 파일 순서를 바꿀 때는 전체 화면 동작을 함께 확인해야 합니다.
