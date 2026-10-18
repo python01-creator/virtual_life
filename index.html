@@ -742,7 +742,7 @@ window.placeRoomsReady=(async()=>{
 (async()=>{
  // Room UI does not depend on GPS/places initialization.
  const wrap=document.querySelector('.canvas-wrap');let route=[],arrive=null,target=null,lastFrame=0;
- function renderThree(){for(const el of document.querySelectorAll('[data-simple-tasks],#side-tasks')){el.replaceChildren();state.tasks.slice(0,3).forEach((t,i)=>{const row=document.createElement('label');row.className='task'+(t.done?' done':'');const check=document.createElement('input');check.type='checkbox';check.checked=!!t.done;check.setAttribute('aria-label','할 일 '+(i+1)+' 완료');const input=document.createElement('input');input.type='text';input.value=t.text||'';input.maxLength=160;input.placeholder='할 일 '+(i+1);input.setAttribute('aria-label','할 일 '+(i+1));check.onchange=()=>{t.done=check.checked;save();renderThree();};input.oninput=()=>{t.text=input.value;save();};row.append(check,input);el.append(row);});}const n=state.tasks.filter(t=>t.done).length;const p=document.querySelector('#progress'),c=document.querySelector('#task-count');if(p)p.style.width=n/3*100+'%';if(c)c.textContent=n+' / 3 완료';document.querySelectorAll('[data-simple-count]').forEach(el=>el.textContent=n+' / 3 완료');}
+ function renderThree(){for(const el of document.querySelectorAll('[data-simple-tasks],#side-tasks')){el.replaceChildren();state.tasks.slice(0,3).forEach((t,i)=>{const row=document.createElement('label');row.className='task'+(t.done?' done':'');const check=document.createElement('input');check.type='checkbox';check.checked=!!t.done;check.setAttribute('aria-label','할 일 '+(i+1)+' 완료');const input=document.createElement('input');input.type='text';input.value=t.text||'';input.maxLength=160;input.placeholder='할 일 '+(i+1);input.setAttribute('aria-label','할 일 '+(i+1));check.onchange=()=>{const completed=check.checked;t.done=completed;save();renderThree();if(completed)window.lifeGrowthReward?.('task',localDay()+':'+i,'할 일 완료');};input.oninput=()=>{t.text=input.value;save();};row.append(check,input);el.append(row);});}const n=state.tasks.filter(t=>t.done).length;const p=document.querySelector('#progress'),c=document.querySelector('#task-count');if(p)p.style.width=n/3*100+'%';if(c)c.textContent=n+' / 3 완료';document.querySelectorAll('[data-simple-count]').forEach(el=>el.textContent=n+' / 3 완료');}
  function eventTime(event){if(event.allDay)return '하루 종일';const date=new Date(event.start);return Number.isNaN(date.getTime())?'시간 미정':date.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});}
  function renderTodayCalendar(){const target=document.querySelector('[data-today-calendar]');if(!target)return;const cal=window.lifeCalendar?.snapshot();if(!cal){target.innerHTML='<p class="today-empty">캘린더를 준비하고 있어요.</p>';return;}if(!cal.configured){target.innerHTML='<p class="today-empty">Google 캘린더 연결 설정이 아직 필요해요.</p><button class="ghost" data-today-open-calendar>연결 옵션 보기</button>';}
  else if(!cal.connected){target.innerHTML='<p class="today-empty">캘린더를 연결하면 오늘 일정이 여기에 보여요.</p><button class="ghost" data-today-open-calendar>Google 캘린더 연결</button>';}
@@ -976,6 +976,50 @@ window.placeRoomsReady=(async()=>{
  const put=lifePut;lifePut=async function(r){const country=document.querySelector('#story-form select[name=country]');if(r.kind==='travel'&&country)r={...r,country:country.value};return put(r);};
 })();
 </script>
+
+<script>
+/* SLOW_LIGHT_ACTIVITY_GROWTH_V1 */
+(()=>{
+ let queue=Promise.resolve();
+ const labels={task:'할 일',study:'공부',writing:'글쓰기'};
+ const blank=()=>({version:1,earned:{},counts:{task:0,study:0,writing:0},recent:[]});
+ async function reward(type,key,label){
+  if(!['task','study','writing'].includes(type)||!key)return false;
+  const token=type+':'+String(key);
+  return queue=queue.catch(()=>{}).then(async()=>{
+   const progress={...blank(),...((await window.lifeCloud.getSetting('garden-activity'))||{})};
+   progress.earned=progress.earned||{};progress.counts={...blank().counts,...(progress.counts||{})};progress.recent=Array.isArray(progress.recent)?progress.recent:[];
+   if(progress.earned[token])return false;
+   const garden={plant:'나의 첫 화분',xp:0,water:70,sun:70,lastWater:0,lastSun:0,lastVisit:Date.now(),dew:0,...((await window.lifeCloud.getSetting('garden'))||{})};
+   progress.earned[token]=new Date().toISOString();progress.counts[type]=(progress.counts[type]||0)+1;
+   progress.recent.unshift({type,label:label||labels[type],at:new Date().toISOString()});progress.recent=progress.recent.slice(0,12);
+   garden.dew=(Number(garden.dew)||0)+1;garden.xp=Math.min(14,(Number(garden.xp)||0)+1);garden.lastActivity={type,label:label||labels[type],at:new Date().toISOString()};
+   await Promise.all([window.lifeCloud.setSetting('garden-activity',progress),window.lifeCloud.setSetting('garden',garden)]);
+   window.dispatchEvent(new CustomEvent('life-growth-earned',{detail:{type,label:label||labels[type],garden,progress}}));
+   toast((label||labels[type])+' · 느린빛 식물이 한 뼘 자랐어요.');return true;
+  });
+ }
+ window.lifeGrowthReward=reward;
+ window.addEventListener('life-study-saved',event=>{const date=event.detail?.date,text=window.lifeStudy?.get?.(date)?.trim();if(text)reward('study',date,'오늘의 공부');});
+ const put=lifePut;lifePut=async function(record){const result=await put(record);if(record?.kind==='writing'&&!record.deleted)await reward('writing',record.id,'글 한 편');return result;};
+})();
+</script>
+
+<style>
+/* MOBILE_COMFORT_V1 */
+@media(max-width:600px){
+ body{font-size:16px}header{padding:15px 14px}.brand{max-width:190px}.header-right{gap:6px}.header-right .ghost{padding:10px}
+ main{padding:14px 10px}.room-wrap{padding:7px;border-radius:14px}.room-top{padding:7px 7px 9px}.room-tip{display:block;line-height:1.6}.room-tip .keys{display:none}
+ .quick{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.quick button{min-height:58px;font-size:12px}
+ button,.ghost,.primary,.link{min-height:44px}.actions{gap:8px}.actions>*{flex:1 1 132px}.dpad{gap:8px}.dpad button{min-width:54px;min-height:48px;font-size:20px;padding:8px}
+ aside{grid-template-columns:1fr}.card{padding:17px}.timer-small button{flex:1}
+ dialog,#life-dialog{width:calc(100% - 12px);max-height:94dvh;padding:21px 16px;border-radius:18px}.close{min-width:44px;min-height:44px;right:7px;top:5px}
+ .writer-shell input{font-size:20px}.writer-shell textarea{min-height:48dvh;font-size:16px;padding:18px 0;line-height:1.9}.writer-footer{position:sticky;bottom:0;background:var(--paper);padding:10px 0;z-index:2}
+ .today-dashboard>section{padding:15px 13px}.today-event{grid-template-columns:68px 1fr}.life-shell{padding:20px 12px 44px}.life-nav{padding:0 10px}
+ .garden-window{height:280px;border-width:8px}.plant-growth-scene{padding-top:5px}.plant-illustration{max-width:62%}.plant-care-status{flex-direction:column;align-items:center}
+}
+@media(max-width:380px){.brand small{display:none}.quick{grid-template-columns:1fr 1fr}.room-top span:first-child{display:none}.room-top{justify-content:flex-end}.today-event{grid-template-columns:1fr}.today-event time{margin-bottom:3px}}
+</style>
 </body></html>
 
 
