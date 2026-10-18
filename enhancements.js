@@ -66,13 +66,13 @@ async function renderGarden(){
  <section class="garden-window ${healthy?'healthy':'sleepy'}"><div class="garden-sky"><i></i><span class="butterfly">❦</span></div><div class="plant-stage" aria-label="${gardenStages[s]}"><span>${gardenIcons[s]}</span></div><div class="pot">${lifeText(garden.plant||'나의 화분')}</div></section>
  <div class="garden-status"><div><span>물</span><meter min="0" max="100" value="${garden.water}"></meter><b>${garden.water}%</b></div><div><span>햇빛</span><meter min="0" max="100" value="${garden.sun}"></meter><b>${garden.sun}%</b></div><div><span>성장</span><meter min="0" max="14" value="${garden.xp}"></meter><b>${gardenStages[s]}</b></div></div>
  <div class="actions garden-actions"><button class="primary" id="garden-water">💧 물 한 모금</button><button class="ghost" id="garden-sun">☀ 빛자리 열기</button><button class="ghost" id="garden-name">화분 이름 붙이기</button></div>
- <p class="life-note">하루에 한 번 물과 빛을 챙기면 잘 자라요. 너무 자주 눌러도 식물이 재촉받지는 않아요. 글 한 편을 저장할 때마다 마음빛도 하나 생겨요.</p>`;
+ <p class="life-note">하루에 한 번 물과 빛을 챙기면 잘 자라요. 너무 자주 눌러도 식물이 재촉받지는 않아요. 일기·공부 기록·글 중 무엇이든 하나 저장하면 바로 한 뼘 자라요.</p>`;
  $('#garden-water').onclick=()=>care('water');$('#garden-sun').onclick=()=>care('sun');$('#garden-name').onclick=renamePlant;
  }catch{lifeShell.innerHTML='<div class="empty-state">정원을 불러오지 못했어요.<br>연결 상태를 확인해 주세요.</div>';}finally{gardenBusy=false;}
 }
 async function care(kind){const field=kind==='water'?'lastWater':'lastSun',elapsed=Date.now()-(garden[field]||0);if(elapsed<6*3600000){toast(kind==='water'?'아직 흙이 촉촉해요.':'오늘 받은 햇빛이 충분해요.');return;}garden[field]=Date.now();garden[kind]=Math.min(100,(garden[kind]||0)+28);if(garden.water>=30&&garden.sun>=30)garden.xp=Math.min(14,(garden.xp||0)+1);await window.lifeCloud.setSetting('garden',garden);gardenBusy=false;renderGarden();toast(kind==='water'?'물이 흙으로 스며들어요.':'따뜻한 햇살을 받았어요.');}
 function renamePlant(){lifeShow(`<h2>화분 이름 붙이기</h2><form id="plant-name"><label class="field">이름<input name="name" maxlength="30" value="${lifeText(garden.plant||'')}"></label><button class="primary">이 이름으로 부르기</button></form>`);$('#plant-name').onsubmit=async e=>{e.preventDefault();garden.plant=String(new FormData(e.target).get('name')).trim()||'나의 화분';await window.lifeCloud.setSetting('garden',garden);lifeDialog.close();gardenBusy=false;renderGarden();};}
-async function rewardWriting(id){if(window.lifeGrowthReward)return window.lifeGrowthReward('writing',id,'글 한 편');await loadGarden();garden.dew=(garden.dew||0)+1;if(garden.dew%3===0)garden.xp=Math.min(14,(garden.xp||0)+1);await window.lifeCloud.setSetting('garden',garden);}
+async function rewardWriting(id){if(window.lifeGrowthReward)return window.lifeGrowthReward('writing',id,'글 한 편');await loadGarden();garden.dew=(garden.dew||0)+1;garden.xp=Math.min(14,(garden.xp||0)+1);await window.lifeCloud.setSetting('garden',garden);}
 
 let shelfMonth=lifeDate().slice(0,7),shelfZoom=false;
 function monthLabel(value){const [year,month]=value.split('-');return `${year}년 ${Number(month)}월`;}
