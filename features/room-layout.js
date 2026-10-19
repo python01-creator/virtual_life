@@ -6,6 +6,7 @@
  const dom=[['.story-object-link','story'],['.memory-object-link','memory'],['.today-board-hit','board'],['.growth-plant-link','plant'],['.story-family-door','family-door'],['.story-award-frame','award-frame'],['.writing-notebook','writing-note','notion'],['.past-story-album','past-album','study'],['.notion-monitor-hit','notion']];
  const positions=[[450,481.975],[249.6,99.97],[115.968,109.98],[78.72,429],[576,78],[460.8,97.5],[763.2,312],[336,195],[674.88,260.975]];
  const baselines=new Map(dom.map(([sel],i)=>[sel,{x:positions[i][0],y:positions[i][1]}]));
+ window.lifeFurnitureRegistry={items:specs.map(s=>({id:s[0],label:s[5]})),targets:dom.map(([selector,id,parent])=>({selector,id,parent})),offset:id=>roomPrefs.layout[id]||{x:0,y:0}};
  const offset=id=>roomPrefs.layout[id]||{x:0,y:0};let drag=null;
  const handles=specs.map(s=>{const b=document.createElement('button');b.className='all-layout-handle';b.textContent=s[5];b.setAttribute('aria-label',s[5]+'を移動'.replace('を移動',' 배치 이동'));b.hidden=true;wrap.append(b);
  function change(x,y){const parent=s[0]==='writing-note'?offset('notion'):s[0]==='past-album'?offset('study'):{x:0,y:0};roomPrefs.layout[s[0]]={x:Math.max(65-s[1]-parent.x,Math.min(895-s[1]-s[3]-parent.x,x)),y:Math.max(70-s[2]-parent.y,Math.min(575-s[2]-s[4]-parent.y,y))};roomApplyLayout();}
@@ -30,3 +31,4 @@
  const edit=lifeEdit;lifeEdit=function(record,kind,...args){edit(record,kind,...args);if((record?.kind||kind)!=='travel')return;const f=document.querySelector('#story-form');if(!f)return;f.querySelectorAll('input[name=lat],input[name=lon]').forEach(i=>i.closest('label').remove());const label=document.createElement('label');label.className='field';label.innerHTML='나라·지역<select name="country"><option value="">선택 안 함 · 기록만 남기기</option>'+Object.keys(countries).map(name=>'<option>'+safe(name)+'</option>').join('')+'</select><small>도시·명소 이름은 장소 칸에 적어 주세요.</small>';f.elements.place.closest('label').before(label);f.elements.country.value=record?.country||'';const submit=f.onsubmit;f.onsubmit=e=>{for(const name of ['lat','lon']){const input=document.createElement('input');input.type='hidden';input.name=name;const xy=countries[f.elements.country.value];input.value=xy?xy[name==='lon'?0:1]:record?.[name]??'';f.append(input);}return submit(e);};};
  const put=lifePut;lifePut=async function(r){const country=document.querySelector('#story-form select[name=country]');if(r.kind==='travel'&&country)r={...r,country:country.value};return put(r);};
 })();
+
