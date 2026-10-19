@@ -2,9 +2,9 @@
 (async()=>{
  if(window.lifeCloud){try{await window.lifeCloud.ready;await window.lifeAppReady;}catch{return;}}
  const wrap=document.querySelector('.canvas-wrap');
- const specs=[['today',323,450,104,100,'할 일 가구'],['focus',95,290,190,95,'공부 책상'],['study',320,170,100,115,'책장'],['calendar',667,120,48,60,'달력'],['notion',635,261,185,120,'노션 책상'],['rest',548,428,282,133,'소파'],['story',450,482,73,68,'일기장'],['memory',250,100,56,64,'추억 액자'],['board',116,110,120,112,'TODAY 보드'],['plant',80,445,60,95,'화분'],['family-door',576,78,65,120,'가족 거실 문'],['dream-door',790,78,65,120,'꿈의 집 문'],['award-frame',461,98,90,72,'상장'],['writing-note',763,312,48,38,'글과 영감 노트'],['past-album',336,195,39,46,'지난 이야기 앨범']];
- const dom=[['.story-object-link','story'],['.memory-object-link','memory'],['.today-board-hit','board'],['.growth-plant-link','plant'],['.story-family-door','family-door'],['.story-dream-door','dream-door'],['.story-award-frame','award-frame'],['.writing-notebook','writing-note','notion'],['.past-story-album','past-album','study'],['.notion-monitor-hit','notion']];
- const positions=[[450,481.975],[249.6,99.97],[115.968,109.98],[78.72,429],[576,78],[790.08,78],[460.8,97.5],[763.2,312],[336,195],[674.88,260.975]];
+ const specs=[['today',323,450,104,100,'할 일 가구'],['focus',95,290,190,95,'공부 책상'],['study',320,170,100,115,'책장'],['calendar',667,120,48,60,'달력'],['notion',635,261,185,120,'노션 책상'],['rest',548,428,282,133,'소파'],['story',450,482,73,68,'일기장'],['memory',250,100,56,64,'추억 액자'],['board',116,110,120,112,'TODAY 보드'],['plant',80,445,60,95,'화분'],['family-door',576,78,65,120,'가족 거실 문'],['award-frame',461,98,90,72,'상장'],['writing-note',763,312,48,38,'글과 영감 노트'],['past-album',336,195,39,46,'지난 이야기 앨범']];
+ const dom=[['.story-object-link','story'],['.memory-object-link','memory'],['.today-board-hit','board'],['.growth-plant-link','plant'],['.story-family-door','family-door'],['.story-award-frame','award-frame'],['.writing-notebook','writing-note','notion'],['.past-story-album','past-album','study'],['.notion-monitor-hit','notion']];
+ const positions=[[450,481.975],[249.6,99.97],[115.968,109.98],[78.72,429],[576,78],[460.8,97.5],[763.2,312],[336,195],[674.88,260.975]];
  const baselines=new Map(dom.map(([sel],i)=>[sel,{x:positions[i][0],y:positions[i][1]}]));
  const offset=id=>roomPrefs.layout[id]||{x:0,y:0};let drag=null;
  const handles=specs.map(s=>{const b=document.createElement('button');b.className='all-layout-handle';b.textContent=s[5];b.setAttribute('aria-label',s[5]+'を移動'.replace('を移動',' 배치 이동'));b.hidden=true;wrap.append(b);

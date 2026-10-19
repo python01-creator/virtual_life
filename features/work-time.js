@@ -65,7 +65,7 @@
  pose=function(kind){if(!office||roomPrefs.activeSpace==='dream')return basePose(kind);route=null;keys.clear();posture=kind;if(kind==='desk'){player.x=500;player.y=410;}else{player.x=200;player.y=490;}$('#panel').close();canvas.focus({preventScroll:true});};
  move=function(dx,dy,dt){if(dx||dy)route=null;return baseMove(dx,dy,dt);};
  function walkToDesk(){if(!office||roomPrefs.activeSpace==='dream')return;posture='stand';player.x=500;player.y=550;route=[{x:500,y:430},{x:500,y:410}];}
- function placeChanged(p){const viewportTop=window.scrollY;office=p?.kind==='office';if(roomPrefs.activeSpace==='dream'){route=null;return;}document.querySelector('.room-top>span:first-of-type').textContent=office?'MY OFFICE':'HOME OFFICE';roomApplyLayout();route=null;if(office){roomPrefs.activeSpace='office';walkToDesk();}else{if(roomPrefs.activeSpace==='office')roomPrefs.activeSpace='current';if(data.active?.mode==='remote'&&!C.inLunch(Date.now()))pose('desk');}requestAnimationFrame(()=>window.scrollTo({top:viewportTop,left:0,behavior:'auto'}));}
+ function placeChanged(){const viewportTop=window.scrollY;office=false;route=null;if(['dream','office'].includes(roomPrefs.activeSpace))roomPrefs.activeSpace='current';document.querySelector('.room-top>span:first-of-type').textContent='HOME OFFICE';roomApplyLayout();requestAnimationFrame(()=>window.scrollTo({top:viewportTop,left:0,behavior:'auto'}));}
  window.addEventListener('life-place-changed',e=>placeChanged(e.detail));
  function onLocation(e){
  read();if(!data.autoStart||document.hidden)return;const p=e.detail;if(!p||Date.now()-p.at>30000)return;
