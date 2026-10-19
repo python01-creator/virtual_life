@@ -33,3 +33,11 @@ Project URL과 publishable/anon key는 브라우저 앱에 공개되는 값입�
 - `assets/`: 캐릭터와 반려동물 이미지
 
 기능 스크립트는 `index.html`에 적힌 순서대로 불러옵니다. 전역 상태를 단계적으로 확장하는 구조이므로 파일 순서를 바꿀 때는 전체 화면 동작을 함께 확인해야 합니다.
+
+## Google 캘린더 연결
+
+1. Google Cloud에서 Calendar API를 활성화합니다.
+2. 웹 애플리케이션 OAuth 클라이언트를 만들고 승인된 JavaScript 원본에 `https://python01-creator.github.io`를 추가합니다.
+3. 발급된 클라이언트 ID를 `config.js`의 `googleCalendarClientId`에 넣습니다.
+
+클라이언트 ID는 브라우저용 공개 식별자입니다. 클라이언트 보안 비밀번호는 저장소나 브라우저 코드에 넣지 않습니다. 앱은 `calendar.events.readonly` 권한만 요청하고, Google 일정 원본을 추가·수정·삭제하지 않습니다. 연결할 때 계정 선택창이 열리므로 운영실 로그인 이메일과 다른 Google 계정도 사용할 수 있습니다. 액세스 토큰은 메모리에만 두며 탭을 닫으면 사라집니다.
