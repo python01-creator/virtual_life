@@ -22,7 +22,6 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" crossorigin="anonymous">
 <style id="clean-room-v1">
 body,button,input,textarea,select{font-family:'Pretendard',-apple-system,BlinkMacSystemFont,system-ui,sans-serif!important}
-.quick:not(:focus-within){position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 .room-extra-actions{margin-top:14px;color:var(--muted);font-size:12px}.room-extra-actions summary{cursor:pointer;width:fit-content;padding:8px 0}.room-extra-actions .actions{margin-top:6px}
 </style>
 </head>
@@ -69,7 +68,7 @@ body,button,input,textarea,select{font-family:'Pretendard',-apple-system,BlinkMa
 <script src="./features/popup-layout.js?v=20261019"></script>
 
 <script src="./features/dialog-dismiss.js?v=20261019"></script>
-<script src="./features/today-room.js?v=20261022"></script>
+<script src="./features/today-room.js?v=20261023"></script>
 <script src="./features/walk-ui.js?v=20261019"></script>
 <script src="./features/family-albums.js?v=20261019"></script>
 
@@ -110,6 +109,7 @@ body,button,input,textarea,select{font-family:'Pretendard',-apple-system,BlinkMa
  .writer-shell input{font-size:20px}.writer-shell textarea{min-height:48dvh;font-size:16px;padding:18px 0;line-height:1.9}.writer-footer{position:sticky;bottom:0;background:var(--paper);padding:10px 0;z-index:2}
  .today-dashboard>section{padding:15px 13px}.today-event{grid-template-columns:68px 1fr}.life-shell{padding:20px 12px 44px}.life-nav{padding:0 10px}
  .garden-window{height:280px;border-width:8px}.plant-growth-scene{padding-top:5px}.plant-illustration{max-width:62%}.plant-care-status{flex-direction:column;align-items:center}
+ .canvas-wrap button:not([hidden]){min-width:44px!important;min-height:44px!important;margin-left:-9px}
 }
 @media(max-width:380px){.brand small{display:none}.quick{grid-template-columns:1fr 1fr}.room-top span:first-child{display:none}.room-top{justify-content:flex-end}.today-event{grid-template-columns:1fr}.today-event time{margin-bottom:3px}}
 .plant-activity{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}.plant-activity>div{background:#fffaf0;border:1px solid #d9dfcc;border-radius:14px;padding:14px}.plant-activity strong,.plant-activity b,.plant-activity span{display:block}.plant-activity strong{font-size:17px;color:#65795b}.plant-activity span{font-size:11px;line-height:1.7;color:#78836e;margin-top:5px}.plant-recent span{padding-left:12px;position:relative}.plant-recent span:before{content:'';position:absolute;left:0;top:.7em;width:5px;height:5px;border-radius:50%;background:#d8b45e}@media(max-width:600px){.plant-activity{grid-template-columns:1fr}.plant-activity>div{padding:13px}}
