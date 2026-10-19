@@ -87,19 +87,15 @@ function renderShelf(){
  $('#shelf-zoom').onclick=()=>{shelfZoom=!shelfZoom;renderShelf();};$('#shelf-write').onclick=()=>diaryForm(lifeDate());lifeShell.querySelectorAll('[data-month-book]').forEach(b=>b.onclick=()=>{shelfMonth=b.dataset.monthBook;renderShelf();});lifeShell.querySelectorAll('[data-shelf-diary]').forEach(b=>b.onclick=()=>diaryRead(b.dataset.shelfDiary));
 }
 
-function ensureRoomSpaces(){if(roomPrefs.spaces)return;roomPrefs.activeSpace='current';roomPrefs.spaces={current:{name:roomPrefs.name||'지금의 방',theme:roomPrefs.theme||'sage',layout:{...(roomPrefs.layout||{})}},dream:{name:'언젠가 살고 싶은 집',theme:'cream',layout:{}}};}
-function syncRoomSpace(){ensureRoomSpaces();const key=roomPrefs.activeSpace||'current';roomPrefs.spaces[key]={name:roomPrefs.name,theme:roomPrefs.theme,layout:{...(roomPrefs.layout||{})}};}
+function ensureRoomSpaces(){roomPrefs.spaces=roomPrefs.spaces||{};if(['dream','office'].includes(roomPrefs.activeSpace)&&roomPrefs.spaces.current){const saved=roomPrefs.spaces.current;roomPrefs.name=saved.name||'지금의 방';roomPrefs.theme=saved.theme||'sage';roomPrefs.layout={...(saved.layout||{})};}roomPrefs.activeSpace='current';roomPrefs.spaces.current={name:roomPrefs.name||'지금의 방',theme:roomPrefs.theme||'sage',layout:{...(roomPrefs.layout||{})}};}
+function syncRoomSpace(){ensureRoomSpaces();roomPrefs.spaces.current={name:roomPrefs.name,theme:roomPrefs.theme,layout:{...(roomPrefs.layout||{})}};}
 function roomSpaceButtons(){
- let box=document.querySelector('.space-switch');if(!box){box=document.createElement('div');box.className='space-switch';box.innerHTML='<button data-space="current">⌂ 지금의 방</button><button data-space="dream">✦ 꿈의 집</button>';document.querySelector('.room-top').prepend(box);box.querySelectorAll('button').forEach(b=>b.onclick=()=>travelRoom(b.dataset.space));const shelf=document.createElement('button');shelf.className='ghost';shelf.id='open-bookshelf';shelf.textContent='📚 달의 책장 펼치기';document.querySelector('[aria-label="방 안 행동"]').append(shelf);shelf.onclick=()=>lifeGo('shelf');}
- ensureRoomSpaces();const active=roomPrefs.activeSpace||'current';box.querySelectorAll('button').forEach(b=>b.classList.toggle('active',b.dataset.space===active));homeButton.textContent=active==='dream'?'✦ '+roomPrefs.name:'⌂ '+roomPrefs.name;
+ document.querySelector('.space-switch')?.remove();let shelf=document.querySelector('#open-bookshelf');if(!shelf){shelf=document.createElement('button');shelf.className='ghost';shelf.id='open-bookshelf';shelf.textContent='📚 달의 책장 펼치기';document.querySelector('[aria-label="방 안 행동"]').append(shelf);shelf.onclick=()=>lifeGo('shelf');}ensureRoomSpaces();homeButton.textContent='⌂ '+roomPrefs.name;
 }
-function applyRoomSpace(next){ensureRoomSpaces();syncRoomSpace();const target=roomPrefs.spaces[next];roomPrefs.activeSpace=next;roomPrefs.name=target.name;roomPrefs.theme=target.theme;roomPrefs.layout={...(target.layout||{})};roomApplyLayout();player.x=465;player.y=390;standUp();lifeRoomSave();roomSpaceButtons();document.querySelector('h1').textContent=roomPrefs.name+'에서, 내 속도로.';homeButton.textContent=next==='dream'?'✦ '+roomPrefs.name:'⌂ '+roomPrefs.name;}
-function travelRoom(next){ensureRoomSpaces();if(next===roomPrefs.activeSpace)return;keys.clear();applyRoomSpace(next);toast(next==='dream'?'꿈의 집으로 이동했어요.':'지금의 방으로 돌아왔어요.');canvas.focus();}
 const originalRoomSave=lifeRoomSave;
 lifeRoomSave=function(){syncRoomSpace();originalRoomSave();};
 window.roomSpaceButtons=roomSpaceButtons;
 roomSpaceButtons();
-canvas.addEventListener('click',e=>{const r=canvas.getBoundingClientRect(),x=(e.clientX-r.left)*960/r.width,y=(e.clientY-r.top)*650/r.height,isDream=roomPrefs.activeSpace==='dream',onDoor=isDream?(x>=92&&x<=185&&y>=145&&y<=370):(x>=790&&x<=875&&y>=70&&y<=205);if(onDoor){e.stopImmediatePropagation();travelRoom(isDream?'current':'dream');}},true);
 
 document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;b.classList.remove('soft-pop');void b.offsetWidth;b.classList.add('soft-pop');});
 lifeMenu();
