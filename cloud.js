@@ -32,6 +32,7 @@
     const gate = el('auth-gate');
     if (!gate) return;
     gate.hidden = mode === 'app';
+    gate.setAttribute('aria-busy', mode === 'loading' ? 'true' : 'false');
     document.documentElement.classList.toggle('auth-locked', mode !== 'app');
     el('auth-setup').hidden = mode !== 'setup';
     el('auth-login').hidden = mode !== 'login';
@@ -126,7 +127,8 @@ window.lifeCloud.albums={
       message('Supabase 프로젝트 정보를 config.js에 연결하면 로그인을 시작할 수 있어요.');
       return;
     }
-    show('login');
+    show('loading');
+    message('안전하게 내 공간을 여는 중…');
     const form = el('auth-form');
 
     /* AUTH_MAIL_COOLDOWN_V1 */
@@ -154,6 +156,9 @@ window.lifeCloud.albums={
         show('app');
         installAccountButton();
         releaseReady(currentUser);
+      } else {
+        show('login');
+        message('');
       }
     } catch (error) {
       message('로그인 상태를 확인하지 못했어요. 잠시 후 다시 시도해 주세요.', true);
