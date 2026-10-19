@@ -86,9 +86,9 @@ function drawDreamRoom3D(t){
 function drawRoom(t){if(roomPrefs.activeSpace==='dream'){drawDreamRoom3D(t);return;}ctx.clearRect(0,0,960,650);rect(0,0,960,650,'#dce4cf');for(let y=25;y<650;y+=43)for(let x=14;x<960;x+=47)rect(x+(y%2)*12,y,3,3,'#cdd8be');rect(55,66,850,545,'#a58f71');rect(49,54,862,537,'#6f7760');rect(58,62,844,522,lifeThemes[roomPrefs.theme].floor);rect(66,70,828,110,lifeThemes[roomPrefs.theme].wall);rect(66,171,828,12,'#a79776');for(let x=68;x<894;x+=67){rect(x,184,1,389,'#cdb68e');for(let y=185;y<580;y+=32)rect(x,y,Math.min(65,894-x),1,'#d4bd96');}rect(66,183,828,5,'#b29b77');rect(66,574,828,10,'#9b8366');rect(66,70,7,504,'#b49f7d');rect(887,70,7,504,'#b49f7d');
 // Window, curtains and a patch of sunlight.
 rect(445,87,139,83,'#8b8f72');rect(452,94,125,69,'#b9d9d1');rect(457,99,52,27,'#d7e9d6');rect(518,99,52,27,'#d7e9d6');rect(510,94,7,69,'#f3e7c9');rect(452,127,125,6,'#f3e7c9');rect(431,83,18,95,'#e9ddbd');rect(580,83,18,95,'#e9ddbd');rect(440,171,150,8,'#a88b64');ctx.fillStyle='#fff0bc30';ctx.beginPath();ctx.moveTo(454,182);ctx.lineTo(570,182);ctx.lineTo(666,380);ctx.lineTo(457,380);ctx.fill();
-// TODAY cork board.
+// TODAY sticky-note furniture.
 roomTransform('today');
-rect(330,528,8,25,'#8c7353');rect(410,528,8,25,'#8c7353');rect(323,450,104,89,'#ac8d67');rect(329,456,92,76,'#f5ecd7');rect(358,450,34,9,'#829074');for(let i=0;i<3;i++){rect(340,475+i*15,7,7,'#b6c3a0');rect(354,477+i*15,50-i*7,2,'#b3ad92');}ctx.save();ctx.font='bold 11px Pretendard, sans-serif';ctx.fillStyle='#52664b';ctx.textAlign='center';ctx.fillText('TO-DO LIST',375,573);ctx.restore();
+rect(330,466,82,70,'#d7c7e8');rect(337,457,82,70,'#bcd8c0');rect(323,450,86,78,'#f5dc84');rect(329,456,74,66,'#ffedab');ctx.fillStyle='#e1c361';ctx.beginPath();ctx.moveTo(389,522);ctx.lineTo(403,508);ctx.lineTo(403,522);ctx.fill();rect(338,470,43,3,'#b5a46b');rect(338,481,55,3,'#b5a46b');rect(338,492,48,3,'#b5a46b');for(let i=0;i<3;i++)rect(329,469+i*11,5,5,'#91a476');ctx.save();ctx.font='bold 10px Pretendard, sans-serif';ctx.fillStyle='#6f613d';ctx.textAlign='center';ctx.fillText('TODAY',366,516);ctx.restore();
 ctx.restore();
 // Study shelf and books.
 roomTransform('study');
