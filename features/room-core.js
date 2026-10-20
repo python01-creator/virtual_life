@@ -28,7 +28,9 @@ async function toggleSound(){try{if(audioContext){await audioContext.close();aud
 let night=false,waterUntil=0;
 document.querySelectorAll('[data-pose]').forEach(b=>b.onclick=()=>pose(b.dataset.pose));$('#stand-up').onclick=()=>{standUp();canvas.focus();};$('#water').onclick=()=>{waterUntil=Date.now()+3000;toast('촉촉하게 물을 줬어요. 식물이 반짝여요 🌱');};$('#light').onclick=()=>{night=!night;$('#light').textContent=night?'🌙 조명 바꾸기':'☀ 조명 바꾸기';};
 const canvas=$('#room'),ctx=canvas.getContext('2d');ctx.imageSmoothingEnabled=false;
-const objects=[{id:'today',x:323,y:450,w:104,h:100,label:'TO-DO LIST'},{id:'focus',x:95,y:290,w:190,h:95,label:'FOCUS'},{id:'study',x:320,y:170,w:100,h:115,label:'STUDY'},{id:'calendar',x:667,y:120,w:48,h:60,label:'CALENDAR'},{id:'notion',x:635,y:261,w:185,h:120,label:'NOTION'},{id:'rest',x:585,y:450,w:220,h:95,label:'OFF DUTY'}];
+const roomReminder=[...document.querySelectorAll('aside .card')].find(card=>card.querySelector('.eyebrow')?.textContent.trim()==='A GENTLE REMINDER');if(roomReminder){roomReminder.classList.add('room-reminder');document.querySelector('.room-wrap').append(roomReminder);}
+const objects=[{id:'today',x:323,y:450,w:104,h:100,label:'TO-DO LIST'},{id:'study',x:338,y:225,w:68,h:38,label:'공부 노트'},{id:'focus',x:95,y:290,w:190,h:95,label:'FOCUS'},{id:'calendar',x:667,y:120,w:48,h:60,label:'CALENDAR'},{id:'notion',x:635,y:261,w:185,h:120,label:'NOTION'},{id:'rest',x:585,y:450,w:220,h:95,label:'OFF DUTY'}];
+const studyNotebookHit=document.createElement('button');studyNotebookHit.type='button';studyNotebookHit.className='study-notebook-hit';studyNotebookHit.setAttribute('aria-label','독서실 책상 위 공부노트 · 오늘의 공부기록');studyNotebookHit.title='공부노트 · 오늘의 공부기록';Object.assign(studyNotebookHit.style,{position:'absolute',zIndex:'6',minWidth:'42px',minHeight:'36px',appearance:'none',border:'2px solid transparent',borderRadius:'5px',background:'transparent',padding:'0',cursor:'pointer',touchAction:'manipulation'});studyNotebookHit.onfocus=studyNotebookHit.onpointerenter=()=>studyNotebookHit.style.borderColor='#fff0b0';studyNotebookHit.onblur=studyNotebookHit.onpointerleave=()=>studyNotebookHit.style.borderColor='transparent';studyNotebookHit.onclick=e=>{e.stopPropagation();openPanel('study');};document.querySelector('.canvas-wrap').append(studyNotebookHit);
 const dreamObjects=[{id:'rest',x:145,y:390,w:230,h:110,label:'꿈의 소파'},{id:'focus',x:560,y:350,w:190,h:145,label:'꿈의 책상'},{id:'study',x:735,y:180,w:90,h:210,label:'꿈의 책장'}];
 const mongleImage=new Image();mongleImage.src='./assets/mongle.webp';
 let mongle={x:500,y:430,row:0,until:0},petClock=0;
@@ -90,9 +92,10 @@ rect(445,87,139,83,'#8b8f72');rect(452,94,125,69,'#b9d9d1');rect(457,99,52,27,'#
 roomTransform('today');
 rect(330,466,82,70,'#d7c7e8');rect(337,457,82,70,'#bcd8c0');rect(323,450,86,78,'#f5dc84');rect(329,456,74,66,'#ffedab');ctx.fillStyle='#e1c361';ctx.beginPath();ctx.moveTo(389,522);ctx.lineTo(403,508);ctx.lineTo(403,522);ctx.fill();rect(338,470,43,3,'#b5a46b');rect(338,481,55,3,'#b5a46b');rect(338,492,48,3,'#b5a46b');for(let i=0;i<3;i++)rect(329,469+i*11,5,5,'#91a476');ctx.save();ctx.font='bold 10px Pretendard, sans-serif';ctx.fillStyle='#6f613d';ctx.textAlign='center';ctx.fillText('TODAY',366,516);ctx.restore();
 ctx.restore();
-// Study shelf and books.
+// A compact study-room cubicle. Only the open notebook launches STUDY.
 roomTransform('study');
-rect(325,170,91,103,'#8f7051');rect(332,177,77,89,'#a98a61');for(let row=0;row<2;row++){for(let i=0;i<7;i++){rect(337+i*10,181+row*42,7,30-i%3*3,['#74836a','#b98267','#d6c291','#8c9e97'][i%4]);rect(339+i*10,187+row*42,3,1,'#e7d7b7');}rect(330,217+row*42,80,6,'#785e44');}label('STUDY',370,296);
+rect(302,148,138,12,'#7d634b');rect(302,148,10,139,'#8d7053');rect(430,148,10,139,'#755b46');rect(312,160,118,82,'#d8c7aa');rect(319,169,104,60,'#efe4cf');rect(318,184,105,5,'#9a7b59');for(let i=0;i<6;i++)rect(326+i*14,164,9,18-i%2*3,['#71836b','#b97d65','#c9ad75'][i%3]);rect(298,242,146,14,'#9a7654');rect(304,238,134,12,'#c69d6e');rect(309,256,9,52,'#806249');rect(424,256,9,52,'#806249');rect(338,225,32,30,'#f7edcf');rect(370,225,36,30,'#fff5dc');rect(370,228,2,24,'#c9ad80');for(let i=0;i<4;i++){rect(343,232+i*5,22,1,'#b7a98e');rect(376,232+i*5,24,1,'#b7a98e');}rect(350,221,44,4,'#879b72');rect(353,273,39,18,'#74816a');rect(348,289,49,12,'#8b9877');rect(353,301,6,18,'#66684f');rect(387,301,6,18,'#66684f');label('STUDY DESK',371,335);
+{const p=roomPrefs.layout.study||{x:0,y:0};Object.assign(studyNotebookHit.style,{left:(338+p.x)/9.6+'%',top:(225+p.y)/6.5+'%',width:68/9.6+'%',height:38/6.5+'%'});studyNotebookHit.hidden=roomEditing||['dream','office','family'].includes(roomPrefs.activeSpace);}
 ctx.restore();
 // Desk and clock.
 roomTransform('focus');
