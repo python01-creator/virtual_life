@@ -130,6 +130,8 @@ window.lifeCloud.albums={
     show('loading');
     message('안전하게 내 공간을 여는 중…');
     const form = el('auth-form');
+    const googleButton=el('auth-google'),googleEnabled=config.googleAuthEnabled===true;
+    if(googleEnabled){googleButton.hidden=false;el('auth-divider').hidden=false;googleButton.onclick=async()=>{googleButton.disabled=true;message('Google 로그인 화면을 여는 중…');try{const {error}=await client.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.origin+location.pathname,queryParams:{prompt:'select_account'}}});if(error)throw error;}catch(error){googleButton.disabled=false;message('Google 로그인을 시작하지 못했어요. 연결 설정을 확인해 주세요.',true);}};}
 
     /* AUTH_MAIL_COOLDOWN_V1 */
     const sendButton=form.querySelector('button'),cooldownKey='life-auth-mail-cooldown-v1';let until=0,timer,sending=false;

@@ -4,5 +4,7 @@ window.LIFE_HQ_CONFIG = {
   supabaseUrl: 'https://givmlerpxryfdmawlmjk.supabase.co',
   supabaseAnonKey: 'sb_publishable_M9_tKjRPnDxsWLaQbr2tgQ_jOkZ6N5x',
   // Google Cloud의 웹 애플리케이션 OAuth 클라이언트 ID입니다. 클라이언트 보안 비밀번호는 넣지 않습니다.
-  googleCalendarClientId: ''
+  googleCalendarClientId: '102410081448-nqk5ussrqmpin36hfgkcj5dq96p9e8np.apps.googleusercontent.com',
+  // Supabase의 Google Provider 설정을 마친 뒤 true로 바꿉니다. 비밀키는 이 파일에 넣지 않습니다.
+  googleAuthEnabled: true
 };
