@@ -113,6 +113,45 @@ body,button,input,textarea,select{font-family:'Pretendard',-apple-system,BlinkMa
 }
 @media(max-width:380px){.brand small{display:none}.quick{grid-template-columns:1fr 1fr}.room-top span:first-child{display:none}.room-top{justify-content:flex-end}.today-event{grid-template-columns:1fr}.today-event time{margin-bottom:3px}}
 .plant-activity{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}.plant-activity>div{background:#fffaf0;border:1px solid #d9dfcc;border-radius:14px;padding:14px}.plant-activity strong,.plant-activity b,.plant-activity span{display:block}.plant-activity strong{font-size:17px;color:#65795b}.plant-activity span{font-size:11px;line-height:1.7;color:#78836e;margin-top:5px}.plant-recent span{padding-left:12px;position:relative}.plant-recent span:before{content:'';position:absolute;left:0;top:.7em;width:5px;height:5px;border-radius:50%;background:#d8b45e}@media(max-width:600px){.plant-activity{grid-template-columns:1fr}.plant-activity>div{padding:13px}}
+
+/* COMPACT_ROOM_VIEW_V1: keep the interactive room close to one viewport. */
+body>main{display:block;max-width:none;padding:14px 24px 20px}
+body>main>section{width:min(100%,1040px);margin-inline:auto}
+body>main>aside{display:none}
+body>main>section>h1{margin-top:4px}
+body>main>section>.intro{margin-bottom:12px}
+.room-wrap>.room-reminder{padding:11px 16px;margin-top:8px;display:flex;align-items:center;gap:16px}
+.room-wrap>.room-reminder .eyebrow{flex:0 0 auto}
+.room-wrap>.room-reminder p{margin:0!important;line-height:1.55}
+@media(min-width:761px) and (max-height:1000px){
+ header{padding-top:17px;padding-bottom:15px}
+ .life-nav{margin-top:10px}
+ .life-nav button{padding:9px 14px}
+ body>main>section{width:min(100%,max(620px,calc((100dvh - 350px) * 1.4769)))}
+ body>main>section>.eyebrow{display:none}
+ body>main>section>h1{font-size:23px;margin:0 0 3px}
+ body>main>section>.intro{line-height:1.45;margin-bottom:8px}
+ .room-wrap{padding:8px}
+ .room-top{padding:5px 8px 7px}
+ .room-tip{padding:8px 6px 1px}
+}
+@media(max-width:760px){
+ header{padding:12px 12px 10px}
+ .brand small{margin-top:3px}
+ .life-nav{margin-top:8px;padding-inline:10px;gap:6px}
+ .life-nav button{padding:9px 12px}
+ body>main{padding:9px 8px 14px}
+ body>main>section>.eyebrow,body>main>section>.intro{display:none}
+ body>main>section>h1{font-size:20px;margin:0 4px 7px}
+ .room-top{padding:5px 6px 7px}
+ .room-tip{padding:7px 4px 0}
+ .dpad{margin-top:7px}
+ .dpad button{min-height:42px}
+ .room-wrap>.room-reminder{display:block;padding:10px 12px;margin-top:7px}
+ .room-wrap>.room-reminder .eyebrow{margin-bottom:3px}
+ .room-wrap>.room-reminder p{font-size:11px;line-height:1.45}
+ footer{display:none}
+}
 </style>
 </body></html>
 
