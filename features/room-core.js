@@ -2,7 +2,7 @@
 let activeHomeID='original';try{activeHomeID=JSON.parse(localStorage.getItem('life-homes-v1'))?.active||'original';}catch{}
 const $=s=>document.querySelector(s), STORE=activeHomeID==='original'?'my-life-hq-v1':'my-life-hq-'+activeHomeID;
 let cloudReadyForWrites=false;
-let state={day:'',tasks:[{text:'오늘 가장 중요한 일',done:false},{text:'한국사 공부 25분',done:false},{text:'나를 위한 작은 일',done:false}],notes:'',links:{study:'https://contents.history.go.kr/',calendar:'https://calendar.google.com/',notion:'',music:'',plan:'',vision:'',routine:''}};
+let state={day:'',tasks:[{text:'',done:false},{text:'',done:false},{text:'',done:false}],notes:'',links:{study:'https://contents.history.go.kr/',calendar:'https://calendar.google.com/',notion:'',music:'',plan:'',vision:'',routine:''}};
 try{const saved=JSON.parse(localStorage.getItem(STORE));if(saved&&Array.isArray(saved.tasks)&&saved.tasks.length===3){state.tasks=saved.tasks.map(t=>({text:String(t.text||'').slice(0,160),done:!!t.done}));state.notes=String(saved.notes||'');state.links={...state.links,...saved.links};state.day=String(saved.day||'');}}catch{}
 const localDay=()=>new Date().toLocaleDateString('sv-SE');
 function save(){try{localStorage.setItem(STORE,JSON.stringify(state));if(cloudReadyForWrites)window.lifeCloud.setSetting('daily',state).catch(()=>toast('서버에 저장하지 못했어요. 연결 상태를 확인해 주세요.'));}catch{toast('저장 공간에 접근할 수 없어요. 브라우저 설정을 확인해 주세요.');}}
@@ -242,6 +242,7 @@ diaryConnection=function(){diaryBasicConnection();const endpoint=localStorage.ge
 diaryTransfer=async function(r){const endpoint=localStorage.getItem(lifeKey('diary-server')),code=sessionStorage.getItem(lifeKey('diary-code'));if(!endpoint||!code){diaryManualTransfer(r);const connect=document.createElement('button');connect.className='ghost';connect.textContent='자동 저장 연결 설정';connect.onclick=diaryConnection;$('#life-content').append(connect);return;}lifeShow('<h2>Notion에 일기 저장 중</h2><p>원문은 이 기기에 남아 있어요. 저장 결과를 확인하고 있어요.</p><p id="notion-save-status" role="status">저장 중…</p>');try{const response=await fetch(endpoint+'/diary',{method:'POST',headers:{Authorization:'Bearer '+code,'Content-Type':'application/json'},body:JSON.stringify({id:lifeHome.id+':'+r.id,title:r.title,date:r.when,body:r.body,mood:r.diary?.mood||''}),signal:AbortSignal.timeout(25000)});const result=await response.json();if(!response.ok||result.status!=='saved'||!/^https:\/\/(www\.notion\.so|notion\.so|app\.notion\.com)\//.test(result.url||''))throw Error(result.error||'unconfirmed');const latest=(await lifeAll()).find(x=>x.id===r.id&&x.home===lifeHome.id);if(latest)await lifePut({...latest,notion:{url:result.url,savedAt:new Date().toISOString(),changed:latest.updated!==r.updated}});await lifeRefresh();if($('#notion-save-status')){$('#notion-save-status').textContent='Notion 저장을 확인했어요.';$('#life-content').insertAdjacentHTML('beforeend',linkButton(result.url,'저장된 Notion 일기 열기'));}toast('Notion 개인 일기장에 저장했어요.');}catch(error){if($('#notion-save-status'))$('#notion-save-status').textContent=error.message==='previous_save_needs_review'?'이전 저장 결과를 확인해야 해요. 중복 생성을 막기 위해 다시 만들지 않았어요.':'Notion 저장이 확인되지 않았어요. 기기의 일기는 그대로 남아 있어요. 연결 상태와 Notion을 확인한 뒤 다시 시도해 주세요.';}};
 
 if('serviceWorker' in navigator&&location.protocol!=='file:')navigator.serviceWorker.register('./sw.js').catch(()=>{});
+
 
 
 
