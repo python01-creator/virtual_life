@@ -25,9 +25,9 @@
  window.lifeRoomInteraction={walkTo,cancel,activate};
  const observer=new MutationObserver(()=>{if(document.querySelector('dialog[open]'))cancel();});observer.observe(document.body,{subtree:true,attributes:true,attributeFilter:['open']});
  window.addEventListener('click',e=>{if(e.target.closest('.avatar-interaction,.quick,.dpad,.life-nav'))cancel();},true);
- wrap.addEventListener('click',e=>{if(roomEditing||e.target.closest('.wall-light-switch,.avatar-interaction,.switch-place-done,.layout-finish-visible'))return;const r=canvas.getBoundingClientRect(),x=(e.clientX-r.left)*960/r.width,y=(e.clientY-r.top)*650/r.height;if(e.target!==canvas&&!e.target.closest('.story-object-link,.todo-furniture-hit,.today-board-hit,.memory-object-link,.story-room-item,.writing-room-object,.growth-plant-link,.family-scene-hit,.notion-monitor-hit'))return;
+ wrap.addEventListener('click',e=>{if(roomEditing||e.target.closest('.wall-light-switch,.avatar-interaction,.switch-place-done,.layout-finish-visible'))return;const r=canvas.getBoundingClientRect(),x=(e.clientX-r.left)*960/r.width,y=(e.clientY-r.top)*650/r.height;if(e.target!==canvas&&!e.target.closest('.story-object-link,.todo-furniture-hit,.today-board-hit,.memory-object-link,.story-room-item,.writing-room-object,.growth-plant-link,.family-scene-hit,.notion-monitor-hit,.focus-clock-hit'))return;
  e.preventDefault();e.stopImmediatePropagation();
- const b=e.target.closest('.story-object-link,.todo-furniture-hit,.today-board-hit,.memory-object-link,.story-room-item,.writing-room-object,.growth-plant-link,.family-scene-hit,.notion-monitor-hit');if(b){activate(b,e);return;}
+ const b=e.target.closest('.story-object-link,.todo-furniture-hit,.today-board-hit,.memory-object-link,.story-room-item,.writing-room-object,.growth-plant-link,.family-scene-hit,.notion-monitor-hit,.focus-clock-hit');if(b){activate(b,e);return;}
  const o=hit(e);if(o){const ok=walkTo(o.x+o.w/2,Math.min(565,o.y+o.h+28),()=>o.id==='today'?window.lifeTodoOnly?.():openPanel(o.id));if(ok&&route.length)status(o.label+'로 이동 중…');return;}if(Math.hypot(x-mongle.x,y-(mongle.y-10))<30){walkTo(mongle.x,mongle.y+48,patMongle);return;}walkTo(x,y);
  },true);
  window.addEventListener('life-place-changed',cancel);canvas.addEventListener('keydown',e=>{if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','w','a','s','d','Escape'].includes(e.key))cancel();},true);document.addEventListener('visibilitychange',()=>{if(document.hidden)cancel();});
@@ -40,9 +40,9 @@
 /* MOBILE_ROOM_TARGETS_V1 */
 (()=>{
  const style=document.createElement('style');
- style.textContent='@media(max-width:600px){.canvas-wrap button:not([hidden])::after{content:none!important}.canvas-wrap :is(.story-room-item,.writing-room-object,.notion-monitor-hit,.memory-object-link,.today-board-hit,.growth-plant-link,.todo-furniture-hit){min-width:0!important;min-height:0!important;touch-action:manipulation}.canvas-wrap svg{display:block;width:100%;height:100%;max-width:100%;max-height:100%}.room-wrap{min-width:0}.room-tip{overflow-wrap:anywhere}.life-heading{flex-wrap:wrap;gap:10px}.life-form input,.life-form textarea,.life-toolbar input{font-size:16px}}';document.head.append(style);
+ style.textContent='@media(max-width:600px){.canvas-wrap button:not([hidden])::after{content:none!important}.canvas-wrap :is(.story-room-item,.writing-room-object,.notion-monitor-hit,.focus-clock-hit,.memory-object-link,.today-board-hit,.growth-plant-link,.todo-furniture-hit){min-width:0!important;min-height:0!important;touch-action:manipulation}.canvas-wrap svg{display:block;width:100%;height:100%;max-width:100%;max-height:100%}.room-wrap{min-width:0}.room-tip{overflow-wrap:anywhere}.life-heading{flex-wrap:wrap;gap:10px}.life-form input,.life-form textarea,.life-toolbar input{font-size:16px}}';document.head.append(style);
  // Expand taps mathematically, not with overlapping invisible DOM boxes.
- const selector='.story-object-link,.todo-furniture-hit,.today-board-hit,.memory-object-link,.story-room-item,.writing-room-object,.growth-plant-link,.family-scene-hit,.notion-monitor-hit,.wall-light-switch';
+ const selector='.story-object-link,.todo-furniture-hit,.today-board-hit,.memory-object-link,.story-room-item,.writing-room-object,.growth-plant-link,.family-scene-hit,.notion-monitor-hit,.focus-clock-hit,.wall-light-switch';
  window.addEventListener('click',e=>{
   if(!matchMedia('(max-width:600px)').matches||roomEditing||lifePage!=='room'||document.querySelector('dialog[open]')||e.detail===0)return;
   const wrap=e.target.closest('.canvas-wrap');if(!wrap||e.target.closest('.avatar-interaction,.all-layout-handle'))return;
@@ -55,3 +55,4 @@
 })();
 
 (()=>{const s=document.createElement('style');s.textContent='.room-selected{outline:2px solid #d7ad5b!important;outline-offset:3px;filter:brightness(1.08)}.room-walk-feedback{position:absolute;left:50%;bottom:1%;transform:translateX(-50%);background:#faf8edee;color:#536449;padding:6px 11px;border:1px solid #c2cbae;border-radius:14px;font:12px Pretendard,sans-serif;pointer-events:none;z-index:16;max-width:90%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.room-walk-feedback[hidden]{display:none}';document.head.append(s);})();
+
