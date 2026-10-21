@@ -43,22 +43,35 @@
     button.id = 'account-signout';
     button.className = 'ghost';
     button.textContent = '로그아웃';
-    button.onclick = async () => { await client.auth.signOut(); location.reload(); };
+    button.onclick = async () => { button.disabled = true; const { error } = await client.auth.signOut(); if (error) { button.disabled = false; message('로그아웃하지 못했어요. 다시 시도해 주세요.', true); return; } lockSession(); };
     document.querySelector('.header-right')?.append(button);
   }
 
+  // SESSION_PRIVACY_V1: lock immediately on logout, expiry, or account change.
+  let resetting = false;
+  function lockSession() {
+    if (resetting) return;
+    resetting = true;
+    currentUser = null;
+    show('login');
+    document.dispatchEvent(new Event('life-session-ended'));
+    document.querySelectorAll('dialog').forEach(d => { if (d.open) d.close(); d.replaceChildren(); });
+    document.querySelectorAll('textarea,input:not([type=email])').forEach(n => { n.value = ''; });
+    try { for (const key of Object.keys(sessionStorage)) if (/^life-.*diary-code/.test(key)) sessionStorage.removeItem(key); } catch {}
+    location.reload();
+  }
   async function requireUser() {
     await ready;
     if (!currentUser) throw new Error('로그인이 필요해요.');
     return currentUser;
   }
   async function listRecords() {
-    await requireUser();
+    const user = await requireUser();
     const records = [];
     const batch = 400;
     for (let from = 0; ; from += batch) {
       const { data, error } = await client.from('life_records')
-        .select('payload').order('id', { ascending: true }).range(from, from + batch - 1);
+        .select('payload').eq('user_id', user.id).order('id', { ascending: true }).range(from, from + batch - 1);
       if (error) throw error;
       records.push(...(data || []).map(row => row.payload));
       if (!data || data.length < batch) break;
@@ -79,13 +92,13 @@
     if (error) throw error;
   }
   async function deleteRecord(id) {
-    await requireUser();
-    const { error } = await client.from('life_records').delete().eq('id', String(id));
+    const user = await requireUser();
+    const { error } = await client.from('life_records').delete().eq('user_id', user.id).eq('id', String(id));
     if (error) throw error;
   }
   async function getSetting(key) {
-    await requireUser();
-    const { data, error } = await client.from('life_settings').select('value').eq('key', key).maybeSingle();
+    const user = await requireUser();
+    const { data, error } = await client.from('life_settings').select('value').eq('user_id', user.id).eq('key', key).maybeSingle();
     if (error) throw error;
     return data ? data.value : null;
   }
@@ -97,13 +110,13 @@
     if (error) throw error;
   }
   async function countRecords() {
-    await requireUser();
-    const { count, error } = await client.from('life_records').select('*', { count: 'exact', head: true });
+    const user = await requireUser();
+    const { count, error } = await client.from('life_records').select('*', { count: 'exact', head: true }).eq('user_id', user.id);
     if (error) throw error;
     return count || 0;
   }
 
-  window.lifeCloud = { configured, ready, listRecords, putRecord, deleteRecord, getSetting, setSetting, countRecords };
+  window.lifeCloud = { configured, ready, get userId() { return currentUser?.id || null; }, listRecords, putRecord, deleteRecord, getSetting, setSetting, countRecords };
 
 /* PRIVATE_ALBUM_API_V1 */
 const albumResult=async request=>{const {data,error}=await request;if(error)throw error;return data;};
@@ -166,7 +179,8 @@ window.lifeCloud.albums={
       message('로그인 상태를 확인하지 못했어요. 잠시 후 다시 시도해 주세요.', true);
       rejectReady(error);
     }
-    client.auth.onAuthStateChange((_event, session) => {
+    client.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT' || (currentUser && (!session?.user || session.user.id !== currentUser.id))) { lockSession(); return; }
       if (!currentUser && session?.user) {
         currentUser = session.user;
         show('app');
@@ -176,6 +190,7 @@ window.lifeCloud.albums={
     });
   });
 })();
+
 
 
 
