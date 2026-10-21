@@ -6,7 +6,7 @@
  function status(text){feedback.textContent=text;feedback.hidden=!text;}
  function select(b){selected?.classList.remove('room-selected');selected=b;b?.classList.add('room-selected');}
 
- const taskHints=['오늘 가장 중요한 일','공부나 업무 한 가지','나를 위한 작은 일'];let migratedExamples=false;
+ const taskHints=['오늘 해야 할 일 1','오늘 해야 할 일 2','오늘 해야 할 일 3'];let migratedExamples=false;
  function migrateExamples(){const defaults=['오늘 가장 중요한 일','한국사 공부 25분','나를 위한 작은 일'];if(state.tasks.length===3&&state.tasks.every((t,i)=>!t.done&&t.text===defaults[i])){state.tasks=state.tasks.map(t=>({...t,text:''}));migratedExamples=true;save();}}
  Promise.resolve(window.lifeAppReady).then(()=>{if(migratedExamples)save();}).catch(()=>{});
  function renderThree(){migrateExamples();for(const el of document.querySelectorAll('[data-simple-tasks],#side-tasks')){el.replaceChildren();state.tasks.slice(0,3).forEach((t,i)=>{const row=document.createElement('label');row.className='task'+(t.done?' done':'');const check=document.createElement('input');check.type='checkbox';check.checked=!!t.done;check.setAttribute('aria-label','할 일 '+(i+1)+' 완료');const input=document.createElement('input');input.type='text';input.value=t.text||'';input.maxLength=160;input.placeholder=taskHints[i];input.setAttribute('aria-label','할 일 '+(i+1));check.onchange=()=>{const completed=check.checked;t.done=completed;save();renderThree();if(completed)window.lifeGrowthReward?.('task',localDay()+':'+i,'할 일 완료');};input.oninput=()=>{t.text=input.value;save();};row.append(check,input);el.append(row);});}const n=state.tasks.filter(t=>t.done).length;const p=document.querySelector('#progress'),c=document.querySelector('#task-count');if(p)p.style.width=n/3*100+'%';if(c)c.textContent=n+' / 3 완료';document.querySelectorAll('[data-simple-count]').forEach(el=>el.textContent=n+' / 3 완료');}
@@ -62,3 +62,4 @@
 
 
 (()=>{const style=document.createElement('style');style.textContent='[data-simple-tasks] input[type=text]::placeholder{color:#969d8b;opacity:1;font-weight:400}';document.head.append(style);})();
+
