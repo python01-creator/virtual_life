@@ -91,6 +91,24 @@
     }, { onConflict: 'user_id,id' });
     if (error) throw error;
   }
+  // DIARY_CAS_V1: never overwrite a newer revision from another device.
+  async function saveDiary(record, base) {
+    const user = await requireUser();
+    if (record.kind !== 'diary' || record.share !== false) throw new Error('비공개 일기만 저장할 수 있어요.');
+    const clean = JSON.parse(JSON.stringify(record));
+    const row = {user_id:user.id,id:String(clean.id),home_id:String(clean.home||'original'),payload:clean,updated_at:new Date().toISOString()};
+    let request;
+    if (!base) request = client.from('life_records').insert(row).select('payload').maybeSingle();
+    else {
+      let query = client.from('life_records').update(row).eq('user_id',user.id).eq('id',row.id);
+      query = base._diaryRevision ? query.eq('payload->>_diaryRevision',base._diaryRevision) : base.updated ? query.eq('payload->>updated',base.updated) : query.is('payload->>updated',null);
+      request = query.select('payload').maybeSingle();
+    }
+    const {data,error} = await request;
+    if (error && error.code !== '23505') throw error;
+    if (error || !data) {const conflict = new Error('다른 기록이 먼저 저장됐어요.');conflict.code='DIARY_CONFLICT';throw conflict;}
+    return data.payload;
+  }
   async function deleteRecord(id) {
     const user = await requireUser();
     const { error } = await client.from('life_records').delete().eq('user_id', user.id).eq('id', String(id));
@@ -116,7 +134,7 @@
     return count || 0;
   }
 
-  window.lifeCloud = { configured, ready, get userId() { return currentUser?.id || null; }, listRecords, putRecord, deleteRecord, getSetting, setSetting, countRecords };
+  window.lifeCloud = { configured, ready, saveDiary, get userId() { return currentUser?.id || null; }, listRecords, putRecord, deleteRecord, getSetting, setSetting, countRecords };
 
 /* PRIVATE_ALBUM_API_V1 */
 const albumResult=async request=>{const {data,error}=await request;if(error)throw error;return data;};
@@ -141,6 +159,8 @@ window.lifeCloud.albums={
       return;
     }
     show('loading');
+    const authParams = new URLSearchParams(location.search), oauthError = authParams.get('error_code') || authParams.get('error');
+    if (oauthError) {for (const name of ['error','error_code','error_description']) authParams.delete(name);history.replaceState(null,'',location.pathname+(authParams.size?'?'+authParams.toString():''));}
     message('안전하게 내 공간을 여는 중…');
     const form = el('auth-form');
     const googleButton=el('auth-google'),googleEnabled=config.googleAuthEnabled===true;
@@ -173,9 +193,10 @@ window.lifeCloud.albums={
         releaseReady(currentUser);
       } else {
         show('login');
-        message('');
+        message(oauthError ? '로그인 링크가 만료됐거나 인증을 마치지 못했어요. Google로 계속하기를 다시 눌러 주세요. 기존 서버 기록은 그대로 있어요.' : '', !!oauthError);
       }
     } catch (error) {
+      show('login');
       message('로그인 상태를 확인하지 못했어요. 잠시 후 다시 시도해 주세요.', true);
       rejectReady(error);
     }
@@ -190,6 +211,7 @@ window.lifeCloud.albums={
     });
   });
 })();
+
 
 
 
