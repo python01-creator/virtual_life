@@ -3,7 +3,7 @@
  if(window.lifeCloud){try{await window.lifeCloud.ready;await window.lifeAppReady;}catch{return;}}
  if(!roomPrefs.journalStoryV1){roomPrefs.journalStoryV1=true;roomPrefs.layout.story={x:0,y:0};lifeRoomSave();}
  const wrap=document.querySelector('.canvas-wrap');
- const specs=[['today',323,450,104,100,'할 일 가구'],['focus',95,290,190,95,'포커스 책상'],['study',298,148,146,171,'독서실 책상'],['calendar',667,120,48,60,'달력'],['notion',635,261,185,120,'노션 책상'],['rest',548,428,282,133,'소파'],['story',111,313,53,38,'JOURNAL · MY STORY'],['memory',250,100,56,64,'쪼꼬 하트 액자'],['board',116,110,120,112,'TODAY 보드'],['plant',80,445,60,95,'화분'],['family-door',576,78,65,120,'가족 거실 문'],['award-frame',461,98,90,72,'상장'],['writing-note',763,312,48,38,'글과 영감 노트'],['past-album',336,195,39,46,'지난 이야기 앨범']];
+ const specs=[['today',323,450,104,100,'할 일 가구'],['focus',95,290,190,95,'포커스 책상'],['study',298,148,146,171,'독서실 책상'],['calendar',675,128,32,42,'달력'],['notion',635,261,185,120,'노션 책상'],['rest',548,428,282,133,'소파'],['story',111,313,53,38,'JOURNAL · MY STORY'],['memory',250,100,56,64,'쪼꼬 하트 액자'],['board',116,110,120,112,'TODAY 보드'],['plant',80,445,60,95,'화분'],['family-door',576,78,65,120,'가족 거실 문'],['award-frame',461,98,90,72,'상장'],['writing-note',763,312,48,38,'글과 영감 노트'],['past-album',336,195,39,46,'지난 이야기 앨범']];
  const dom=[['.story-object-link','story','focus'],['.memory-object-link','memory'],['.today-board-hit','board'],['.growth-plant-link','plant'],['.story-family-door','family-door'],['.story-award-frame','award-frame'],['.writing-notebook','writing-note','notion'],['.past-story-album','past-album','study'],['.notion-monitor-hit','notion']];
  const positions=[[111,313],[249.6,99.97],[115.968,109.98],[78.72,429],[576,78],[460.8,97.5],[763.2,312],[336,195],[674.88,260.975]];
  const baselines=new Map(dom.map(([sel],i)=>[sel,{x:positions[i][0],y:positions[i][1]}]));
@@ -32,6 +32,7 @@
  const edit=lifeEdit;lifeEdit=function(record,kind,...args){edit(record,kind,...args);if((record?.kind||kind)!=='travel')return;const f=document.querySelector('#story-form');if(!f)return;f.querySelectorAll('input[name=lat],input[name=lon]').forEach(i=>i.closest('label').remove());const label=document.createElement('label');label.className='field';label.innerHTML='나라·지역<select name="country"><option value="">선택 안 함 · 기록만 남기기</option>'+Object.keys(countries).map(name=>'<option>'+safe(name)+'</option>').join('')+'</select><small>도시·명소 이름은 장소 칸에 적어 주세요.</small>';f.elements.place.closest('label').before(label);f.elements.country.value=record?.country||'';const submit=f.onsubmit;f.onsubmit=e=>{for(const name of ['lat','lon']){const input=document.createElement('input');input.type='hidden';input.name=name;const xy=countries[f.elements.country.value];input.value=xy?xy[name==='lon'?0:1]:record?.[name]??'';f.append(input);}return submit(e);};};
  const put=lifePut;lifePut=async function(r){const country=document.querySelector('#story-form select[name=country]');if(r.kind==='travel'&&country)r={...r,country:country.value};return put(r);};
 })();
+
 
 
 
