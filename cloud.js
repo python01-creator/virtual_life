@@ -101,7 +101,8 @@
     if (!base) request = client.from('life_records').insert(row).select('payload').maybeSingle();
     else {
       let query = client.from('life_records').update(row).eq('user_id',user.id).eq('id',row.id);
-      query = base._diaryRevision ? query.eq('payload->>_diaryRevision',base._diaryRevision) : base.updated ? query.eq('payload->>updated',base.updated) : query.is('payload->>updated',null);
+      query = base.updated ? query.eq('payload->>updated',base.updated) : query.is('payload->>updated',null);
+      if (base._diaryRevision) query = query.eq('payload->>_diaryRevision',base._diaryRevision);
       request = query.select('payload').maybeSingle();
     }
     const {data,error} = await request;
