@@ -26,6 +26,29 @@ begin
 end
 $$;
 
+do $
+declare
+  function_signature regprocedure;
+begin
+  for function_signature in
+    select p.oid::regprocedure
+    from pg_proc p
+    join pg_namespace n on n.oid = p.pronamespace
+    where n.nspname = 'public'
+      and p.proname like 'life_%'
+  loop
+    execute format(
+      'revoke execute on function %s from public, anon',
+      function_signature
+    );
+    execute format(
+      'grant execute on function %s to authenticated',
+      function_signature
+    );
+  end loop;
+end
+$;
+
 grant select, insert, update, delete on table public.life_records to authenticated;
 grant select, insert, update, delete on table public.life_settings to authenticated;
 
