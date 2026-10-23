@@ -159,7 +159,7 @@ function lifeDate(){return new Date().toLocaleDateString('sv-SE');}
 function lifeSaveMeta(){localStorage.setItem('life-homes-v1',JSON.stringify(lifeMeta));if(cloudReadyForWrites)window.lifeCloud.setSetting('homes',lifeMeta).catch(()=>toast('집 설정을 서버에 저장하지 못했어요.'));}
 function lifeRoomSave(){localStorage.setItem(lifeKey('room'),JSON.stringify(roomPrefs));if(cloudReadyForWrites)window.lifeCloud.setSetting(lifeKey('room'),roomPrefs).catch(()=>toast('방 설정을 서버에 저장하지 못했어요.'));}
 async function lifeRefresh(){lifeRecords=(await lifeAll()).filter(r=>r.home===lifeHome.id&&!r.deleted);}
-const lifeNav=document.createElement('nav');lifeNav.className='life-nav';lifeNav.setAttribute('aria-label','나의 집 공간');document.querySelector('header').after(lifeNav);
+const lifeNav=document.createElement('nav');lifeNav.className='life-nav';lifeNav.setAttribute('aria-label','나의 집 공간');document.querySelector('main').before(lifeNav);
 const lifeShell=document.createElement('section');lifeShell.className='life-shell';lifeShell.id='life-shell';lifeShell.hidden=true;document.querySelector('main').after(lifeShell);
 const lifeDialog=document.createElement('dialog');lifeDialog.id='life-dialog';lifeDialog.innerHTML='<button class="close" aria-label="기록 창 닫기">×</button><div id="life-content"></div>';document.body.append(lifeDialog);
 lifeDialog.querySelector('.close').onclick=()=>{if(lifeEditorDirty)lifeKeepDraft();lifeDialog.close();};window.addEventListener('pagehide',()=>{if(lifeEditorDirty)lifeKeepDraft();});lifeDialog.addEventListener('cancel',()=>{if(lifeEditorDirty)lifeKeepDraft();});
