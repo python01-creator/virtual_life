@@ -19,6 +19,7 @@
   let releaseReady;
   let rejectReady;
   let currentUser = null;
+  let uiReady = false;
   const ready = new Promise((resolve, reject) => { releaseReady = resolve; rejectReady = reject; });
 
   function el(id) { return document.getElementById(id); }
@@ -31,12 +32,24 @@
   function show(mode) {
     const gate = el('auth-gate');
     if (!gate) return;
+    if (mode === 'app' && !uiReady) {
+      gate.hidden = false;
+      gate.setAttribute('aria-busy', 'true');
+      document.documentElement.classList.add('auth-locked');
+      message('내 공간을 정돈하는 중…');
+      return;
+    }
     gate.hidden = mode === 'app';
     gate.setAttribute('aria-busy', mode === 'loading' ? 'true' : 'false');
     document.documentElement.classList.toggle('auth-locked', mode !== 'app');
     el('auth-setup').hidden = mode !== 'setup';
     el('auth-login').hidden = mode !== 'login';
   }
+  window.addEventListener('life-ui-ready', () => {
+    uiReady = true;
+    document.documentElement.classList.remove('ui-booting');
+    if (currentUser) show('app');
+  });
   function installAccountButton() {
     if (document.getElementById('account-signout')) return;
     const button = document.createElement('button');
