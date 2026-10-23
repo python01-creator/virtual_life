@@ -117,24 +117,24 @@ body,button,input,textarea,select{font-family:'Pretendard',-apple-system,BlinkMa
 
 /* COMPACT_ROOM_VIEW_V1: keep the interactive room close to one viewport. */
 body>main{display:block;max-width:none;padding:6px 14px 10px}
-body>main>section{width:min(100%,1040px);margin-inline:auto}
+body>main>section{width:min(100%,1280px);margin-inline:auto}
 body>main>aside{display:none}
 .room-page>footer{display:none}
 .room-page{overscroll-behavior-y:none}
 body>main>section>h1{display:none!important}
 body>main>section>.intro,body>main>section>.eyebrow{display:none}
-.room-wrap{padding:5px}.room-wrap>.room-reminder{padding:7px 12px;margin-top:4px;display:flex;align-items:center;gap:12px}
+.room-wrap{padding:0;border-radius:12px}.canvas-wrap canvas{border-radius:0}.room-wrap>.room-reminder{padding:6px 10px;margin:3px 4px 4px;display:flex;align-items:center;gap:12px}
 .room-wrap>.room-reminder .eyebrow{flex:0 0 auto}
 .room-wrap>.room-reminder p{margin:0!important;line-height:1.35}
 @media(min-width:761px) and (max-height:1000px){
  header{padding-top:17px;padding-bottom:15px}
  .life-nav{margin-top:10px}
  .life-nav button{padding:9px 14px}
- body>main>section{width:min(100%,max(760px,calc((100dvh - 140px) * 1.4769)))}
+ body>main>section{width:min(100%,1280px,max(760px,calc((100dvh - 100px) * 1.4769)))}
  body>main>section>.eyebrow{display:none}
  body>main>section>h1{font-size:23px;margin:0 0 3px}
  body>main>section>.intro{line-height:1.45;margin-bottom:8px}
- .room-wrap{padding:5px}
+ .room-wrap{padding:0}
  .room-top{padding:5px 8px 7px}
  .room-tip{padding:4px 5px 0;min-height:17px;font-size:10px}
 }
@@ -151,7 +151,7 @@ body>main>section>.intro,body>main>section>.eyebrow{display:none}
  .room-tip{padding:7px 4px 0}
  .dpad{margin-top:7px}
  .dpad button{min-height:42px}
- .room-wrap>.room-reminder{display:block;padding:7px 10px;margin-top:4px}
+ .room-wrap>.room-reminder{display:block;padding:6px 9px;margin:3px 4px 4px}
  .room-wrap>.room-reminder .eyebrow{margin-bottom:3px}
  .room-wrap>.room-reminder p{font-size:11px;line-height:1.45}
  footer{display:none}
@@ -159,7 +159,7 @@ body>main>section>.intro,body>main>section>.eyebrow{display:none}
 .mobile-joystick,.mobile-select-button{display:none}
 .room-wrap>header{max-width:none;margin:0;padding:2px 5px 4px!important;border:0;background:transparent}.room-wrap>header .brand{font-size:14px;letter-spacing:1.2px}.room-wrap>header .brand small{font-size:7px;letter-spacing:.65px;margin-top:1px}.room-wrap>header .header-right{gap:5px;font-size:10px;flex-wrap:nowrap}.room-wrap>header .badge{padding:4px 7px}.room-wrap>header .ghost{min-height:0;padding:5px 7px;border-color:#aebca5;font-size:10px}.room-wrap>header time{font-size:10px;white-space:nowrap}
 .brand-main{display:inline-flex;align-items:center;gap:5px}.place-room-icon{display:inline-grid;place-items:center;width:17px;height:17px;font-style:normal;font-size:12px;line-height:1;letter-spacing:0;filter:saturate(.72)}.room-top,.room-arrival,.room-walk-feedback{display:none!important}
-@media(max-width:760px) and (pointer:coarse){
+@media(max-width:900px) and (pointer:coarse){
  .room-wrap>header{padding:2px 5px 6px!important;gap:7px}.room-wrap>header .brand{font-size:12px;white-space:nowrap}.room-wrap>header .brand small,.room-wrap>header .badge{display:none}.room-wrap>header .header-right{gap:4px}.room-wrap>header .ghost{padding:5px 7px;font-size:9px}.room-wrap>header time{font-size:9px}
  .room-tip{display:block;height:36px;padding:0}.room-tip .keys{display:none}
  .room-top{flex-wrap:nowrap!important;min-height:24px;justify-content:flex-start}
