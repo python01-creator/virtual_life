@@ -3,7 +3,8 @@
  'use strict';
  const pad=document.querySelector('.mobile-joystick');
  const knob=pad?.querySelector('.mobile-joystick-knob');
- if(!pad||!knob||typeof keys==='undefined')return;
+ const select=document.querySelector('.mobile-select-button');
+ if(!pad||!knob||!select||typeof keys==='undefined')return;
  const held=new Set();
  const release=()=>{
   for(const key of held)keys.delete(key);
@@ -42,4 +43,12 @@
  pad.addEventListener('pointercancel',release);
  window.addEventListener('blur',release);
  document.addEventListener('visibilitychange',()=>{if(document.hidden)release();});
+ select.addEventListener('click',e=>{
+  e.preventDefault();
+  e.stopPropagation();
+  release();
+  canvas.focus({preventScroll:true});
+  canvas.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true,cancelable:true}));
+  canvas.dispatchEvent(new KeyboardEvent('keyup',{key:'Enter',bubbles:true,cancelable:true}));
+ });
 })();
