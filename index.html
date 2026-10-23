@@ -158,10 +158,10 @@ body>main>section>.intro{margin-bottom:12px}
  footer{display:none}
 }
 .mobile-joystick{display:none}
-.room-top>span:first-child{flex:0 0 auto}.room-top #room-status{min-width:0;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.room-top>span:first-child{flex:0 0 auto}.room-top #room-status,.room-arrival,.room-walk-feedback{display:none!important}
 @media(max-width:760px) and (pointer:coarse){
  .room-tip{display:none}
- .room-top{flex-wrap:nowrap!important;min-height:24px}.room-top #room-status{height:16px;line-height:16px;max-width:68%}
+ .room-top{flex-wrap:nowrap!important;min-height:24px;justify-content:flex-start}
  .mobile-joystick{position:absolute;left:10px;bottom:10px;z-index:40;display:block;width:74px;height:74px;border:1px solid #ffffff2e;border-radius:50%;background:#f8f4e60d;box-shadow:inset 0 0 0 6px #ffffff08;touch-action:none;user-select:none;-webkit-user-select:none;opacity:.3;transition:opacity .12s ease}
  .mobile-joystick:before,.mobile-joystick:after{content:'';position:absolute;left:50%;top:50%;width:38px;height:1px;background:#fff2;transform:translate(-50%,-50%)}
  .mobile-joystick:after{transform:translate(-50%,-50%) rotate(90deg)}
