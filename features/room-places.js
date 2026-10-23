@@ -18,7 +18,7 @@ window.placeRoomsReady=(async()=>{
  function select(id){if(!data.places.some(p=>p.id===id))return;if(id===data.active){applyRoom('selection');status=place().name+' 방을 선택했어요.';render();toast(status);return;}
  if(!update(next=>{const old=next.places.find(p=>p.id===next.active);if(old)old.layout=clone(roomPrefs.layout||{});next.active=id;log(next,'방 직접 선택');}))return;applyRoom('selection');status=place().name+' 방으로 이동했어요.';render();toast(status);}
  window.placeRooms={current:()=>{const p=place();return {id:p.id,name:p.name,kind:p.kind||(p.id==='work'?'office':p.id==='home'?'home':'other')};},currentRoom:()=>{const p=place();return {name:p.name,theme:p.theme,layout:clone(p.layout||{})};},select:id=>select(id)};
- const badge=document.createElement('button');badge.id='place-rooms-button';badge.className='ghost';badge.textContent='⌂ 장소별 방';badge.setAttribute('aria-label','장소별 방 열기');badge.onclick=show;document.querySelector('.header-right').append(badge);
+ const badge=document.createElement('button');badge.id='place-rooms-button';badge.className='ghost';badge.textContent='⌂ 장소별 방';badge.setAttribute('aria-label','장소별 방 열기');badge.style.setProperty('display','inline-flex','important');badge.onclick=show;document.querySelector('.header-right').append(badge);
  const nav=document.createElement('button');nav.textContent='⌂ 장소·할 일';nav.onclick=show;document.querySelector('.life-nav')?.append(nav);
  const dialog=document.createElement('dialog');dialog.id='place-dialog';dialog.setAttribute('aria-label','장소별 방과 일정');document.body.append(dialog);dialog.addEventListener('close',()=>panelOpen=false);
  function show(){panelOpen=true;render();if(!dialog.open)dialog.showModal();keys.clear();}
