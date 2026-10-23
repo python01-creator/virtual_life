@@ -117,7 +117,7 @@ ctx.restore();
 roomTransform('plant');plant(110,509,1.15);ctx.restore();
 if(night){rect(66,70,828,504,'#28314965');ctx.fillStyle='#ffe6a838';ctx.beginPath();ctx.arc(185,320,95,0,Math.PI*2);ctx.fill();}const nearest=getNearest();objects.forEach(o=>{if(hover===o.id||nearest?.id===o.id){ctx.strokeStyle=hover===o.id?'#f9edbf':'#879b72';ctx.lineWidth=2;ctx.strokeRect(o.x-5,o.y-5,o.w+10,o.h+10);}});
 drawLifeObjects(t);drawMongle(t);
-const x=Math.round(player.x),y=Math.round(player.y);drawModernAvatar(x,y,t,.86);ctx.fillStyle='#f9f4e6';ctx.fillRect(x-18,y-90,38,14);label(posture==='lie'?'REST':'ME',x+1,y-79);$('#room-status').textContent=posture!=='stand'?'쉬는 중 · 방향키로 일어나기':nearest?`${nearest.label} · E 키로 열기`:'햇살이 들어오는 작은 운영실';}
+const x=Math.round(player.x),y=Math.round(player.y);drawModernAvatar(x,y,t,.86);ctx.fillStyle='#f9f4e6';ctx.fillRect(x-18,y-90,38,14);label(posture==='lie'?'REST':'ME',x+1,y-79);$('#room-status').textContent=posture!=='stand'?'쉬는 중 · 방향키로 일어나기':nearest?.id==='today'?'':nearest?`${nearest.label} · E 키로 열기`:'햇살이 들어오는 작은 운영실';}
 function dreamPlayerPoint(){return{x:120+(player.x-82)/788*720,y:375+(player.y-195)/370*185};}
 function getNearest(){let best=null,dist=105,p=roomPrefs.activeSpace==='dream'?dreamPlayerPoint():player,list=roomPrefs.activeSpace==='dream'?dreamObjects:objects;for(const o of list){const dx=Math.max(o.x-p.x,0,p.x-(o.x+o.w)),dy=Math.max(o.y-p.y,0,p.y-(o.y+o.h)),d=Math.hypot(dx,dy);if(d<dist){best=o;dist=d;}}return best;}
 function blocked(x,y){return objects.some(o=>x>o.x-10&&x<o.x+o.w+10&&y>o.y-5&&y<o.y+o.h+12);}
