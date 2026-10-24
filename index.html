@@ -170,6 +170,15 @@ body>main>section>.intro,body>main>section>.eyebrow{display:none}
  .mobile-joystick.is-active{opacity:.8}.mobile-joystick.is-active .mobile-joystick-knob{transition:none;background:#fffde08f}
  .mobile-select-button{position:absolute;right:18px;top:calc(100% + 5px);z-index:41;display:block;width:62px;height:27px;min-height:0;padding:0;border:1px solid #ffffff6b;border-radius:14px;background:#40524133;color:#53634f;font-size:10px;font-weight:700;letter-spacing:.08em;touch-action:manipulation;opacity:.66}.mobile-select-button:active{background:#40524155;opacity:.9}
 }
+
+/* MOBILE_FULL_FIT_V1: edge-to-edge in portrait, contain the full room in landscape. */
+@media(max-width:900px) and (pointer:coarse){
+ body>main{padding-left:0;padding-right:0}
+ body>main>section{width:min(100%,max(320px,calc((100dvh - 120px) * 1.4769)))}
+ .room-wrap{width:100%;box-sizing:border-box}
+ .canvas-wrap,.canvas-wrap canvas{width:100%;max-width:100%}
+ .canvas-wrap canvas{display:block;height:auto}
+}
 </style>
 <script src="./features/diary-durable.js?v=journey-diary-20261021"></script>
 <script src="./features/journey-diary.js?v=screen-cleanup-20261023"></script>
