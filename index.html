@@ -188,6 +188,14 @@ body>main>section>.intro,body>main>section>.eyebrow{display:none}
  .room-page .wall-light-switch:after{content:'';position:absolute;inset:-12px}
  .room-page .wall-light-switch small{font-size:5px!important;margin-top:1px}
 }
+@media(max-width:900px) and (orientation:landscape) and (pointer:coarse){
+ body>main{padding:0}
+ body>main>section{width:100%;max-width:none;margin:0}
+ .room-wrap{width:100%;border-radius:0}
+ .canvas-wrap,.canvas-wrap canvas{width:100%;max-width:none}
+ .room-tip{height:0;min-height:0;overflow:hidden}
+ .mobile-joystick,.mobile-select-button{display:none!important}
+}
 </style>
 <script src="./features/diary-durable.js?v=journey-diary-20261021"></script>
 <script src="./features/journey-diary.js?v=screen-cleanup-20261023"></script>
