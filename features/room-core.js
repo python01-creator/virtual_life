@@ -87,10 +87,10 @@ function drawDreamRoom3D(t){
 }
 function drawRoom(t){if(roomPrefs.activeSpace==='dream'){drawDreamRoom3D(t);return;}ctx.clearRect(0,0,960,650);rect(0,0,960,650,'#dce4cf');for(let y=25;y<650;y+=43)for(let x=14;x<960;x+=47)rect(x+(y%2)*12,y,3,3,'#cdd8be');rect(55,66,850,545,'#a58f71');rect(49,54,862,537,'#6f7760');rect(58,62,844,522,lifeThemes[roomPrefs.theme].floor);rect(66,70,828,110,lifeThemes[roomPrefs.theme].wall);rect(66,171,828,12,'#a79776');for(let x=68;x<894;x+=67){rect(x,184,1,389,'#cdb68e');for(let y=185;y<580;y+=32)rect(x,y,Math.min(65,894-x),1,'#d4bd96');}rect(66,183,828,5,'#b29b77');rect(66,574,828,10,'#9b8366');rect(66,70,7,504,'#b49f7d');rect(887,70,7,504,'#b49f7d');
 // Window sized to the gap between the study desk and calendar, with a calm outdoor view.
-rect(442,87,148,83,'#7d927e');rect(449,94,134,69,'#8fd0ec');rect(449,138,134,25,'#4f914b');
+rect(442,87,148,83,'#7d927e');rect(449,94,134,69,'#75c5ea');
 // Clearly visible pixel clouds, sunny sky and layered green hills.
-rect(456,107,43,10,'#fffdf3');rect(463,100,28,10,'#fffdf3');rect(471,96,14,7,'#fffdf3');rect(491,111,14,6,'#fffdf3');rect(528,112,38,9,'#fffdf3');rect(535,105,25,10,'#fffdf3');rect(542,100,14,7,'#fffdf3');rect(564,114,12,6,'#fffdf3');rect(567,98,9,9,'#f4d77e');
-ctx.fillStyle='#78b45d';ctx.beginPath();ctx.arc(473,146,34,Math.PI,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(548,148,39,Math.PI,Math.PI*2);ctx.fill();rect(449,149,134,14,'#5b9b4e');rect(456,155,4,8,'#397c3c');rect(483,152,4,11,'#438540');rect(523,155,4,8,'#397c3c');rect(557,151,4,12,'#438540');rect(468,154,4,4,'#f6d66f');rect(533,157,4,4,'#f2aeb6');rect(573,153,4,4,'#fff1a1');
+rect(454,106,50,12,'#fffdf3');rect(461,98,35,13,'#fffdf3');rect(471,94,17,9,'#fffdf3');rect(495,111,14,7,'#fffdf3');rect(526,109,47,12,'#fffdf3');rect(534,101,31,13,'#fffdf3');rect(544,96,17,9,'#fffdf3');rect(568,114,12,7,'#fffdf3');rect(570,96,9,9,'#f5d16f');
+ctx.fillStyle='#7dbc5e';ctx.beginPath();ctx.arc(470,158,39,Math.PI,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(548,160,45,Math.PI,Math.PI*2);ctx.fill();rect(449,151,134,12,'#4e9845');rect(456,155,4,8,'#2f7637');rect(483,152,4,11,'#377e3b');rect(523,155,4,8,'#2f7637');rect(557,151,4,12,'#377e3b');rect(468,154,4,4,'#f8d86b');rect(533,157,4,4,'#f5a9b5');rect(573,153,4,4,'#fff1a1');
 // Only a slim center bar, so the scenery remains readable at mobile scale.
 rect(513,94,7,69,'#f3e7c9');rect(428,83,18,95,'#e9ddbd');rect(590,83,18,95,'#e9ddbd');rect(437,171,158,8,'#a88b64');ctx.fillStyle='#fff0bc30';ctx.beginPath();ctx.moveTo(452,182);ctx.lineTo(580,182);ctx.lineTo(674,380);ctx.lineTo(455,380);ctx.fill();
 // TODAY sticky-note furniture.
