@@ -70,7 +70,7 @@
  pose=function(kind){if(!office||roomPrefs.activeSpace==='dream')return basePose(kind);route=null;keys.clear();posture=kind;if(kind==='desk'){player.x=500;player.y=410;}else{player.x=200;player.y=490;}$('#panel').close();canvas.focus({preventScroll:true});};
  move=function(dx,dy,dt){if(dx||dy)route=null;return baseMove(dx,dy,dt);};
  function walkToDesk(){if(!office||roomPrefs.activeSpace==='dream')return;posture='stand';player.x=500;player.y=550;route=[{x:500,y:430},{x:500,y:410}];}
- function placeChanged(place){const viewportTop=window.scrollY,companySelected=place?.kind==='office'&&place?.source==='selection';office=false;route=null;if(roomPrefs.activeSpace==='office')roomPrefs.activeSpace='current';roomApplyLayout();if(companySelected&&!data.active)start('office',true);requestAnimationFrame(()=>window.scrollTo({top:viewportTop,left:0,behavior:'auto'}));}
+ function placeChanged(place){const viewportTop=window.scrollY;office=place?.kind==='office';route=null;if(['dream','office'].includes(roomPrefs.activeSpace))roomPrefs.activeSpace='current';document.querySelector('.room-top>span:first-of-type').textContent=office?'MY OFFICE':'HOME OFFICE';roomApplyLayout();if(office&&place?.source==='selection'&&!data.active)start('office',true);requestAnimationFrame(()=>window.scrollTo({top:viewportTop,left:0,behavior:'auto'}));}
  window.addEventListener('life-place-changed',e=>placeChanged(e.detail));
 
  drawRoom=function(t){deskButton.hidden=!office||roomPrefs.activeSpace==='dream'||roomEditing;if(!office||roomPrefs.activeSpace==='dream')return baseDraw(t);const dt=Math.min((t-lastT)/1000||0,.04);lastT=t;
