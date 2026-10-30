@@ -6,7 +6,7 @@ let state={day:'',tasks:[{text:'',done:false},{text:'',done:false},{text:'',done
 try{const saved=JSON.parse(localStorage.getItem(STORE));if(saved&&Array.isArray(saved.tasks)&&saved.tasks.length===3){state.tasks=saved.tasks.map(t=>({text:String(t.text||'').slice(0,160),done:!!t.done}));state.notes=String(saved.notes||'');state.links={...state.links,...saved.links};state.day=String(saved.day||'');}}catch{}
 const localDay=()=>new Date().toLocaleDateString('sv-SE');
 function save(){try{localStorage.setItem(STORE,JSON.stringify(state));if(cloudReadyForWrites)window.lifeCloud.setSetting('daily',state).catch(()=>toast('서버에 저장하지 못했어요. 연결 상태를 확인해 주세요.'));}catch{toast('저장 공간에 접근할 수 없어요. 브라우저 설정을 확인해 주세요.');}}
-function rollover(){if(state.day!==localDay()){state.day=localDay();state.tasks.forEach(t=>t.done=false);save();renderTasks();}}
+function rollover(){if(state.day!==localDay()){state.day=localDay();state.tasks=state.tasks.map(t=>t.done?{text:'',done:false}:{...t,done:false});save();renderTasks();}}
 function applyTodayStudyPlan(){const version='history-exam-2026-10-16';if(localDay()!=='2026-10-16'||state.planVersion===version)return false;state.day=localDay();state.planVersion=version;state.tasks=[{text:'한국사 핵심 흐름 25분',done:false},{text:'오답 10개 확인',done:false},{text:'준비물 챙기고 자기',done:false}];localStorage.setItem(STORE,JSON.stringify(state));renderTasks();return true;}
 function toast(t){$('#toast').textContent=t;$('#toast').style.display='block';clearTimeout(toast.id);toast.id=setTimeout(()=>$('#toast').style.display='none',3500);}
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
