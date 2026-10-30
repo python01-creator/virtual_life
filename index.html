@@ -190,12 +190,23 @@ body>main>section>.intro,body>main>section>.eyebrow{display:none}
 }
 @media(max-width:900px) and (orientation:landscape) and (pointer:coarse){
  body>main{padding:0}
- body>main>section{width:100%;max-width:none;margin:0}
- .room-wrap{width:100%;border-radius:0}
+ body>main>section{width:min(100vw,calc((100dvh - 48px) * 1.4769));max-width:none;margin:0 auto}
+ .room-wrap{width:100%;border-radius:10px}
  .canvas-wrap,.canvas-wrap canvas{width:100%;max-width:none}
  .room-tip{height:0;min-height:0;overflow:hidden}
  .mobile-joystick,.mobile-select-button{display:none!important}
 }
+/* MOBILE_TOUCH_QA_V1: enlarge only invisible hit areas; keep furniture art and saved coordinates unchanged. */
+@media(max-width:900px) and (pointer:coarse){
+ .room-wrap>header .ghost{min-width:44px;min-height:40px;padding:6px 8px;font-size:9px}
+ .room-wrap>header .header-right{gap:6px}
+ .mobile-joystick{opacity:.64}
+ .mobile-select-button{opacity:.76;min-height:28px}
+ .canvas-wrap>:is(.story-object-link,.todo-furniture-hit,.today-board-hit,.memory-object-link,.focus-clock-hit,.story-room-item,.writing-room-object,.notion-monitor-hit,.growth-plant-link,.avatar-interaction):after{content:'';position:absolute;inset:-12px}
+ .canvas-wrap>:is(.study-notebook-hit,.past-story-album):after{content:'';position:absolute;inset:-5px}
+ .room-selected{animation:room-selection-pulse .38s ease-out}
+}
+@keyframes room-selection-pulse{0%{filter:brightness(1);outline-color:#fff2a8}55%{filter:brightness(1.18)}100%{filter:brightness(1.08);outline-color:#d7ad5b}}
 </style>
 <script src="./features/diary-durable.js?v=journey-diary-20261021"></script>
 <script src="./features/journey-diary.js?v=screen-cleanup-20261023"></script>
