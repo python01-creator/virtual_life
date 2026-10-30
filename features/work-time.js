@@ -75,19 +75,9 @@
 
  drawRoom=function(t){deskButton.hidden=!office||roomPrefs.activeSpace==='dream'||roomEditing;if(!office||roomPrefs.activeSpace==='dream')return baseDraw(t);const dt=Math.min((t-lastT)/1000||0,.04);lastT=t;
  if(route&&!document.hidden){const next=route[0],dx=next.x-player.x,dy=next.y-player.y,d=Math.hypot(dx,dy),step=dt*115;if(d<=step+1){player.x=next.x;player.y=next.y;route.shift();if(!route.length){route=null;posture='desk';}}else{player.x+=dx/d*step;player.y+=dy/d*step;walk+=dt;}}
- ctx.clearRect(0,0,960,650);rect(0,0,960,650,'#d9e2df');rect(55,60,850,535,'#849a94');rect(64,70,832,510,'#e6e9e1');rect(64,185,832,395,'#d5c5a9');for(let y=185;y<580;y+=45)rect(64,y,832,1,'#c9b99e');for(let x=64;x<896;x+=100)rect(x,185,1,395,'#c9b99e');
- rect(330,88,270,83,'#829d9e');rect(337,95,256,69,'#c9e4e4');rect(464,95,5,69,'#fff7e5');rect(337,127,256,4,'#fff7e5');
- rect(128,113,110,80,'#9a8167');rect(134,119,98,68,'#f6eedb');label('TEAM BOARD',183,151);label('TODAY',183,174);
- rect(744,116,48,60,'#ac8b6b');rect(748,120,40,52,'#fff3d8');rect(748,120,40,11,'#839b8c');for(let i=0;i<15;i++)rect(754+i%5*6,138+Math.floor(i/5)*9,3,3,'#afb59c');
- rect(407,315,185,50,'#b48e68');rect(412,310,175,40,'#d3b58e');rect(418,365,9,35,'#8c7057');rect(572,365,9,35,'#8c7057');rect(465,260,76,54,'#596c65');rect(471,266,64,41,'#d8e8db');rect(498,314,10,10,'#74877c');rect(486,324,35,4,'#718276');rect(464,337,73,9,'#f1ead8');label('MY DESK',501,297);
- rect(478,386,46,30,'#81968e');rect(478,412,46,8,'#6c7f78');rect(498,421,5,15,'#5a6c65');rect(484,435,33,4,'#5a6c65');
- rect(735,260,90,112,'#b18e68');for(let r=0;r<3;r++){rect(741,290+r*30,78,5,'#856e53');for(let i=0;i<7;i++)rect(746+i*10,267+r*30,6,21,['#8a9b7c','#c8997e','#eee0bc'][i%3]);}
- rect(100,463,220,62,'#84978b');rect(108,452,204,35,'#a5b4a4');rect(108,490,200,28,'#b0bfa9');plant(838,210,.85);plant(116,380,.75);
- const coworker=(x,y,hair,shirt)=>{rect(x-34,y+17,68,19,'#b79976');rect(x-29,y+35,8,24,'#8d7358');rect(x+21,y+35,8,24,'#8d7358');rect(x-18,y-4,36,27,'#61726c');rect(x-13,y+1,26,16,'#d6e4df');ctx.fillStyle='#e8c3a7';ctx.beginPath();ctx.arc(x,y+36,10,0,Math.PI*2);ctx.fill();rect(x-10,y+23,20,8,hair);rect(x-13,y+45,26,18,shirt);};
- coworker(210,265,'#57483d','#a6848f');coworker(700,260,'#3f4244','#7f9a91');coworker(265,385,'#8b654a','#8a91aa');coworker(715,410,'#56473f','#b18d72');
- if(data.active&&data.active.personal!==false&&C.inLunch(Date.now())&&posture==='desk'&&!route){drawModernAvatar(195,505,t,.86);}else drawModernAvatar(player.x,player.y,t,.86);
- if(data.active&&(data.active.personal===false||!C.inLunch(Date.now()))){for(let i=0;i<3;i++)rect(478,273+i*8,18+(Math.floor(t/600)+i*9)%28,3,'#8da894');rect(519,295,2,5,Math.floor(t/550)%2?'#6f8c7c':'#d8e8db');}
- label(route?'내 자리로 이동 중':data.active?(data.active.personal!==false&&C.inLunch(Date.now())?'LUNCH BREAK':'WORKING'):'READY TO WORK',500,230);$('#room-status').textContent=route?'동료들 사이를 지나 내 자리로 이동 중':data.active?'내 노트북에서 근무 기록 중':'내 자리의 노트북을 눌러 업무 기록 시작';
+ // The shared interior renderer owns the company-room background and furniture.
+ // Keep only route state here so the office is never painted twice.
+ return baseDraw(t);
  };
  async function tick(fresh=false){await read(fresh);if(data.active&&Date.now()>=data.active.stopAt){const mode=data.active.mode;await stop(mode==='remote'?'재택 가능 시간 종료 · 자동 일시정지':'22시 제한 · 자동 일시정지');}if(undo&&Date.now()>undo.until)undo=null;render();}
  window.addEventListener('storage',e=>{if(e.key===key)tick();});document.addEventListener('visibilitychange',()=>{if(!document.hidden)tick(true);});
