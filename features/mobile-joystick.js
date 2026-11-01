@@ -1,6 +1,13 @@
 /* MOBILE_JOYSTICK_V1 */
 (()=>{
  'use strict';
+ // Use layout dimensions so opening the keyboard or pinch zoom cannot switch room modes.
+ const coverMatches=(w,h)=>Math.min(w,h)>0&&Math.min(w,h)<=520&&Math.max(w,h)<=560&&Math.max(w,h)/Math.min(w,h)<=1.4;
+ const syncCover=()=>document.documentElement.classList.toggle('cover-screen-mode',coverMatches(innerWidth,innerHeight));
+ window.lifeCoverScreen={matches:coverMatches,sync:syncCover};
+ syncCover();
+ window.addEventListener('resize',syncCover,{passive:true});
+ window.addEventListener('pageshow',syncCover);
  const pad=document.querySelector('.mobile-joystick');
  const knob=pad?.querySelector('.mobile-joystick-knob');
  const select=document.querySelector('.mobile-select-button');
