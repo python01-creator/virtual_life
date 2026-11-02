@@ -44,7 +44,9 @@
  const button=document.createElement('button');button.id='workday-status-button';button.className='ghost';button.textContent='◷ 근무 시간';button.hidden=true;button.onclick=show;document.querySelector('.header-right').append(button);
  const deskButton=document.createElement('button');deskButton.className='office-desk-hit';deskButton.hidden=true;deskButton.setAttribute('aria-label','내 자리의 노트북 · 업무 기록 열기');deskButton.title='내 자리 · 업무 기록';deskButton.onclick=show;document.querySelector('.canvas-wrap').append(deskButton);
  canvas.addEventListener('keydown',e=>{if(office&&['e','Enter'].includes(e.key)&&Math.hypot(player.x-500,player.y-360)<125){e.preventDefault();e.stopImmediatePropagation();show();}},true);
- async function show(){correcting=false;await read(true);render(true);if(!dialog.open)dialog.showModal();keys.clear();}
+ async function show(){correcting=false;keys.clear();render(true);if(!dialog.open)dialog.showModal();await read(true);if(dialog.open&&!correcting)render(true);}
+ // Furniture opens this API directly; the status button label changes during work.
+ window.lifeWorkday={open:show};
  function render(force=false){if(correcting&&!force)return;const now=Date.now(),s=stats(),a=data.active,personal=a?a.personal!==false:data.personal===true,lunch=personal&&C.inLunch(now),remaining=Math.max(0,8*C.hour-s.today),remote=Math.max(0,20*C.hour-s.weekRemote);
  button.hidden=!a;button.textContent=a?'● 근무 중 · '+fmt(now-a.start):'◷ 근무 시간';button.classList.toggle('work-active',!!a);if(a)button.style.setProperty('display','inline-flex','important');else button.style.removeProperty('display');
  if(!dialog.open&&!force)return;
