@@ -46,6 +46,24 @@
    input.focus({preventScroll:true});input.select();
   };
  }
+ function memoryOfferings(stage){
+  if(stage.querySelector('.memory-offerings-editor')){const panel=stage.querySelector('.memory-offerings-editor');lifeDialog.scrollTop+=panel.getBoundingClientRect().top-lifeDialog.getBoundingClientRect().top-24;return;}
+  const editor=document.createElement('section');editor.className='memory-offerings-editor';editor.setAttribute('aria-label','좋아하던 것들 놓기');
+  editor.innerHTML='<h3>좋아하던 것들</h3><div class="memory-offerings-list"></div><form class="memory-offerings-form"><label>종류<select name="kind"><option value="snack">🍪 간식</option><option value="toy">🧸 장난감</option><option value="flower">🌼 꽃</option><option value="keepsake">🎁 소중한 물건</option></select></label><label>이름<input name="name" maxlength="30" required placeholder="좋아하던 간식이나 물건"></label><label class="wide">짧은 추억 (선택)<input name="memory" maxlength="160" placeholder="이걸 보면 떠오르는 기억"></label><div class="memory-offerings-actions wide"><button class="primary" type="submit">선반에 놓기</button><button class="ghost" type="button" data-close>닫기</button></div></form><p class="memory-offerings-status" role="status"></p>';
+  stage.append(editor);const list=editor.querySelector('.memory-offerings-list'),form=editor.querySelector('form'),status=editor.querySelector('[role="status"]');
+  const allItems=()=>Array.isArray(roomPrefs.memoryOfferings)?roomPrefs.memoryOfferings:[];const items=()=>allItems().filter(x=>!x.stored).slice(0,6);
+  const kinds={snack:'🍪',toy:'🧸',flower:'🌼',keepsake:'🎁'};let busy=false;
+  function draw(){list.replaceChildren();for(const item of allItems()){const row=document.createElement('div');row.className='memory-offering-row';const icon=document.createElement('span');icon.textContent=kinds[item.kind]||'🎁';const text=document.createElement('div'),title=document.createElement('strong'),memo=document.createElement('p');title.textContent=item.name;memo.textContent=item.memory||'';text.append(title,memo);const remove=document.createElement('button');remove.type='button';remove.className='ghost';remove.textContent=item.stored?'다시 놓기':'거두기';remove.onclick=()=>{if(item.stored&&items().length>=6){status.textContent='선반에는 여섯 개까지 놓을 수 있어요.';return;}save(allItems().map(x=>x.id===item.id?{...x,stored:!x.stored}:x),item.stored?'다시 선반에 놓았어요.':'거두어 보관했어요. 언제든 다시 놓을 수 있어요.');};row.append(icon,text,remove);list.append(row);}form.querySelector('[type="submit"]').disabled=items().length>=6;}
+  async function save(next,message){
+   if(busy)return;if(window.lifeCloud&&(!owner||owner!==window.lifeCloud.userId)){status.textContent='로그인 상태를 확인해 주세요.';return;}
+   busy=true;editor.querySelectorAll('button,input,select').forEach(el=>el.disabled=true);status.textContent='저장 중…';
+   try{const prefs={...roomPrefs,memoryOfferings:next};if(window.lifeCloud)await window.lifeCloud.setSetting(lifeKey('room'),prefs);if(window.lifeCloud&&owner!==window.lifeCloud.userId)return;roomPrefs.memoryOfferings=next;try{localStorage.setItem(lifeKey('room'),JSON.stringify(roomPrefs));}catch{}form.reset();draw();const tray=stage.querySelector('.memory-offering-tray');tray?.replaceChildren();for(const item of next.filter(x=>!x.stored).slice(0,6)){const icon=document.createElement('span');icon.textContent=kinds[item.kind]||'🎁';tray?.append(icon);}status.textContent=message+(next.filter(x=>!x.stored).length>=6?' 선반에는 여섯 개까지 놓을 수 있어요.':'');}
+   catch{status.textContent='저장하지 못했어요. 다시 시도해 주세요.';}
+   finally{busy=false;editor.querySelectorAll('button,input,select').forEach(el=>el.disabled=false);draw();}
+  }
+  form.onsubmit=e=>{e.preventDefault();const name=form.elements.name.value.trim();if(!name||items().length>=6)return;save([...allItems(),{id:crypto.randomUUID(),kind:form.elements.kind.value,name,memory:form.elements.memory.value.trim()}],'마음을 담아 선반에 놓았어요.');};
+  editor.querySelector('[data-close]').onclick=()=>editor.remove();draw();form.elements.name.focus({preventScroll:true});const distance=editor.getBoundingClientRect().bottom-lifeDialog.getBoundingClientRect().bottom+24;if(distance>0)lifeDialog.scrollTop+=distance;
+ }
  function memoryRoom(){
   stopMemoryRoom();if(!window.lifeMemoryRoom)return;
   const header=lifeShell.querySelector('.life-heading'),toolbar=lifeShell.querySelector('.life-toolbar'),results=lifeShell.querySelector('#life-results');if(!header||!toolbar||!results)return;
@@ -54,7 +72,7 @@
   const summary=document.createElement('summary');summary.textContent='기록 모아보기 · '+results.querySelectorAll('.memory-card').length;records.append(summary,toolbar,results);stage.after(records);
   const browse=()=>{records.open=true;summary.focus({preventScroll:true});const distance=records.getBoundingClientRect().top-lifeDialog.getBoundingClientRect().top-24;if(distance>0)lifeDialog.scrollTop+=distance;};
   const ownRecords=lifeRecords.filter(r=>r.home===lifeHome.id&&r.kind==='choco'&&!r.deleted);
-  stopMemoryRoom=window.lifeMemoryRoom.mount(stage,{name:memoryName(),records:ownRecords,onBrowse:browse,onLetter:()=>{if(window.lifeCloud&&window.lifeCloud.userId!==owner)return;lifeEdit(null,'choco',memoryName()+'에게');}});
+  stopMemoryRoom=window.lifeMemoryRoom.mount(stage,{name:memoryName(),records:ownRecords,offerings:Array.isArray(roomPrefs.memoryOfferings)?roomPrefs.memoryOfferings.filter(x=>!x.stored):[],onOfferings:()=>memoryOfferings(stage),onBrowse:browse,onLetter:()=>{if(window.lifeCloud&&window.lifeCloud.userId!==owner)return;lifeEdit(null,'choco',memoryName()+'에게');}});
  }
  function memoryReturn(){const root=document.querySelector('#life-content');if(!root||root.querySelector('#memory-return'))return;const back=document.createElement('button');back.id='memory-return';back.type='button';back.className='ghost memory-return';back.textContent='← 기억의 방';back.onclick=()=>{if(lifeEditorDirty)lifeKeepDraft();openMemory();};root.prepend(back);}
  function mount(){memoryOpen=true;document.querySelector('main').hidden=false;lifeShell.querySelector('.object-back')?.remove();lifeShell.hidden=false;lifeShow('');document.querySelector('#life-content').append(lifeShell);lifeShell.classList.add('memory-in-dialog');memoryRoom();}
