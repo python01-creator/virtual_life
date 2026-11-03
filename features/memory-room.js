@@ -2,6 +2,7 @@
 (()=>{
  'use strict';
  const W=820,H=520;
+ const offeringKinds={snack:'🍪',toy:'🧸',flower:'🌼',keepsake:'🎁'};
  const art=`<svg class="memory-room-art" viewBox="0 0 820 520" aria-hidden="true">
  <defs>
   <linearGradient id="mem-wall" x2="0" y2="1"><stop stop-color="#f8f2e5"/><stop offset="1" stop-color="#e9e4d2"/></linearGradient>
@@ -51,6 +52,9 @@
  <path d="M360 485h100" stroke="#bea27c" stroke-width="4" stroke-linecap="round"/>
  </svg>`;
  const css=document.createElement('style');css.textContent=`
+ .memory-offering-tray{position:absolute;left:68%;top:36%;width:23%;height:12%;display:flex;align-items:center;justify-content:center;gap:5%;border-bottom:8px solid #ba9c76;border-radius:5px;pointer-events:none}.memory-offering-tray span{font-size:clamp(13px,3vw,25px);filter:drop-shadow(0 2px 1px #725a4033)}.memory-scene-offerings{left:67%;top:35%;width:25%;height:14%}
+ .memory-offerings-editor{margin:12px 0;padding:16px;border:1px solid #d7ddc8;border-radius:14px;background:#faf8ee}.memory-offerings-editor h3{margin:0 0 10px;font-size:16px}.memory-offerings-editor label{display:grid;gap:5px;font-size:12px}.memory-offerings-form{display:grid;grid-template-columns:110px 1fr;gap:10px}.memory-offerings-form input,.memory-offerings-form select{box-sizing:border-box;width:100%;min-width:0;padding:9px;border:1px solid #cbd2bd;border-radius:8px;background:#fffdf8;font:inherit}.memory-offerings-form .wide{grid-column:1/-1}.memory-offerings-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.memory-offerings-actions button{min-height:40px;font-size:12px;padding:8px 12px}.memory-offerings-list{display:grid;gap:8px;margin-bottom:14px}.memory-offering-row{display:flex;gap:10px;align-items:center;padding:10px;background:#fffdf6;border-radius:9px}.memory-offering-row>div{flex:1;min-width:0;overflow-wrap:anywhere}.memory-offering-row strong{font-size:13px}.memory-offering-row p{font-size:12px;margin:4px 0 0;white-space:pre-wrap}.memory-offering-row button{font-size:11px;min-height:36px}.memory-offerings-status{font-size:12px;margin:8px 0 0}.memory-offerings-status:empty{display:none}@media(max-width:420px){.memory-offerings-form{grid-template-columns:1fr}.memory-offerings-editor{padding:12px}}
+
  .memory-in-dialog .life-heading{padding-right:28px}.memory-room-stage{margin:12px 0}.memory-room-scene{position:relative;isolation:isolate;width:100%;aspect-ratio:820/520;overflow:hidden;border-radius:16px;background:#d9dfcb;touch-action:manipulation;outline-offset:3px;user-select:none;-webkit-user-select:none}
  .memory-room-art{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}.memory-scene-furniture{position:absolute;border:0!important;background:transparent!important;padding:0!important;color:#655e4e;cursor:pointer;z-index:3;min-height:0!important;min-width:0!important;touch-action:manipulation}
  .memory-scene-furniture:focus-visible{outline:2px solid #839477;outline-offset:2px;border-radius:8px}.memory-scene-furniture:hover .memory-scene-label{background:#fff9e6;color:#4e624b}.memory-scene-label{position:absolute;top:100%;left:50%;transform:translateX(-50%);white-space:nowrap;font-size:clamp(8px,1.8vw,11px);line-height:1.4;background:#faf5e0c9;padding:3px 7px;border-radius:20px;box-shadow:0 2px 6px #725c3110}
@@ -83,7 +87,9 @@
    note.innerHTML='<button type="button" class="memory-room-note-close" aria-label="만나기 창 닫기">×</button><h3></h3><p>함께한 마음이 머무는 자리. 잠깐 쉬었다 가요.</p><div class="actions"><button type="button" class="primary" data-memory-letter>편지 남기기</button><button type="button" class="ghost" data-memory-browse>추억 펼치기</button></div>';
    note.querySelector('h3').textContent=options.name;note.querySelector('.memory-room-note-close').onclick=closeNote;note.querySelector('[data-memory-letter]').onclick=options.onLetter;note.querySelector('[data-memory-browse]').onclick=()=>{closeNote();options.onBrowse();};note.hidden=false;
   }
+  const tray=document.createElement('div');tray.className='memory-offering-tray';tray.setAttribute('aria-hidden','true');for(const item of (options.offerings||[]).slice(0,6)){const icon=document.createElement('span');icon.textContent=offeringKinds[item.kind]||offeringKinds.keepsake;tray.append(icon);}scene.append(tray);
   const furniture=[
+   {className:'offerings',label:'좋아하던 것들',aria:'추모 선반 · 좋아하던 물건과 간식 놓기',x:740,y:300,run:options.onOfferings},
    {className:'frame',label:'추억 액자',aria:'추억 액자 · 사진과 기억 보기',x:180,y:300,run:options.onBrowse},
    {className:'shelf',label:'기억 책장',aria:'기억 책장 · 기록 모아보기',x:200,y:440,run:options.onBrowse},
    {className:'rest',label:'함께 쉬기',aria:'함께 쉬는 자리 · 만나기',x:410,y:420,run:meet},
