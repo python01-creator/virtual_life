@@ -5,6 +5,7 @@
  const offeringKinds={snack:'🍪',toy:'🧸',flower:'🌼',keepsake:'🎁'};
  const art=`<svg class="memory-room-art" viewBox="0 0 820 520" aria-hidden="true">
  <defs>
+  <radialGradient id="mem-light"><stop stop-color="#fffef8" stop-opacity=".85"/><stop offset=".3" stop-color="#fffbed" stop-opacity=".35"/><stop offset="1" stop-color="#fffbed" stop-opacity="0"/></radialGradient>
   <linearGradient id="mem-wall" x2="0" y2="1"><stop stop-color="#f8f2e5"/><stop offset="1" stop-color="#e9e4d2"/></linearGradient>
   <linearGradient id="mem-sky" x2="0" y2="1"><stop stop-color="#bedbd6"/><stop offset="1" stop-color="#edf1d9"/></linearGradient>
   <linearGradient id="mem-floor" x2="0" y2="1"><stop stop-color="#d6bb92"/><stop offset="1" stop-color="#ead7b6"/></linearGradient>
@@ -37,11 +38,12 @@
  <ellipse cx="324" cy="411" rx="122" ry="45" fill="#b7b899" opacity=".43"/>
  <ellipse cx="324" cy="402" rx="115" ry="42" fill="#d9dfc3"/><ellipse cx="324" cy="399" rx="96" ry="30" fill="none" stroke="#c5cfac" stroke-width="3"/>
  <g class="memory-room-star" aria-hidden="true">
- <ellipse cx="310" cy="389" rx="53" ry="12" fill="#f5e6ad" opacity=".45"/>
- <circle class="memory-star-halo" cx="310" cy="350" r="51" fill="#fff1b5" opacity=".2"/>
- <path d="M310 311l12 25 28 4-20 20 5 28-25-13-25 13 5-28-20-20 28-4z" fill="#f4da8a" stroke="#fff3c9" stroke-width="3" stroke-linejoin="round"/>
- <path d="M310 322l8 18 19 3-16 4-11-25z" fill="#fff4c5" opacity=".8"/>
- <g class="memory-star-sparkles" fill="#ffedab"><path d="M255 313l3 9 9 3-9 3-3 9-3-9-9-3 9-3z"/><path d="M366 343l3 9 9 3-9 3-3 9-3-9-9-3 9-3z"/><path d="M341 296l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"/></g>
+ <ellipse cx="310" cy="391" rx="26" ry="5" fill="#fffcf0" opacity=".12"/>
+ <circle class="memory-star-halo" cx="310" cy="351" r="35" fill="url(#mem-light)"/>
+ <circle cx="310" cy="351" r="16" fill="url(#mem-light)"/>
+ <path d="M310 341q1.4 8.6 10 10-8.6 1.4-10 10-1.4-8.6-10-10 8.6-1.4 10-10" fill="#fffdf3"/>
+ <circle cx="310" cy="351" r="2.3" fill="#fffefa"/>
+ <g class="memory-star-sparkles" fill="#fffdf3"><circle cx="286" cy="338" r="1.1"/><circle cx="334" cy="358" r="1.3"/><circle cx="321" cy="326" r=".9"/></g>
  </g>
  <g filter="url(#mem-shadow)"><path d="M576 366v55m153-55v55" stroke="#967653" stroke-width="10"/><rect x="561" y="325" width="184" height="49" rx="5" fill="#b7946c"/><rect x="555" y="317" width="196" height="15" rx="5" fill="#d1b28c"/>
  <path d="M601 296h78v23h-78z" fill="#faf1db"/><path d="M640 298v19" stroke="#c7b493" stroke-width="2"/><path d="M608 304h24m-24 6h24m16-6h23m-23 6h23" stroke="#b8ac91" stroke-width="1.5"/>
@@ -65,11 +67,11 @@
  .memory-room-visitor{position:absolute;width:7.1%;z-index:4;pointer-events:none;transform:translate(-50%,-100%);will-change:left,top}.memory-room-visitor:after{content:'';position:absolute;bottom:-1px;left:15%;width:70%;height:8%;background:#715e462e;border-radius:50%;z-index:-1}.memory-room-visitor img{display:block;width:100%;height:auto}.memory-room-visitor.is-walking img{animation:memory-step .28s ease-in-out infinite alternate}
  .memory-room-target{position:absolute;width:3.5%;aspect-ratio:2;border:1px solid #faf4d3c9;border-radius:50%;transform:translate(-50%,-50%);pointer-events:none;z-index:2}.memory-room-caption{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:7px 2px 0;font-size:11px;color:#7a806e}.memory-room-caption button{border:0;background:transparent;color:#62765a;padding:4px;min-height:28px;font-size:11px}
  .memory-room-note{position:absolute;left:50%;top:12%;transform:translateX(-50%);z-index:5;background:#fffcf1f5;border:1px solid #d3d8c4;border-radius:14px;padding:13px;width:min(76%,300px);box-shadow:0 8px 30px #4e5d3824;user-select:text}.memory-room-note h3{font-size:16px;margin:0 20px 5px 0!important;overflow-wrap:anywhere}.memory-room-note p{font-size:11px!important;line-height:1.6!important;margin:0 0 8px!important}.memory-room-note .actions{gap:5px;margin:0!important}.memory-room-note .actions button{font-size:11px;padding:7px 9px;min-height:32px;flex:1 1 auto}.memory-room-note-close{position:absolute;right:7px;top:5px;border:0;background:transparent;font-size:20px;color:#7b8174;min-height:25px!important;padding:0 4px}
- .memory-room-star{transform-origin:310px 350px}.memory-star-sparkles{opacity:0}.is-greeting .memory-room-star{animation:memory-star-float 3s ease-in-out infinite}.is-greeting .memory-star-halo{animation:memory-star-glow 2s ease-in-out infinite}.is-greeting .memory-star-sparkles{animation:memory-star-twinkle 1.8s ease-in-out infinite}.is-greeting .memory-star-sparkles path:nth-child(2){animation:memory-star-twinkle 1.8s .6s ease-in-out infinite}.is-greeting .memory-star-sparkles path:nth-child(3){animation:memory-star-twinkle 2.3s .3s ease-in-out infinite}
- @keyframes memory-star-float{50%{transform:translateY(-5px)}}@keyframes memory-star-glow{50%{opacity:.65;transform:scale(1.015);transform-origin:310px 350px}}@keyframes memory-star-twinkle{0%,100%{opacity:.25}50%{opacity:1}}
+ .memory-room-star{transform-origin:310px 350px}.memory-star-sparkles{opacity:0}.is-greeting .memory-room-star{animation:memory-star-float 6s ease-in-out infinite}.is-greeting .memory-star-halo{animation:memory-star-glow 4.8s ease-in-out infinite}.is-greeting .memory-star-sparkles{animation:memory-star-twinkle 4.6s ease-in-out infinite}.is-greeting .memory-star-sparkles circle:nth-child(2){animation:memory-star-twinkle 5s 1.2s ease-in-out infinite}.is-greeting .memory-star-sparkles circle:nth-child(3){animation:memory-star-twinkle 5.8s .6s ease-in-out infinite}
+ @keyframes memory-star-float{50%{transform:translateY(-2px)}}@keyframes memory-star-glow{50%{opacity:.6;transform:scale(1.08);transform-origin:310px 350px}}@keyframes memory-star-twinkle{0%,100%{opacity:.08}50%{opacity:.75}}
  .memory-records-panel{margin-top:14px;border-top:1px solid #dedfce;padding-top:10px}.memory-records-panel>summary{font-size:12px;color:#68775f;cursor:pointer;padding:8px 0}.memory-return{margin-bottom:14px;font-size:12px}
- @keyframes memory-step{to{transform:translateY(-2px)}}@keyframes memory-breathe{50%{transform:scale(1.015,.99)}}@keyframes memory-heart{50%{transform:translateY(-5px);opacity:.6}}
- @media(prefers-reduced-motion:reduce){.is-greeting .memory-star-sparkles{opacity:1}.is-greeting .memory-star-halo{opacity:.65}.memory-room-star,.memory-star-halo,.memory-star-sparkles,.memory-star-sparkles path,.memory-room-visitor img{animation:none!important}}
+ @keyframes memory-step{to{transform:translateY(-2px)}}@keyframes memory-breathe{50%{transform:scale(1.015,.99)}}@keyframes memory-heart{50%{transform:translateY(-2px);opacity:.6}}
+ @media(prefers-reduced-motion:reduce){.is-greeting .memory-star-sparkles{opacity:1}.is-greeting .memory-star-halo{opacity:.65}.memory-room-star,.memory-star-halo,.memory-star-sparkles,.memory-star-sparkles circle,.memory-room-visitor img{animation:none!important}}
  @media(pointer:coarse){.memory-scene-furniture{min-height:44px!important;min-width:44px!important}}
  @media(max-width:420px){.memory-room-scene{border-radius:12px}.memory-scene-label{padding:2px 5px}.memory-room-note{padding:9px;top:5%}.memory-room-note h3{font-size:14px}.memory-room-note .actions button{font-size:10px;padding:5px}.memory-room-caption{font-size:10px}}
  `;document.head.append(css);
