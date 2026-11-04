@@ -1,0 +1,21 @@
+name: Recover stalled Pages deployment
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [.github/workflows/pages-recovery.yml]
+
+permissions:
+  pages: write
+
+jobs:
+  cancel-stalled-deployment:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Cancel abandoned Pages deployment
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh api --method POST "repos/${GH_REPO}/pages/deployments/acfa48081861a7f28f437f13bd52a7b151c109b4/cancel" --silent
