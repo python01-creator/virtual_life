@@ -47,10 +47,10 @@
   };
  }
  function memoryOfferings(stage){
-  if(stage.querySelector('.memory-offerings-editor')){const panel=stage.querySelector('.memory-offerings-editor');lifeDialog.scrollTop+=panel.getBoundingClientRect().top-lifeDialog.getBoundingClientRect().top-24;return;}
+  const view=memoryPanel('추모 선반');
   const editor=document.createElement('section');editor.className='memory-offerings-editor';editor.setAttribute('aria-label','좋아하던 것들 놓기');
-  editor.innerHTML='<h3>좋아하던 것들</h3><div class="memory-offerings-list"></div><form class="memory-offerings-form"><label>종류<select name="kind"><option value="snack">🍪 간식</option><option value="toy">🧸 장난감</option><option value="flower">🌼 꽃</option><option value="keepsake">🎁 소중한 물건</option></select></label><label>이름<input name="name" maxlength="30" required placeholder="좋아하던 간식이나 물건"></label><label class="wide">짧은 추억 (선택)<input name="memory" maxlength="160" placeholder="이걸 보면 떠오르는 기억"></label><div class="memory-offerings-actions wide"><button class="primary" type="submit">선반에 놓기</button><button class="ghost" type="button" data-close>닫기</button></div></form><p class="memory-offerings-status" role="status"></p>';
-  stage.append(editor);const list=editor.querySelector('.memory-offerings-list'),form=editor.querySelector('form'),status=editor.querySelector('[role="status"]');
+  editor.innerHTML='<h3>좋아하던 것들</h3><div class="memory-offerings-list"></div><form class="memory-offerings-form"><label>종류<select name="kind"><option value="snack">🍪 간식</option><option value="toy">🧸 장난감</option><option value="flower">🌼 꽃</option><option value="keepsake">🎁 소중한 물건</option></select></label><label>이름<input name="name" maxlength="30" required placeholder="좋아하던 간식이나 물건"></label><label class="wide">짧은 추억 (선택)<input name="memory" maxlength="160" placeholder="이걸 보면 떠오르는 기억"></label><div class="memory-offerings-actions wide"><button class="primary" type="submit">선반에 놓기</button></div></form><p class="memory-offerings-status" role="status"></p>';
+  view.body.append(editor);const list=editor.querySelector('.memory-offerings-list'),form=editor.querySelector('form'),status=editor.querySelector('[role="status"]');
   const allItems=()=>Array.isArray(roomPrefs.memoryOfferings)?roomPrefs.memoryOfferings:[];const items=()=>allItems().filter(x=>!x.stored).slice(0,6);
   const kinds={snack:'🍪',toy:'🧸',flower:'🌼',keepsake:'🎁'};let busy=false;
   function draw(){list.replaceChildren();for(const item of allItems()){const row=document.createElement('div');row.className='memory-offering-row';const icon=document.createElement('span');icon.textContent=kinds[item.kind]||'🎁';const text=document.createElement('div'),title=document.createElement('strong'),memo=document.createElement('p');title.textContent=item.name;memo.textContent=item.memory||'';text.append(title,memo);const remove=document.createElement('button');remove.type='button';remove.className='ghost';remove.textContent=item.stored?'다시 놓기':'거두기';remove.onclick=()=>{if(item.stored&&items().length>=6){status.textContent='선반에는 여섯 개까지 놓을 수 있어요.';return;}save(allItems().map(x=>x.id===item.id?{...x,stored:!x.stored}:x),item.stored?'다시 선반에 놓았어요.':'거두어 보관했어요. 언제든 다시 놓을 수 있어요.');};row.append(icon,text,remove);list.append(row);}form.querySelector('[type="submit"]').disabled=items().length>=6;}
@@ -62,17 +62,17 @@
    finally{busy=false;editor.querySelectorAll('button,input,select').forEach(el=>el.disabled=false);draw();}
   }
   form.onsubmit=e=>{e.preventDefault();const name=form.elements.name.value.trim();if(!name||items().length>=6)return;save([...allItems(),{id:crypto.randomUUID(),kind:form.elements.kind.value,name,memory:form.elements.memory.value.trim()}],'마음을 담아 선반에 놓았어요.');};
-  editor.querySelector('[data-close]').onclick=()=>editor.remove();draw();form.elements.name.focus({preventScroll:true});const distance=editor.getBoundingClientRect().bottom-lifeDialog.getBoundingClientRect().bottom+24;if(distance>0)lifeDialog.scrollTop+=distance;
+  draw();
  }
  // Keep record actions inside the existing memory dialog, with the room behind them.
  let closeMemoryPanel=()=>{};
  function memoryPanel(title){
-  closeMemoryPanel();lifeDialog.scrollTop=0;
+  const returnTarget=document.activeElement;closeMemoryPanel();lifeDialog.scrollTop=0;
   const overlay=document.createElement('div');overlay.className='memory-inner-overlay';
   const panel=document.createElement('section');panel.className='memory-inner-panel';panel.setAttribute('role','region');panel.setAttribute('aria-label',title);
   const close=document.createElement('button');close.type='button';close.className='ghost memory-inner-close';close.textContent='← 기억의 방';
   const body=document.createElement('div');body.className='memory-inner-body';panel.append(close,body);overlay.append(panel);lifeDialog.append(overlay);lifeDialog.classList.add('memory-child-open');lifeShell.inert=true;close.focus({preventScroll:true});
-  let restore=()=>{};const cleanup=()=>{if(lifeEditorDirty&&body.querySelector('#story-form'))lifeKeepDraft();restore();overlay.remove();lifeShell.inert=false;lifeDialog.classList.remove('memory-child-open');lifeDialog.removeEventListener('cancel',escape);closeMemoryPanel=()=>{};lifeShell.querySelector('.memory-scene-shelf')?.focus({preventScroll:true});};
+  let restore=()=>{};const cleanup=()=>{if(lifeEditorDirty&&body.querySelector('#story-form'))lifeKeepDraft();restore();overlay.remove();lifeShell.inert=false;lifeDialog.classList.remove('memory-child-open');lifeDialog.removeEventListener('cancel',escape);closeMemoryPanel=()=>{};(returnTarget?.isConnected&&lifeShell.contains(returnTarget)?returnTarget:lifeShell.querySelector('.memory-scene-shelf'))?.focus({preventScroll:true});};
   const escape=e=>{e.preventDefault();e.stopImmediatePropagation();cleanup();};lifeDialog.addEventListener('cancel',escape);close.onclick=cleanup;overlay.onclick=e=>{if(e.target===overlay)cleanup();};closeMemoryPanel=cleanup;
   return {body,onClose:fn=>{restore=fn;}};
  }
