@@ -54,6 +54,8 @@
  <path d="M360 485h100" stroke="#bea27c" stroke-width="4" stroke-linecap="round"/>
  </svg>`;
  const css=document.createElement('style');css.textContent=`
+ .memory-frame-editor{margin-bottom:20px}.memory-frame-preview{display:grid;place-items:center;min-height:140px;background:#eeeade;border:1px solid #ded9c8;border-radius:12px;padding:12px}.memory-frame-preview img{max-width:100%;max-height:240px;object-fit:contain;border-radius:6px}.memory-frame-preview p{font-size:13px;color:#7b806d}.memory-frame-editor input{max-width:100%}.memory-frame-editor small{font-size:11px;color:#7b806d}.memory-frame-editor .field{display:grid;gap:8px;margin:14px 0}
+
  #life-dialog.memory-child-open{overflow:hidden!important}.memory-inner-overlay{position:absolute;inset:0;z-index:15;display:flex;align-items:center;justify-content:center;padding:20px;background:#45513d66;backdrop-filter:blur(2px)}.memory-inner-panel{box-sizing:border-box;width:100%;max-height:100%;overflow:auto;overscroll-behavior:contain;background:var(--paper,#faf8ef);border-radius:16px;padding:20px;box-shadow:0 10px 36px #26361f33}.memory-inner-close{margin-bottom:12px;min-height:40px}.memory-inner-panel h2{margin-top:0;font-size:21px}.memory-inner-panel .memory-records-panel{border:0;margin:0;padding:0}.memory-inner-panel .memory-records-panel>summary{display:none}@media(max-width:420px){.memory-inner-overlay{padding:10px}.memory-inner-panel{padding:14px}}
 
  .memory-offering-tray{position:absolute;left:68%;top:36%;width:23%;height:12%;display:flex;align-items:center;justify-content:center;gap:5%;border-bottom:8px solid #ba9c76;border-radius:5px;pointer-events:none}.memory-offering-tray span{font-size:clamp(13px,3vw,25px);filter:drop-shadow(0 2px 1px #725a4033)}.memory-scene-offerings{left:67%;top:35%;width:25%;height:14%}
@@ -96,7 +98,7 @@
   const tray=document.createElement('div');tray.className='memory-offering-tray';tray.setAttribute('aria-hidden','true');for(const item of (options.offerings||[]).slice(0,6)){const icon=document.createElement('span');icon.textContent=offeringKinds[item.kind]||offeringKinds.keepsake;tray.append(icon);}scene.append(tray);
   const furniture=[
    {className:'offerings',label:'좋아하던 것들',aria:'추모 선반 · 좋아하던 물건과 간식 놓기',x:740,y:300,run:options.onOfferings},
-   {className:'frame',label:'추억 액자',aria:'추억 액자 · 사진과 기억 보기',x:180,y:300,run:options.onBrowse},
+   {className:'frame',label:'추억 액자',aria:'추억 액자 · 사진과 기억 보기',x:180,y:300,run:options.onFrame||options.onBrowse},
    {className:'shelf',label:'기억 책장',aria:'기억 책장 · 기록 모아보기',x:200,y:440,run:options.onBrowse},
    {className:'rest',label:'함께 쉬기',aria:'함께 쉬는 자리 · 만나기',x:410,y:420,run:meet},
    {className:'desk',label:'편지 쓰기',aria:'편지 책상 · 편지 남기기',x:650,y:440,run:options.onLetter}
@@ -109,7 +111,7 @@
    if(reduced.matches){pos={x:end.x,y:end.y};route=[];target.hidden=true;update();const done=afterMove;afterMove=null;done?.();}
   }
   for(const item of furniture){const button=document.createElement('button');button.type='button';button.className='memory-scene-furniture memory-scene-'+item.className;button.setAttribute('aria-label',item.aria);const label=document.createElement('span');label.className='memory-scene-label';label.textContent=item.label;button.append(label);button.onclick=e=>{e.stopPropagation();if(item.className==='rest')go(item.x,item.y,item.run);else{held.clear();route=[];afterMove=null;target.hidden=true;closeNote();item.run?.();}};scene.append(button);
-   if(item.className==='frame'){const record=(options.records||[]).find(r=>typeof r.photo==='string'&&/^(data:image\/(?:png|jpeg|webp);base64,|https:\/\/)/.test(r.photo));if(record){const photo=document.createElement('img');photo.className='memory-frame-photo';photo.src=record.photo;photo.alt='';photo.referrerPolicy='no-referrer';button.prepend(photo);}}
+   if(item.className==='frame'){const record=[{photo:options.framePhoto},...(options.records||[])].find(r=>typeof r.photo==='string'&&/^(data:image\/(?:png|jpeg|webp);base64,|https:\/\/)/.test(r.photo));if(record){const photo=document.createElement('img');photo.className='memory-frame-photo';photo.src=record.photo;photo.alt='';photo.referrerPolicy='no-referrer';button.prepend(photo);}}
   }
   scene.addEventListener('pointerdown',e=>{if(!note.hidden&&!note.contains(e.target)&&!e.target.closest('.memory-scene-furniture'))closeNote();});
   scene.addEventListener('click',e=>{if(e.target.closest('button,.memory-room-note'))return;const r=scene.getBoundingClientRect(),x=(e.clientX-r.left)*W/r.width,y=(e.clientY-r.top)*H/r.height;if(y>=300){scene.focus({preventScroll:true});go(x,y);}});
