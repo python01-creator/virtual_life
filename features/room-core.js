@@ -87,38 +87,31 @@ function drawDreamRoom3D(t){
  const px=120+(player.x-82)/788*720,py=375+(player.y-195)/370*185;drawModernAvatar(px,py,t,1.08);const nearest=getNearest();dreamObjects.forEach(o=>{if(hover===o.id||nearest?.id===o.id){ctx.strokeStyle=hover===o.id?'#fff1bc':'#879b72';ctx.lineWidth=3;ctx.strokeRect(o.x-5,o.y-5,o.w+10,o.h+10);}});
  label('3D DREAM HOUSE',480,645);$('#room-status').textContent=nearest?`${nearest.label} · 클릭하거나 E 키로 사용`:(keys.size?'꿈의 집을 산책하는 중':'소파·책상·책장을 클릭해 보세요 · 방향키로 이동');
 }
-function drawModernSofa(upholstery) {
-  const charcoal = '#3b423c';
-  function panel(points, color) {
+function drawModernSofa() {
+  function upholstery(x, y, width, height, radius, top, bottom) {
+    const shade = ctx.createLinearGradient(0, y, 0, y + height);
+    shade.addColorStop(0, top);
+    shade.addColorStop(1, bottom);
     ctx.beginPath();
-    ctx.moveTo(...points[0]);
-    for (const point of points.slice(1)) ctx.lineTo(...point);
-    ctx.closePath();
-    ctx.fillStyle = color;
+    ctx.roundRect(x, y, width, height, radius);
+    ctx.fillStyle = shade;
     ctx.fill();
   }
 
-  // Low upholstered bench on a slim, angular frame.
-  rect(588, 525, 216, 5, '#564d382c');
-  panel([[600, 513], [606, 513], [603, 529], [598, 529]], charcoal);
-  panel([[785, 513], [791, 513], [795, 529], [790, 529]], charcoal);
-  rect(591, 506, 211, 10, charcoal);
-  panel([[594, 483], [605, 451], [613, 446], [780, 446], [788, 451], [801, 483]], charcoal);
-  panel([[603, 482], [614, 450], [779, 450], [791, 482]], upholstery);
-  rect(618, 452, 157, 2, '#fff7df42');
-  panel([[603, 482], [791, 482], [799, 494], [595, 494]], upholstery);
-  panel([[603, 482], [791, 482], [799, 494], [595, 494]], '#fff7df28');
-  rect(595, 494, 204, 14, upholstery);
-  rect(595, 501, 204, 7, '#29332c30');
-  rect(604, 494, 186, 1, '#fff7df48');
+  // A recessed base makes the two upholstered modules appear to float.
+  upholstery(590, 521, 216, 15, 7, '#55493628', '#55493608');
+  upholstery(600, 507, 192, 21, 6, '#645647', '#493d34');
+  upholstery(591, 473, 152, 50, 12, '#e8dece', '#b7a895');
+  upholstery(737, 474, 69, 58, 12, '#e8dece', '#b7a895');
 
-  // Thin armrests and one asymmetric lumbar cushion.
-  panel([[584, 477], [597, 475], [604, 484], [604, 510], [584, 510]], charcoal);
-  panel([[789, 484], [796, 475], [810, 477], [810, 510], [789, 510]], charcoal);
-  rect(587, 479, 11, 3, '#727b6c');
-  rect(796, 479, 11, 3, '#727b6c');
-  panel([[738, 463], [776, 461], [782, 480], [739, 482]], '#a85e49');
-  panel([[738, 463], [776, 461], [777, 464], [739, 466]], '#c47b62');
+  // Low, softly squared backrests and an extended right seat.
+  upholstery(599, 447, 83, 37, 11, '#fff9ed', '#dfd2c0');
+  upholstery(682, 447, 111, 37, 11, '#fff9ed', '#dfd2c0');
+  upholstery(592, 480, 90, 30, 9, '#f9f2e5', '#e7dccb');
+  upholstery(682, 480, 57, 30, 9, '#f9f2e5', '#e7dccb');
+  upholstery(740, 480, 64, 39, 10, '#f9f2e5', '#e7dccb');
+  upholstery(584, 469, 17, 47, 8, '#f7efe1', '#d5c7b4');
+  upholstery(792, 465, 16, 29, 8, '#f7efe1', '#d5c7b4');
 }
 
 function drawRoom(t){if(roomPrefs.activeSpace==='dream'){drawDreamRoom3D(t);return;}ctx.clearRect(0,0,960,650);rect(0,0,960,650,'#dce4cf');for(let y=25;y<650;y+=43)for(let x=14;x<960;x+=47)rect(x+(y%2)*12,y,3,3,'#cdd8be');rect(55,66,850,545,'#a58f71');rect(49,54,862,537,'#6f7760');rect(58,62,844,522,lifeThemes[roomPrefs.theme].floor);rect(66,70,828,110,lifeThemes[roomPrefs.theme].wall);rect(66,171,828,12,'#a79776');for(let x=68;x<894;x+=67){rect(x,184,1,389,'#cdb68e');for(let y=185;y<580;y+=32)rect(x,y,Math.min(65,894-x),1,'#d4bd96');}rect(66,183,828,5,'#b29b77');rect(66,574,828,10,'#9b8366');rect(66,70,7,504,'#b49f7d');rect(887,70,7,504,'#b49f7d');
@@ -153,7 +146,7 @@ rect(635,310,185,50,'#a17d58');rect(640,304,175,47,'#c6a478');rect(644,350,10,31
 ctx.restore();
 // Rug and sofa.
 roomTransform('rest');
-rect(548,428,282,133,'#c0b793');rect(554,434,270,121,'#d8c9a2');for(let x=562;x<817;x+=12){rect(x,438,4,2,'#b4aa86');rect(x,549,4,2,'#b4aa86');}drawModernSofa(lifeThemes[roomPrefs.theme].sofa);label('COUCH POTATO',693,578);
+rect(548,428,282,133,'#c0b793');rect(554,434,270,121,'#d8c9a2');for(let x=562;x<817;x+=12){rect(x,438,4,2,'#b4aa86');rect(x,549,4,2,'#b4aa86');}drawModernSofa();label('COUCH POTATO',693,578);
 ctx.restore();
 roomTransform('plant');plant(110,509,1.15);ctx.restore();
 if(night){rect(66,70,828,504,'#28314965');ctx.fillStyle='#ffe6a838';ctx.beginPath();ctx.arc(185,320,95,0,Math.PI*2);ctx.fill();}const nearest=getNearest();objects.forEach(o=>{if(hover===o.id||nearest?.id===o.id){ctx.strokeStyle=hover===o.id?'#f9edbf':'#879b72';ctx.lineWidth=2;ctx.strokeRect(o.x-5,o.y-5,o.w+10,o.h+10);}});
