@@ -114,14 +114,108 @@ function drawModernSofa() {
   upholstery(792, 465, 16, 29, 8, '#f7efe1', '#d5c7b4');
 }
 
+function drawWindowView() {
+  rect(442, 87, 148, 83, '#81937e');
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(449, 94, 134, 69);
+  ctx.clip();
+
+  const sky = ctx.createLinearGradient(0, 94, 0, 151);
+  sky.addColorStop(0, '#91c4da');
+  sky.addColorStop(1, '#f4e7c4');
+  rect(449, 94, 134, 69, sky);
+  ctx.fillStyle = '#fff3c8';
+  ctx.beginPath();
+  ctx.arc(552, 111, 9, 0, Math.PI * 2);
+  ctx.fill();
+
+  function cloud(x, y, scale) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(scale, scale);
+    ctx.beginPath();
+    ctx.moveTo(0, 8);
+    ctx.bezierCurveTo(-1, 4, 5, 2, 9, 4);
+    ctx.bezierCurveTo(11, -3, 22, -4, 26, 2);
+    ctx.bezierCurveTo(34, 0, 40, 5, 41, 8);
+    ctx.quadraticCurveTo(19, 12, 0, 8);
+    ctx.fillStyle = '#fffaf0e8';
+    ctx.fill();
+    ctx.restore();
+  }
+  cloud(457, 110, 1);
+  cloud(514, 102, .68);
+  cloud(562, 121, .55);
+
+  ctx.beginPath();
+  ctx.moveTo(449, 144);
+  ctx.bezierCurveTo(474, 114, 492, 121, 518, 140);
+  ctx.bezierCurveTo(543, 119, 560, 122, 583, 138);
+  ctx.lineTo(583, 163);
+  ctx.lineTo(449, 163);
+  ctx.fillStyle = '#a3b7a4';
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(449, 147);
+  ctx.bezierCurveTo(478, 131, 498, 139, 520, 149);
+  ctx.bezierCurveTo(541, 154, 556, 135, 583, 143);
+  ctx.lineTo(583, 163);
+  ctx.lineTo(449, 163);
+  ctx.fillStyle = '#779c78';
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(449, 155);
+  ctx.bezierCurveTo(485, 146, 499, 161, 530, 155);
+  ctx.quadraticCurveTo(560, 151, 583, 153);
+  ctx.lineTo(583, 163);
+  ctx.lineTo(449, 163);
+  ctx.fillStyle = '#587e60';
+  ctx.fill();
+  for (const [x, y] of [[458, 157], [472, 154], [489, 158], [537, 157], [559, 154], [575, 157]]) {
+    rect(x, y, 2, 2, '#eee0a7');
+  }
+  ctx.restore();
+
+  rect(514, 94, 4, 69, '#f3e7c9');
+  rect(428, 83, 18, 95, '#e9ddbd');
+  rect(590, 83, 18, 95, '#e9ddbd');
+  rect(437, 171, 158, 8, '#a88b64');
+  ctx.fillStyle = '#fff0bc30';
+  ctx.beginPath();
+  ctx.moveTo(452, 182);
+  ctx.lineTo(580, 182);
+  ctx.lineTo(674, 380);
+  ctx.lineTo(455, 380);
+  ctx.fill();
+}
+
+function drawSageRug() {
+  ctx.beginPath();
+  ctx.roundRect(548, 428, 282, 133, 13);
+  ctx.fillStyle = '#7f8d73';
+  ctx.fill();
+  ctx.beginPath();
+  ctx.roundRect(552, 432, 274, 125, 10);
+  ctx.fillStyle = '#a5b095';
+  ctx.fill();
+  ctx.save();
+  ctx.clip();
+  for (let y = 435; y < 557; y += 4) rect(552, y, 274, 1, '#edf0d725');
+  ctx.restore();
+  ctx.beginPath();
+  ctx.roundRect(558, 438, 262, 113, 8);
+  ctx.strokeStyle = '#e3e4c8';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  for (const x of [568, 809]) {
+    rect(x, 443, 2, 103, '#dbe0c6');
+    rect(x + 4, 443, 1, 103, '#c3cbb0');
+  }
+}
+
 function drawRoom(t){if(roomPrefs.activeSpace==='dream'){drawDreamRoom3D(t);return;}ctx.clearRect(0,0,960,650);rect(0,0,960,650,'#dce4cf');for(let y=25;y<650;y+=43)for(let x=14;x<960;x+=47)rect(x+(y%2)*12,y,3,3,'#cdd8be');rect(55,66,850,545,'#a58f71');rect(49,54,862,537,'#6f7760');rect(58,62,844,522,lifeThemes[roomPrefs.theme].floor);rect(66,70,828,110,lifeThemes[roomPrefs.theme].wall);rect(66,171,828,12,'#a79776');for(let x=68;x<894;x+=67){rect(x,184,1,389,'#cdb68e');for(let y=185;y<580;y+=32)rect(x,y,Math.min(65,894-x),1,'#d4bd96');}rect(66,183,828,5,'#b29b77');rect(66,574,828,10,'#9b8366');rect(66,70,7,504,'#b49f7d');rect(887,70,7,504,'#b49f7d');
-// Window sized to the gap between the study desk and calendar, with a calm outdoor view.
-rect(442,87,148,83,'#7d927e');rect(449,94,134,69,'#75c5ea');
-// Clearly visible pixel clouds, sunny sky and layered green hills.
-rect(454,106,50,12,'#fffdf3');rect(461,98,35,13,'#fffdf3');rect(471,94,17,9,'#fffdf3');rect(495,111,14,7,'#fffdf3');rect(526,109,47,12,'#fffdf3');rect(534,101,31,13,'#fffdf3');rect(544,96,17,9,'#fffdf3');rect(568,114,12,7,'#fffdf3');rect(570,96,9,9,'#f5d16f');
-ctx.fillStyle='#7dbc5e';ctx.beginPath();ctx.arc(470,158,39,Math.PI,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(548,160,45,Math.PI,Math.PI*2);ctx.fill();rect(449,151,134,12,'#4e9845');rect(456,155,4,8,'#2f7637');rect(483,152,4,11,'#377e3b');rect(523,155,4,8,'#2f7637');rect(557,151,4,12,'#377e3b');rect(468,154,4,4,'#f8d86b');rect(533,157,4,4,'#f5a9b5');rect(573,153,4,4,'#fff1a1');
-// Only a slim center bar, so the scenery remains readable at mobile scale.
-rect(513,94,7,69,'#f3e7c9');rect(428,83,18,95,'#e9ddbd');rect(590,83,18,95,'#e9ddbd');rect(437,171,158,8,'#a88b64');ctx.fillStyle='#fff0bc30';ctx.beginPath();ctx.moveTo(452,182);ctx.lineTo(580,182);ctx.lineTo(674,380);ctx.lineTo(455,380);ctx.fill();
+drawWindowView();
 // TODAY sticky-note furniture.
 roomTransform('today');ctx.translate(337,461);ctx.scale(.68,.68);ctx.translate(-323,-450);
 rect(330,466,82,70,'#d7c7e8');rect(337,457,82,70,'#bcd8c0');rect(323,450,86,78,'#f5dc84');rect(329,456,74,66,'#ffedab');ctx.fillStyle='#e1c361';ctx.beginPath();ctx.moveTo(389,522);ctx.lineTo(403,508);ctx.lineTo(403,522);ctx.fill();rect(338,470,43,3,'#b5a46b');rect(338,481,55,3,'#b5a46b');rect(338,492,48,3,'#b5a46b');for(let i=0;i<3;i++)rect(329,469+i*11,5,5,'#91a476');ctx.save();ctx.font='bold 10px Pretendard, sans-serif';ctx.fillStyle='#6f613d';ctx.textAlign='center';ctx.fillText('TO-DO',366,516);ctx.restore();
@@ -146,7 +240,7 @@ rect(635,310,185,50,'#a17d58');rect(640,304,175,47,'#c6a478');rect(644,350,10,31
 ctx.restore();
 // Rug and sofa.
 roomTransform('rest');
-rect(548,428,282,133,'#c0b793');rect(554,434,270,121,'#d8c9a2');for(let x=562;x<817;x+=12){rect(x,438,4,2,'#b4aa86');rect(x,549,4,2,'#b4aa86');}drawModernSofa();label('COUCH POTATO',693,578);
+drawSageRug();drawModernSofa();label('COUCH POTATO',693,578);
 ctx.restore();
 roomTransform('plant');plant(110,509,1.15);ctx.restore();
 if(night){rect(66,70,828,504,'#28314965');ctx.fillStyle='#ffe6a838';ctx.beginPath();ctx.arc(185,320,95,0,Math.PI*2);ctx.fill();}const nearest=getNearest();objects.forEach(o=>{if(hover===o.id||nearest?.id===o.id){ctx.strokeStyle=hover===o.id?'#f9edbf':'#879b72';ctx.lineWidth=2;ctx.strokeRect(o.x-5,o.y-5,o.w+10,o.h+10);}});
