@@ -6,16 +6,26 @@
  pochacco.src = './assets/pochacco.webp';
  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
  let companion = null;
+ const companionOffsets = [[42, 8], [-42, 8], [0, 48], [42, 48], [-42, 48], [42, -36], [-42, -36], [0, -48]];
 
  function drawPochacco(t) {
   if (!human || !pochacco.complete || !pochacco.naturalWidth) return;
   const scene = window.lifeInterior?.roomKey?.() || roomPrefs.activeSpace;
-  const preferred = { x: human.x + 42, y: human.y + 8 };
-  const alternate = { x: human.x - 42, y: human.y + 8 };
-  const target = [preferred, alternate].find(point =>
-   point.x >= 82 && point.x <= 870 && point.y >= 203 && point.y <= 563 && !blocked(point.x, point.y)
-  );
-  if (!target) return;
+  let target;
+  for (const [offsetX, offsetY] of companionOffsets) {
+   const x = human.x + offsetX;
+   const y = human.y + offsetY;
+   if (x >= 82 && x <= 870 && y >= 203 && y <= 563 && !blocked(x, y)) {
+    target = { x, y };
+    break;
+   }
+  }
+  // An interaction can put the avatar inside furniture. Keep the last floor position
+  // in this room when there is no clear space immediately beside the avatar.
+  target ??= companion?.scene === scene ? companion : {
+   x: Math.max(82, Math.min(870, human.x + 42)),
+   y: Math.max(203, Math.min(563, human.y + 8))
+  };
   if (!companion || companion.scene !== scene || Math.hypot(target.x - companion.x, target.y - companion.y) > 240) {
    companion = { ...target, scene, time: t };
   }
