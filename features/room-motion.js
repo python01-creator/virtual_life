@@ -193,7 +193,7 @@
  window.lifeRoomActors={begin(){syncResolution();human=pet=null;ac.clearRect(0,0,960,650);},end(t){
   drawMongleSprite(t);
   drawPochacco(t);
-  if(human){const {x,y,scale}=human,seated=posture==='sit'||posture==='desk',lying=posture==='lie',img=cuteAvatarFrames[lying?2:seated?1:0];if(img.complete&&img.naturalWidth){const bob=keys.size&&posture==='stand'?Math.abs(Math.sin(walk*11))*-2:Math.sin(t/1000)*.45,h=(lying?40:seated?51:65)*scale,w=h*img.naturalWidth/img.naturalHeight;ac.fillStyle='#6c574124';ac.beginPath();ac.ellipse(x,y+2,w*.34,4*scale,0,0,Math.PI*2);ac.fill();ac.drawImage(img,x-w/2,y-h+bob,w,h);}}
+  if(human){const {x,y,scale}=human,seated=posture==='sit'||posture==='desk',lying=posture==='lie',img=currentAvatarFrame(lying?2:seated?1:0);if(img.complete&&img.naturalWidth){const bob=keys.size&&posture==='stand'?Math.abs(Math.sin(walk*11))*-2:Math.sin(t/1000)*.45,h=(lying?40:seated?51:65)*scale,w=h*img.naturalWidth/img.naturalHeight;ac.fillStyle='#6c574124';ac.beginPath();ac.ellipse(x,y+2,w*.34,4*scale,0,0,Math.PI*2);ac.fill();ac.drawImage(img,x-w/2,y-h+bob,w,h);}}
  }};
  const solids=[['today',337,461,70,65],['focus',91,290,194,135],['study',298,148,146,171],['notion',635,261,185,120],['rest',584,446,226,83],['plant',80,445,60,95]];
  function obstacles(){const custom=window.lifeInterior?.obstacles?.();if(custom?.replace)return custom.rects;if(roomPrefs.activeSpace==='family')return [[205,250,200,253],[465,335,85,69],[650,366,160,129]];return solids.map(([id,x,y,w,h])=>{const v=roomPrefs.layout[id]||{x:0,y:0};return [x+v.x,y+v.y,w,h];}).concat(custom?.rects||[]);}

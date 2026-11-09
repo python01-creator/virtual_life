@@ -1,20 +1,30 @@
 (() => {
   const key = 'player-profile-v1';
-  const genders = ['여성', '남성', '논바이너리', '직접 입력', '응답하지 않음'];
+  const genders = ['여성', '남성'];
   let profile;
   let saving = false;
 
   function open(firstVisit = false) {
     lifeShow(`
       <h2>${firstVisit ? '내 HQ에 오신 걸 환영해요' : '내 프로필'}</h2>
-      <p>이름이나 닉네임, 나이, 성별을 선택해서 입력할 수 있어요. 내 계정에만 저장돼요.</p>
+      <p>캐릭터를 고르고, 원하는 경우 이름·나이·성별도 입력할 수 있어요. 내 계정에만 저장돼요.</p>
       <form id="hq-player-profile">
+        <fieldset class="hq-avatar-picker">
+          <legend>캐릭터 선택</legend>
+          <div class="hq-avatar-options">
+            <label><input type="radio" name="avatar" value="male">
+              <img src="./assets/avatar-boy-stand.webp" alt=""><span>남자 캐릭터</span>
+            </label>
+            <label><input type="radio" name="avatar" value="female">
+              <img src="./assets/avatar-cute-stand.webp" alt=""><span>여자 캐릭터</span>
+            </label>
+          </div>
+        </fieldset>
         <label>이름 또는 닉네임 <input name="nickname" maxlength="40"></label>
         <label>나이 <input name="age" type="number" inputmode="numeric" min="0" max="130" step="1"></label>
         <label>성별 <select name="gender"><option value="">선택 안 함</option>
           ${genders.map(value => `<option>${value}</option>`).join('')}
         </select></label>
-        <label id="hq-gender-detail" hidden>성별 직접 입력 <input name="genderDetail" maxlength="40"></label>
         <div class="actions">
           <button class="primary">프로필 저장</button>
           ${firstVisit ? '<button type="button" class="ghost" id="hq-profile-skip">건너뛰기</button>' : ''}
@@ -25,13 +35,8 @@
     const fields = form.elements;
     fields.nickname.value = profile?.nickname ?? '';
     fields.age.value = profile?.age ?? '';
-    fields.gender.value = profile?.gender ?? '';
-    fields.genderDetail.value = profile?.genderDetail ?? '';
-    const updateGender = () => {
-      document.querySelector('#hq-gender-detail').hidden = fields.gender.value !== '직접 입력';
-    };
-    fields.gender.onchange = updateGender;
-    updateGender();
+    fields.gender.value = genders.includes(profile?.gender) ? profile.gender : '';
+    fields.avatar.value = profile?.avatar === 'male' ? 'male' : 'female';
 
     async function save(value) {
       if (saving) return;
@@ -57,10 +62,10 @@
         nickname: fields.nickname.value.trim(),
         age: fields.age.value === '' ? null : fields.age.valueAsNumber,
         gender: fields.gender.value,
-        genderDetail: fields.gender.value === '직접 입력' ? fields.genderDetail.value.trim() : ''
+        avatar: fields.avatar.value
       });
     };
-    form.querySelector('#hq-profile-skip')?.addEventListener('click', () => save({ version: 1 }));
+    form.querySelector('#hq-profile-skip')?.addEventListener('click', () => save({ version: 1, avatar: 'female' }));
   }
 
   async function load(edit = false) {
@@ -74,6 +79,24 @@
       if (edit) toast('프로필을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.');
     }
   }
-  window.lifePlayerProfile = { open: () => load(true) };
+  const style = document.createElement('style');
+  style.textContent = `
+    #hq-player-profile .hq-avatar-picker { border:0; padding:0; margin:0 0 1rem; }
+    #hq-player-profile .hq-avatar-options { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.65rem; }
+    #hq-player-profile .hq-avatar-options label {
+      display:grid; grid-template-columns:auto 1fr; align-items:center; justify-items:center;
+      gap:.3rem; margin:0; padding:.55rem; border:1px solid #d3d9c8;
+      border-radius:.8rem; background:#f7f7ef; cursor:pointer; text-align:center;
+    }
+    #hq-player-profile .hq-avatar-options label:has(input:checked) { background:#e6eddf; border-color:#718364; }
+    #hq-player-profile .hq-avatar-options input { width:auto; margin:0; accent-color:#657958; }
+    #hq-player-profile .hq-avatar-options img { width:60px; height:64px; object-fit:contain; }
+    #hq-player-profile .hq-avatar-options span { grid-column:1 / -1; }
+  `;
+  document.head.append(style);
+  window.lifePlayerProfile = {
+    open: () => load(true),
+    get avatar() { return profile?.avatar === 'male' ? 'male' : 'female'; }
+  };
   load();
 })();

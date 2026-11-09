@@ -56,9 +56,19 @@ function drawPrincessAvatar(x,y,t,scale=1){const moving=keys.size&&posture==='st
  ctx.fillStyle='#e4c8ff';ctx.beginPath();ctx.moveTo(-11,7);ctx.quadraticCurveTo(0,0,11,7);ctx.lineTo(22,34);ctx.quadraticCurveTo(0,45,-22,34);ctx.closePath();ctx.fill();ctx.strokeStyle='#8d70bd';ctx.lineWidth=2;ctx.stroke();ctx.fillStyle='#f7efff';ctx.beginPath();ctx.moveTo(-7,6);ctx.lineTo(0,14);ctx.lineTo(7,6);ctx.lineTo(0,10);ctx.closePath();ctx.fill();oval(-12,14,4,10,'#f0cfb6');oval(12,14,4,10,'#f0cfb6');ctx.fillStyle='#8f78c3';ctx.beginPath();ctx.moveTo(0,15);ctx.bezierCurveTo(-8,7,-13,19,0,27);ctx.bezierCurveTo(13,19,8,7,0,15);ctx.fill();ctx.fillStyle='#6f4870';ctx.beginPath();ctx.moveTo(-6,38);ctx.lineTo(-3,48);ctx.lineTo(2,48);ctx.lineTo(3,38);ctx.fill();ctx.beginPath();ctx.moveTo(6,38);ctx.lineTo(5,48);ctx.lineTo(10,48);ctx.lineTo(12,38);ctx.fill();oval(-2+step*2,50,8,5,'#243b32');oval(11-step*2,50,8,5,'#243b32');ctx.fillStyle='#d7e2d4';rect(-7+step*2,48,7,2,'#d7e2d4');rect(6-step*2,48,7,2,'#d7e2d4');ctx.restore();}
 const modernAvatar=new Image();modernAvatar.src='./assets/avatar-modern.png';
 const cuteAvatarFrames=["./assets/avatar-cute-stand.webp","./assets/avatar-cute-sit.webp","./assets/avatar-cute-lie.webp"].map(src=>{const image=new Image();image.src=src;return image;});
+const boyAvatarFrames = ['stand', 'sit', 'lie'].map(pose => {
+  const image = new Image();
+  image.src = `./assets/avatar-boy-${pose}.webp`;
+  return image;
+});
+function currentAvatarFrame(index) {
+  const boy = boyAvatarFrames[index];
+  return window.lifePlayerProfile?.avatar === 'male' && boy.complete && boy.naturalWidth
+    ? boy : cuteAvatarFrames[index];
+}
 function drawModernAvatar(x,y,t,scale=1){
 const seated=posture==='sit'||posture==='desk',lying=posture==='lie';
-const img=cuteAvatarFrames[lying?2:seated?1:0];if(!img.complete||!img.naturalWidth)return;
+const img=currentAvatarFrame(lying?2:seated?1:0);if(!img.complete||!img.naturalWidth)return;
 const moving=keys.size&&posture==='stand';const bob=moving?Math.abs(Math.sin(walk*11))*-2:Math.sin(t/1000)*.45;
 const height=(lying?40:seated?51:65)*scale,width=height*img.naturalWidth/img.naturalHeight;
 ctx.save();ctx.imageSmoothingEnabled=true;ctx.fillStyle='#6c574124';ctx.beginPath();ctx.ellipse(x,y+2,width*.34,4*scale,0,0,Math.PI*2);ctx.fill();ctx.drawImage(img,x-width/2,y-height+bob,width,height);ctx.restore();
