@@ -153,7 +153,7 @@ rect(635,310,185,50,'#a17d58');rect(640,304,175,47,'#c6a478');rect(644,350,10,31
 ctx.restore();
 // Rug and sofa.
 roomTransform('rest');
-rect(548,428,282,133,'#c0b793');rect(554,434,270,121,'#d8c9a2');for(let x=562;x<817;x+=12){rect(x,438,4,2,'#b4aa86');rect(x,549,4,2,'#b4aa86');}drawModernSofa(lifeThemes[roomPrefs.theme].sofa);rect(843,458,29,48,'#82694f');rect(849,465,17,12,'#bdab81');rect(849,483,17,16,'#5d6151');label('COUCH POTATO',693,578);
+rect(548,428,282,133,'#c0b793');rect(554,434,270,121,'#d8c9a2');for(let x=562;x<817;x+=12){rect(x,438,4,2,'#b4aa86');rect(x,549,4,2,'#b4aa86');}drawModernSofa(lifeThemes[roomPrefs.theme].sofa);label('COUCH POTATO',693,578);
 ctx.restore();
 roomTransform('plant');plant(110,509,1.15);ctx.restore();
 if(night){rect(66,70,828,504,'#28314965');ctx.fillStyle='#ffe6a838';ctx.beginPath();ctx.arc(185,320,95,0,Math.PI*2);ctx.fill();}const nearest=getNearest();objects.forEach(o=>{if(hover===o.id||nearest?.id===o.id){ctx.strokeStyle=hover===o.id?'#f9edbf':'#879b72';ctx.lineWidth=2;ctx.strokeRect(o.x-5,o.y-5,o.w+10,o.h+10);}});
