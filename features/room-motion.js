@@ -76,7 +76,7 @@
   ac.drawImage(pochacco, frame * 192, row * 208, 192, 208, companion.x - 25, companion.y - 48, 50, 54);
  }
  const mongleTiming = [
-  [420, 135, 135, 160, 160, 440],
+  [1], // Use one stable pose for idle.
   [105, 105, 105, 105, 105, 105, 105, 105],
   [105, 105, 105, 105, 105, 105, 105, 105],
   [140, 140, 140, 280],
@@ -181,7 +181,12 @@
    remaining -= timings[frame++];
   }
   ac.imageSmoothingEnabled = true;
-  ac.drawImage(mongleImage, frame * 192, row * 208, 192, 208, mongle.x - 25, mongle.y - 43, 50, 54);
+  // Keep the paws fixed while a subtle breathing motion lifts the body.
+  const breath = row === 0 && !reducedMotion.matches
+   ? (1 - Math.cos(elapsed * 2 * Math.PI / 4200)) * .3
+   : 0;
+  ac.drawImage(mongleImage, frame * 192, row * 208, 192, 208,
+   mongle.x - 25, mongle.y - 43 - breath, 50, 54 + breath);
  }
  // Keep sprites above both canvas furniture and SVG furniture, without taking taps.
  drawModernAvatar=(x,y,t,scale=1)=>{human={x,y,t,scale};};drawMongle=t=>{pet={t};};
