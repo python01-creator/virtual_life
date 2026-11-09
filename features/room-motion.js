@@ -75,11 +75,118 @@
   const frame = reducedMotion.matches ? 0 : Math.floor(t / 150) % (row ? 8 : 6);
   ac.drawImage(pochacco, frame * 192, row * 208, 192, 208, companion.x - 25, companion.y - 48, 50, 54);
  }
+ const mongleTiming = [
+  [420, 135, 135, 160, 160, 440],
+  [105, 105, 105, 105, 105, 105, 105, 105],
+  [105, 105, 105, 105, 105, 105, 105, 105],
+  [140, 140, 140, 280],
+  [140, 140, 140, 140, 280]
+ ];
+ let mongleAnimationRow = -1;
+ let mongleAnimationStart = 0;
+ let mongleScene;
+ let mongleSpeed = 0;
+ let mongleFacing = 1;
+ let followTarget = null;
+ let nextFollowCheck = 0;
+ const trail = [];
+ const followOffsets = [[-48, 25], [-52, 0], [0, 48], [48, 27], [0, -48]];
+
+ function floorPoint(x, y) {
+  return x >= 85 && x <= 870 && y >= 200 && y <= 560 && !blocked(x, y);
+ }
+
+ function canReach(point) {
+  const dx = point.x - mongle.x;
+  const dy = point.y - mongle.y;
+  const segments = Math.ceil(Math.hypot(dx, dy) / 10);
+  for (let step = 1; step <= segments; step++) {
+   if (!floorPoint(mongle.x + dx * step / segments, mongle.y + dy * step / segments)) return false;
+  }
+  return floorPoint(point.x, point.y);
+ }
+
+ function updateMongle(dt, time) {
+  const scene = window.lifeInterior?.roomKey?.() || roomPrefs.activeSpace;
+  if (scene !== mongleScene) {
+   mongleScene = scene;
+   trail.length = 0;
+   followTarget = null;
+   mongleSpeed = 0;
+   nextFollowCheck = 0;
+  }
+  const canFollow = !window.lifeBedroomPetResting && Date.now() >= mongle.until &&
+   posture === 'stand' && lifePage === 'room' && !roomEditing && !document.querySelector('dialog[open]');
+  if (!canFollow) {
+   mongleSpeed = 0;
+   followTarget = null;
+   nextFollowCheck = 0;
+   trail.length = 0;
+   if (Date.now() >= mongle.until) mongle.row = 0;
+   return;
+  }
+  const last = trail.at(-1);
+  if (!last || Math.hypot(player.x - last.x, player.y - last.y) >= 16) {
+   trail.push({ x: player.x, y: player.y });
+   if (trail.length > 24) trail.shift();
+  }
+  if (time >= nextFollowCheck) {
+   nextFollowCheck = time + 120;
+   const distanceToPlayer = Math.hypot(player.x - mongle.x, player.y - mongle.y);
+   followTarget = null;
+   if (distanceToPlayer > (mongleSpeed > 5 ? 45 : 62)) {
+    const candidates = followOffsets.map(([x, y]) => ({ x: player.x + x, y: player.y + y }));
+    followTarget = candidates.find(canReach);
+    // If a corner blocks the direct route, follow the avatar's recent steps around it.
+    followTarget ??= trail.findLast(point =>
+     Math.hypot(point.x - player.x, point.y - player.y) >= 42 &&
+     Math.hypot(point.x - mongle.x, point.y - mongle.y) >= 9 &&
+     canReach(point)
+    );
+   }
+  }
+  const dx = (followTarget?.x ?? mongle.x) - mongle.x;
+  const dy = (followTarget?.y ?? mongle.y) - mongle.y;
+  const distance = Math.hypot(dx, dy);
+  const desiredSpeed = Math.min(224, distance * 5);
+  mongleSpeed += (desiredSpeed - mongleSpeed) * Math.min(1, dt * 9);
+  const step = Math.min(distance, mongleSpeed * dt);
+  mongle.row = 0;
+  if (step < .12) return;
+  const x = mongle.x + dx / distance * step;
+  const y = mongle.y + dy / distance * step;
+  if (!floorPoint(x, y)) {
+   followTarget = null;
+   nextFollowCheck = 0;
+   mongleSpeed = 0;
+   return;
+  }
+  if (Math.abs(dx) > 4) mongleFacing = dx > 0 ? 1 : 2;
+  Object.assign(mongle, { x, y, row: mongleFacing });
+ }
+
+ function drawMongleSprite(time) {
+  if (!pet || !mongleImage.complete || !mongleImage.naturalWidth) return;
+  const row = mongleTiming[mongle.row] ? mongle.row : 0;
+  const timings = mongleTiming[row];
+  if (row !== mongleAnimationRow) {
+   mongleAnimationRow = row;
+   mongleAnimationStart = time;
+  }
+  const duration = timings.reduce((sum, value) => sum + value, 0);
+  const elapsed = Math.max(0, time - mongleAnimationStart);
+  let remaining = row >= 3 ? Math.min(elapsed, duration - 1) : elapsed % duration;
+  let frame = 0;
+  while (!reducedMotion.matches && remaining >= timings[frame]) {
+   remaining -= timings[frame++];
+  }
+  ac.imageSmoothingEnabled = true;
+  ac.drawImage(mongleImage, frame * 192, row * 208, 192, 208, mongle.x - 25, mongle.y - 43, 50, 54);
+ }
  // Keep sprites above both canvas furniture and SVG furniture, without taking taps.
  drawModernAvatar=(x,y,t,scale=1)=>{human={x,y,t,scale};};drawMongle=t=>{pet={t};};
  window.lifeRoomActors={begin(){syncResolution();human=pet=null;ac.clearRect(0,0,960,650);},end(t){
-  if(pet&&mongleImage.complete&&mongleImage.naturalWidth){ac.imageSmoothingEnabled=false;const counts={0:6,1:8,2:8,3:4,4:5},frame=Math.floor(t/150)%(counts[mongle.row]||6);ac.drawImage(mongleImage,frame*48,mongle.row*52,48,52,mongle.x-25,mongle.y-35,50,54);}
-  ac.imageSmoothingEnabled=true;
+  drawMongleSprite(t);
   drawPochacco(t);
   if(human){const {x,y,scale}=human,seated=posture==='sit'||posture==='desk',lying=posture==='lie',img=cuteAvatarFrames[lying?2:seated?1:0];if(img.complete&&img.naturalWidth){const bob=keys.size&&posture==='stand'?Math.abs(Math.sin(walk*11))*-2:Math.sin(t/1000)*.45,h=(lying?40:seated?51:65)*scale,w=h*img.naturalWidth/img.naturalHeight;ac.fillStyle='#6c574124';ac.beginPath();ac.ellipse(x,y+2,w*.34,4*scale,0,0,Math.PI*2);ac.fill();ac.drawImage(img,x-w/2,y-h+bob,w,h);}}
  }};
@@ -87,7 +194,7 @@
  function obstacles(){const custom=window.lifeInterior?.obstacles?.();if(custom?.replace)return custom.rects;if(roomPrefs.activeSpace==='family')return [[205,250,200,253],[465,335,85,69],[650,366,160,129]];return solids.map(([id,x,y,w,h])=>{const v=roomPrefs.layout[id]||{x:0,y:0};return [x+v.x,y+v.y,w,h];}).concat(custom?.rects||[]);}
  const baseBlocked=blocked;blocked=function(x,y){if(roomPrefs.activeSpace==='dream'||roomPrefs.activeSpace==='office')return baseBlocked(x,y);return obstacles().some(([a,b,w,h])=>x>a-12&&x<a+w+12&&y>b-6&&y<b+h+10);};
  function free(p){if(!blocked(p.x,p.y))return;let best=null,dist=Infinity;for(let y=203;y<=563;y+=12)for(let x=82;x<=870;x+=12){if(blocked(x,y))continue;const d=Math.hypot(x-p.x,y-p.y);if(d<dist){best={x,y};dist=d;}}if(best)Object.assign(p,best);}
- window.lifeRoomMotion={prepare(){if(typeof roomPrefs==='undefined'||roomEditing)return;if(posture==='stand')free(player);if(!window.lifeBedroomPetResting)free(mongle);}};
+ window.lifeRoomMotion={updateMongle,prepare(){if(typeof roomPrefs==='undefined'||roomEditing)return;if(posture==='stand')free(player);if(!window.lifeBedroomPetResting)free(mongle);}};
  const style=document.createElement('style');style.textContent='#room,#room-actors{image-rendering:auto!important}#room-actors{position:absolute;inset:0;width:100%;height:100%;z-index:7;pointer-events:none!important;background:transparent;cursor:inherit}.study-notebook-hit{min-width:0!important;min-height:0!important}.canvas-wrap button{touch-action:manipulation}.family-room-floor{pointer-events:none}.family-scene-hit{pointer-events:auto}';document.head.append(style);
 })();
 
