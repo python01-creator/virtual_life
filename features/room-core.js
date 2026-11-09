@@ -58,7 +58,7 @@ const modernAvatar=new Image();modernAvatar.src='./assets/avatar-modern.png';
 const cuteAvatarFrames=["./assets/avatar-cute-stand.webp","./assets/avatar-cute-sit.webp","./assets/avatar-cute-lie.webp"].map(src=>{const image=new Image();image.src=src;return image;});
 const boyAvatarFrames = ['stand', 'sit', 'lie'].map(pose => {
   const image = new Image();
-  image.src = `./assets/avatar-boy-${pose}.webp`;
+  image.src = `./assets/avatar-boy-balanced-${pose}.webp`;
   return image;
 });
 function currentAvatarFrame(index) {

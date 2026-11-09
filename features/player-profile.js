@@ -13,7 +13,7 @@
           <legend>캐릭터 선택</legend>
           <div class="hq-avatar-options">
             <label><input type="radio" name="avatar" value="male">
-              <img src="./assets/avatar-boy-stand.webp" alt=""><span>남자 캐릭터</span>
+              <img src="./assets/avatar-boy-balanced-stand.webp" alt=""><span>남자 캐릭터</span>
             </label>
             <label><input type="radio" name="avatar" value="female">
               <img src="./assets/avatar-cute-stand.webp" alt=""><span>여자 캐릭터</span>
@@ -21,7 +21,11 @@
           </div>
         </fieldset>
         <label>이름 또는 닉네임 <input name="nickname" maxlength="40"></label>
-        <label>나이 <input name="age" type="number" inputmode="numeric" min="0" max="130" step="1"></label>
+        <label class="hq-age-field">나이 <small>(선택)</small>
+          <input name="age" type="text" inputmode="numeric" maxlength="3" placeholder="예: 28"
+            aria-describedby="hq-age-error">
+          <span id="hq-age-error" role="alert"></span>
+        </label>
         <label>성별 <select name="gender"><option value="">선택 안 함</option>
           ${genders.map(value => `<option>${value}</option>`).join('')}
         </select></label>
@@ -35,6 +39,11 @@
     const fields = form.elements;
     fields.nickname.value = profile?.nickname ?? '';
     fields.age.value = profile?.age ?? '';
+    const ageError = form.querySelector('#hq-age-error');
+    fields.age.oninput = () => {
+      fields.age.removeAttribute('aria-invalid');
+      ageError.textContent = '';
+    };
     fields.gender.value = genders.includes(profile?.gender) ? profile.gender : '';
     fields.avatar.value = profile?.avatar === 'male' ? 'male' : 'female';
 
@@ -57,10 +66,17 @@
 
     form.onsubmit = event => {
       event.preventDefault();
+      const age = fields.age.value.trim();
+      if (age && (!/^[0-9]{1,3}$/.test(age) || Number(age) > 130)) {
+        fields.age.setAttribute('aria-invalid', 'true');
+        ageError.textContent = '나이는 0부터 130까지 숫자로 입력해 주세요.';
+        fields.age.focus();
+        return;
+      }
       save({
         version: 1,
         nickname: fields.nickname.value.trim(),
-        age: fields.age.value === '' ? null : fields.age.valueAsNumber,
+        age: age ? Number(age) : null,
         gender: fields.gender.value,
         avatar: fields.avatar.value
       });
@@ -81,6 +97,8 @@
   }
   const style = document.createElement('style');
   style.textContent = `
+    #hq-player-profile .hq-age-field small { color:#657359; font-weight:400; }
+    #hq-age-error:not(:empty) { display:block; margin-top:.35rem; color:#a34539; font-size:.85em; }
     #hq-player-profile .hq-avatar-picker { border:0; padding:0; margin:0 0 1rem; }
     #hq-player-profile .hq-avatar-options { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.65rem; }
     #hq-player-profile .hq-avatar-options label {
