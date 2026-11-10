@@ -2,11 +2,37 @@
 let activeHomeID='original';try{activeHomeID=JSON.parse(localStorage.getItem('life-homes-v1'))?.active||'original';}catch{}
 const $=s=>document.querySelector(s), STORE=activeHomeID==='original'?'my-life-hq-v1':'my-life-hq-'+activeHomeID;
 let cloudReadyForWrites=false;
-let state={day:'',tasks:[{text:'',done:false},{text:'',done:false},{text:'',done:false}],notes:'',links:{study:'https://contents.history.go.kr/',calendar:'https://calendar.google.com/',notion:'',notionQuick:'',music:'',plan:'',vision:'',routine:''}};
-try{const saved=JSON.parse(localStorage.getItem(STORE));if(saved&&Array.isArray(saved.tasks)&&saved.tasks.length===3){state.tasks=saved.tasks.map(t=>({text:String(t.text||'').slice(0,160),done:!!t.done}));state.notes=String(saved.notes||'');state.links={...state.links,...saved.links};state.day=String(saved.day||'');}}catch{}
+let state={day:'',taskHistory:{},tasks:[{text:'',done:false},{text:'',done:false},{text:'',done:false}],notes:'',links:{study:'https://contents.history.go.kr/',calendar:'https://calendar.google.com/',notion:'',notionQuick:'',music:'',plan:'',vision:'',routine:''}};
+try{const saved=JSON.parse(localStorage.getItem(STORE));if(saved&&Array.isArray(saved.tasks)&&saved.tasks.length===3){state.tasks=saved.tasks.map(t=>({text:String(t.text||'').slice(0,160),done:!!t.done}));state.notes=String(saved.notes||'');state.links={...state.links,...saved.links};state.day=String(saved.day||'');state.taskHistory=saved.taskHistory||{};}}catch{}
 const localDay=()=>new Date().toLocaleDateString('sv-SE');
 function save(){try{localStorage.setItem(STORE,JSON.stringify(state));if(cloudReadyForWrites)window.lifeCloud.setSetting('daily',state).catch(()=>toast('서버에 저장하지 못했어요. 연결 상태를 확인해 주세요.'));}catch{toast('저장 공간에 접근할 수 없어요. 브라우저 설정을 확인해 주세요.');}}
-function rollover(){if(state.day!==localDay()){state.day=localDay();state.tasks=state.tasks.map(t=>t.done?{text:'',done:false}:{...t,done:false});save();renderTasks();}}
+function taskHistoryOn(date){
+ const tasks=date===state.day?state.tasks:state.taskHistory?.[date];
+ return Array.isArray(tasks)?tasks.filter(t=>typeof t?.text==='string'&&t.text.trim()):[];
+}
+function rollover(){
+ const today=localDay();
+ if(state.day===today)return false;
+ const tasks=taskHistoryOn(state.day).map(t=>({text:t.text.trim(),done:!!t.done}));
+ if(/^\d{4}-\d{2}-\d{2}$/.test(state.day)&&tasks.length){
+  state.taskHistory={...state.taskHistory,[state.day]:tasks};
+ }
+ state.day=today;
+ state.tasks=state.tasks.map(()=>({text:'',done:false}));
+ save();renderTasks();
+ return true;
+}
+function bringTaskToToday(date,index){
+ rollover();
+ const task=taskHistoryOn(date)[index];
+ if(date>=state.day||!task||task.done)return false;
+ if(state.tasks.some(t=>t.text.trim()===task.text))return true;
+ const slot=state.tasks.find(t=>!t.text.trim());
+ if(!slot){toast('오늘 할 일 세 칸이 모두 차 있어요.');return false;}
+ Object.assign(slot,{text:task.text,done:false});
+ save();renderTasks();
+ return true;
+}
 function applyTodayStudyPlan(){const version='history-exam-2026-10-16';if(localDay()!=='2026-10-16'||state.planVersion===version)return false;state.day=localDay();state.planVersion=version;state.tasks=[{text:'한국사 핵심 흐름 25분',done:false},{text:'오답 10개 확인',done:false},{text:'준비물 챙기고 자기',done:false}];localStorage.setItem(STORE,JSON.stringify(state));renderTasks();return true;}
 function toast(t){$('#toast').textContent=t;$('#toast').style.display='block';clearTimeout(toast.id);toast.id=setTimeout(()=>$('#toast').style.display='none',3500);}
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
@@ -367,7 +393,7 @@ canvas.addEventListener('pointerdown',e=>{if(!roomEditing)return;const r=canvas.
 canvas.addEventListener('pointermove',e=>{if(!roomEditing||!roomDrag)return;e.preventDefault();const r=canvas.getBoundingClientRect(),px=(e.clientX-r.left)*960/r.width,py=(e.clientY-r.top)*650/r.height,b=roomBase.find(o=>o.id===roomDrag.id);let x=Math.round(roomDrag.base.x+px-roomDrag.x),y=Math.round(roomDrag.base.y+py-roomDrag.y);x=Math.max(78-b.x,Math.min(875-b.x-b.w,x));y=Math.max(85-b.y,Math.min(545+roomFloorExtension-b.y-b.h,y));roomPrefs.layout[b.id]={x,y};roomApplyLayout();roomDragged=true;});canvas.addEventListener('pointerup',()=>{roomDrag=null;});canvas.addEventListener('click',e=>{if(roomEditing||roomDragged){e.stopImmediatePropagation();roomDragged=false;}},true);
 function drawLifeObjects(t){const rounded=(x,y,w,h,r,color)=>{ctx.fillStyle=color;ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fill();};roomTransform('memory');rounded(252,103,50,47,5,'#a7886b');rounded(257,108,40,37,3,'#f0e3cf');label('♡',277,134);label('쪼꼬',277,164);ctx.restore();roomTransform('focus');roomTransform('story');rect(111,313,53,27,'#f6ecd0');rect(136,313,2,27,'#c8b798');for(let i=0;i<3;i++){rect(116,320+i*5,14,1,'#b6ad90');rect(143,320+i*5,14,1,'#b6ad90');}ctx.font='bold 9px Pretendard, sans-serif';ctx.fillStyle='#5b654e';ctx.textAlign='center';ctx.fillText('JOURNAL',137,351);ctx.restore();ctx.restore();const count=lifeRecords.filter(r=>r.kind==='growth').length;for(let i=0;i<Math.min(count,8);i++){const x=280+i*19;rect(x,548,2,12,'#7c945c');ctx.fillStyle=['#dba6a1','#e3c984','#c6b0cb'][i%3];ctx.beginPath();ctx.arc(x+1,546,4,0,Math.PI*2);ctx.fill();}if(roomEditing){ctx.fillStyle='#faf4dd';ctx.fillRect(320,594,320,26);label('가구를 끌어서 옮겨 보세요',480,612);}}
 canvas.addEventListener('click',e=>{if(roomEditing)return;const r=canvas.getBoundingClientRect(),x=(e.clientX-r.left)*960/r.width,y=(e.clientY-r.top)*650/r.height;if(x>=250&&x<=306&&y>=100&&y<=151){e.stopImmediatePropagation();lifeGo('choco');}else if(x>=450&&x<=523&&y>=482&&y<=535){e.stopImmediatePropagation();lifeGo('journey');}},true);
-async function lifeInit(){try{await window.lifeCloud.ready;const [remoteHomes,remoteRoom,remoteDaily]=await Promise.all([window.lifeCloud.getSetting('homes'),window.lifeCloud.getSetting(lifeKey('room')),window.lifeCloud.getSetting('daily')]);if(remoteHomes?.homes?.length){lifeMeta=remoteHomes;lifeHome=lifeMeta.homes.find(h=>h.id===lifeMeta.active)||lifeMeta.homes[0];localStorage.setItem('life-homes-v1',JSON.stringify(lifeMeta));}if(remoteRoom){roomPrefs={...roomPrefs,...remoteRoom};localStorage.setItem(lifeKey('room'),JSON.stringify(roomPrefs));}window.__legacyServerDaily=remoteDaily?JSON.parse(JSON.stringify(remoteDaily)):null;if(remoteDaily?.tasks?.length===3){state={...state,...remoteDaily,links:{...state.links,...remoteDaily.links}};localStorage.setItem(STORE,JSON.stringify(state));rollover();renderTasks();}const planChanged=applyTodayStudyPlan();cloudReadyForWrites=true;await Promise.all([remoteHomes?Promise.resolve():window.lifeCloud.setSetting('homes',lifeMeta),remoteRoom?Promise.resolve():window.lifeCloud.setSetting(lifeKey('room'),roomPrefs),planChanged||!remoteDaily?window.lifeCloud.setSetting('daily',state):Promise.resolve()]);await lifeRefresh();if(await window.lifeCloud.countRecords()===0){const local=await lifeLocalAll();if(local.length&&confirm('이 기기에만 있던 기존 기록을 안전한 서버 저장소로 옮길까요?')){for(const record of local)await lifePut(record);await lifeRefresh();toast('기존 기록을 서버로 옮겼어요.');}}roomApplyLayout();lifePage='room';document.body.classList.add('room-page');lifeMenu();homeButton.textContent='⌂ '+lifeHome.name;document.querySelector('h1').textContent=roomPrefs.name+'에서, 내 속도로.';window.roomSpaceButtons?.();}catch(error){console.error(error);toast('서버 저장소를 열지 못했어요. Supabase 연결과 권한 설정을 확인해 주세요.');}}
+async function lifeInit(){try{await window.lifeCloud.ready;const [remoteHomes,remoteRoom,remoteDaily]=await Promise.all([window.lifeCloud.getSetting('homes'),window.lifeCloud.getSetting(lifeKey('room')),window.lifeCloud.getSetting('daily')]);if(remoteHomes?.homes?.length){lifeMeta=remoteHomes;lifeHome=lifeMeta.homes.find(h=>h.id===lifeMeta.active)||lifeMeta.homes[0];localStorage.setItem('life-homes-v1',JSON.stringify(lifeMeta));}if(remoteRoom){roomPrefs={...roomPrefs,...remoteRoom};localStorage.setItem(lifeKey('room'),JSON.stringify(roomPrefs));}window.__legacyServerDaily=remoteDaily?JSON.parse(JSON.stringify(remoteDaily)):null;let dailyRolled=false;if(remoteDaily?.tasks?.length===3){state={...state,...remoteDaily,taskHistory:remoteDaily.taskHistory||{},links:{...state.links,...remoteDaily.links}};localStorage.setItem(STORE,JSON.stringify(state));dailyRolled=rollover();renderTasks();}const planChanged=applyTodayStudyPlan();cloudReadyForWrites=true;await Promise.all([remoteHomes?Promise.resolve():window.lifeCloud.setSetting('homes',lifeMeta),remoteRoom?Promise.resolve():window.lifeCloud.setSetting(lifeKey('room'),roomPrefs),planChanged||dailyRolled||!remoteDaily?window.lifeCloud.setSetting('daily',state):Promise.resolve()]);await lifeRefresh();if(await window.lifeCloud.countRecords()===0){const local=await lifeLocalAll();if(local.length&&confirm('이 기기에만 있던 기존 기록을 안전한 서버 저장소로 옮길까요?')){for(const record of local)await lifePut(record);await lifeRefresh();toast('기존 기록을 서버로 옮겼어요.');}}roomApplyLayout();lifePage='room';document.body.classList.add('room-page');lifeMenu();homeButton.textContent='⌂ '+lifeHome.name;document.querySelector('h1').textContent=roomPrefs.name+'에서, 내 속도로.';window.roomSpaceButtons?.();}catch(error){console.error(error);toast('서버 저장소를 열지 못했어요. Supabase 연결과 권한 설정을 확인해 주세요.');}}
 window.lifeAppReady=lifeInit();
 
 let installRequest=null;const installButton=document.createElement('button');installButton.className='ghost';installButton.hidden=true;installButton.textContent='집을 앱으로 설치';document.querySelector('.header-right').append(installButton);window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installRequest=e;installButton.hidden=false;});installButton.onclick=async()=>{if(installRequest){await installRequest.prompt();installRequest=null;installButton.hidden=true;}};
