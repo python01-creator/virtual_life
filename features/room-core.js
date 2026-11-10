@@ -45,6 +45,17 @@ function pose(kind){standUp();posture=kind;if(roomPrefs.activeSpace==='dream'){p
 let player={x:465,y:390},keys=new Set(),hover=null,last=0,walk=0;
 const rect=(x,y,w,h,c)=>{ctx.fillStyle=c;ctx.fillRect(Math.round(x),Math.round(y),w,h);};
 function plant(x,y,s=1){ctx.save();ctx.translate(x,y);ctx.scale(s,s);const leaf=(x,y,w,h,c)=>{rect(x+3,y,w-6,h,c);rect(x,y+3,w,h-6,c);};rect(-2,-36,4,42,'#71865c');leaf(-24,-31,23,15,'#8ca873');leaf(1,-43,22,16,'#739564');leaf(-18,-53,20,17,'#a4bb88');leaf(0,-19,23,15,'#8ca873');rect(-12,5,24,19,'#c79678');rect(-9,24,18,4,'#aa775d');rect(-15,3,30,6,'#dfb899');rect(-8,10,3,11,'#eac9a9');if(Date.now()<waterUntil){label('✧',-22,-61);label('✧',22,-39);rect(-21,-8,3,6,'#9ec8d7');rect(20,-3,3,6,'#9ec8d7');}ctx.restore();}
+function drawPlayerNameplate(x,y){
+ const text=posture==='lie'?'REST':(window.lifePlayerProfile?.nickname||'ME');
+ ctx.font='bold 12px monospace';
+ ctx.textAlign='center';
+ const maxWidth=144;
+ const width=Math.min(maxWidth,Math.max(28,Math.ceil(ctx.measureText(text).width)))+10;
+ ctx.fillStyle='#f9f4e6';
+ ctx.fillRect(x-width/2,y-11,width,14);
+ ctx.fillStyle='#564d40';
+ ctx.fillText(text,x,y,maxWidth);
+}
 function label(text,x,y){ctx.font='bold 12px monospace';ctx.textAlign='center';ctx.fillStyle='#564d40';ctx.fillText(text,x,y);}
 function drawPrincessAvatar(x,y,t,scale=1){const moving=keys.size&&posture==='stand',step=moving?Math.sin(walk*13):0,bob=moving?Math.abs(step)*-2:Math.sin(t/900)*.6;ctx.save();ctx.translate(x,y+bob);ctx.scale(scale,scale);if(posture==='lie')ctx.rotate(-Math.PI/2);const oval=(cx,cy,rx,ry,color)=>{ctx.fillStyle=color;ctx.beginPath();ctx.ellipse(cx,cy,rx,ry,0,0,Math.PI*2);ctx.fill();};
  oval(0,42,19,5,'#493b3428');
@@ -255,7 +266,7 @@ ctx.restore();
 roomTransform('plant');plant(110,509,1.15);ctx.restore();
 if(night){rect(66,70,828,504,'#28314965');ctx.fillStyle='#ffe6a838';ctx.beginPath();ctx.arc(185,320,95,0,Math.PI*2);ctx.fill();}const nearest=getNearest();objects.forEach(o=>{if(hover===o.id||nearest?.id===o.id){ctx.strokeStyle=hover===o.id?'#f9edbf':'#879b72';ctx.lineWidth=2;ctx.strokeRect(o.x-5,o.y-5,o.w+10,o.h+10);}});
 drawLifeObjects(t);drawMongle(t);
-const x=Math.round(player.x),y=Math.round(player.y);drawModernAvatar(x,y,t,.86);ctx.fillStyle='#f9f4e6';ctx.fillRect(x-18,y-90,38,14);label(posture==='lie'?'REST':'ME',x+1,y-79);$('#room-status').textContent=posture!=='stand'?'쉬는 중 · 방향키로 일어나기':nearest?.id==='today'?'':nearest?`${nearest.label} · E 키로 열기`:'햇살이 들어오는 작은 운영실';}
+const x=Math.round(player.x),y=Math.round(player.y);drawModernAvatar(x,y,t,.86);drawPlayerNameplate(x+1,y-79);$('#room-status').textContent=posture!=='stand'?'쉬는 중 · 방향키로 일어나기':nearest?.id==='today'?'':nearest?`${nearest.label} · E 키로 열기`:'햇살이 들어오는 작은 운영실';}
 function dreamPlayerPoint(){return{x:120+(player.x-82)/788*720,y:375+(player.y-195)/370*185};}
 function getNearest(){let best=null,dist=105,p=roomPrefs.activeSpace==='dream'?dreamPlayerPoint():player,list=roomPrefs.activeSpace==='dream'?dreamObjects:objects;for(const o of list){const dx=Math.max(o.x-p.x,0,p.x-(o.x+o.w)),dy=Math.max(o.y-p.y,0,p.y-(o.y+o.h)),d=Math.hypot(dx,dy);if(d<dist){best=o;dist=d;}}return best;}
 function blocked(x,y){return objects.some(o=>x>o.x-10&&x<o.x+o.w+10&&y>o.y-5&&y<o.y+o.h+12);}

@@ -105,6 +105,7 @@
   document.head.append(style);
   window.lifePlayerProfile = {
     open: () => load(true),
+    get nickname() { return typeof profile?.nickname === 'string' ? profile.nickname.trim() : ''; },
     get avatar() { return profile?.avatar === 'male' ? 'male' : 'female'; }
   };
   load();
