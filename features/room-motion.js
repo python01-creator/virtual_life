@@ -42,7 +42,7 @@
   for (const [offsetX, offsetY] of companionOffsets) {
    const x = human.x + offsetX;
    const y = human.y + offsetY;
-   if (x >= 82 && x <= 870 && y >= 203 && y <= 563 && !blocked(x, y)) {
+   if (x >= 82 && x <= 870 && y >= 203 && y <= roomWalkBottom()-2 && !blocked(x, y)) {
     target = { x, y };
     break;
    }
@@ -51,7 +51,7 @@
   // in this room when there is no clear space immediately beside the avatar.
   target ??= companion?.scene === scene ? companion : {
    x: Math.max(82, Math.min(870, human.x + 42)),
-   y: Math.max(203, Math.min(563, human.y + 8))
+   y: Math.max(203, Math.min(roomWalkBottom()-2, human.y + 8))
   };
   if (!companion || companion.scene !== scene || Math.hypot(target.x - companion.x, target.y - companion.y) > 240) {
    companion = { ...target, scene, time: t };
@@ -93,7 +93,7 @@
  const followOffsets = [[-48, 25], [-52, 0], [0, 48], [48, 27], [0, -48]];
 
  function floorPoint(x, y) {
-  return x >= 85 && x <= 870 && y >= 200 && y <= 560 && !blocked(x, y);
+  return x >= 85 && x <= 870 && y >= 200 && y <= roomWalkBottom()-5 && !blocked(x, y);
  }
 
  function canReach(point) {
@@ -198,7 +198,7 @@
  const solids=[['today',337,461,70,65],['focus',91,290,194,135],['study',298,148,146,171],['notion',635,261,185,120],['rest',584,446,226,83],['plant',80,445,60,95]];
  function obstacles(){const custom=window.lifeInterior?.obstacles?.();if(custom?.replace)return custom.rects;if(roomPrefs.activeSpace==='family')return [[205,250,200,253],[465,335,85,69],[650,366,160,129]];return solids.map(([id,x,y,w,h])=>{const v=roomPrefs.layout[id]||{x:0,y:0};return [x+v.x,y+v.y,w,h];}).concat(custom?.rects||[]);}
  const baseBlocked=blocked;blocked=function(x,y){if(roomPrefs.activeSpace==='dream'||roomPrefs.activeSpace==='office')return baseBlocked(x,y);return obstacles().some(([a,b,w,h])=>x>a-12&&x<a+w+12&&y>b-6&&y<b+h+10);};
- function free(p){if(!blocked(p.x,p.y))return;let best=null,dist=Infinity;for(let y=203;y<=563;y+=12)for(let x=82;x<=870;x+=12){if(blocked(x,y))continue;const d=Math.hypot(x-p.x,y-p.y);if(d<dist){best={x,y};dist=d;}}if(best)Object.assign(p,best);}
+ function free(p){if(!blocked(p.x,p.y))return;let best=null,dist=Infinity;for(let y=203;y<=roomWalkBottom()-2;y+=12)for(let x=82;x<=870;x+=12){if(blocked(x,y))continue;const d=Math.hypot(x-p.x,y-p.y);if(d<dist){best={x,y};dist=d;}}if(best)Object.assign(p,best);}
  window.lifeRoomMotion={updateMongle,prepare(){if(typeof roomPrefs==='undefined'||roomEditing)return;if(posture==='stand')free(player);if(!window.lifeBedroomPetResting)free(mongle);}};
  const style=document.createElement('style');style.textContent='#room,#room-actors{image-rendering:auto!important}#room-actors{position:absolute;inset:0;width:100%;height:100%;z-index:7;pointer-events:none!important;background:transparent;cursor:inherit}.study-notebook-hit{min-width:0!important;min-height:0!important}.canvas-wrap button{touch-action:manipulation}.family-room-floor{pointer-events:none}.family-scene-hit{pointer-events:auto}';document.head.append(style);
 })();
