@@ -6,23 +6,25 @@
  const worldWidth = 960;
  const worldHeight = 650;
  let resolutionDirty = true;
- let previousDpr = 0;
+ let previousDpr = 0, previousDepth = -1;
  new ResizeObserver(() => { resolutionDirty = true; }).observe(wrap);
 
  function syncResolution() {
   const dpr = window.devicePixelRatio || 1;
-  if (!resolutionDirty && dpr === previousDpr) return;
-  const bounds = canvas.getBoundingClientRect();
+  if (!resolutionDirty && dpr === previousDpr && portraitFloorDepth === previousDepth) return;
+  const bounds = roomWorldBounds();
   if (!bounds.width || !bounds.height) return;
   resolutionDirty = false;
   previousDpr = dpr;
+  previousDepth = portraitFloorDepth;
   // Limit the two animated surfaces to a combined five million backing pixels.
-  const scale = Math.min(2, bounds.width * dpr / worldWidth, bounds.height * dpr / worldHeight);
+  const scale = Math.min(2, bounds.width * dpr / worldWidth, bounds.height * dpr / worldHeight, Math.sqrt(2500000/(worldWidth*(worldHeight+portraitFloorDepth))));
   const width = Math.max(1, Math.round(worldWidth * scale));
   const height = Math.max(1, Math.round(worldHeight * scale));
+  const extendedHeight = Math.max(1, Math.round((worldHeight+portraitFloorDepth) * scale));
   for (const surface of [canvas, layer]) {
    if (surface.width !== width) surface.width = width;
-   if (surface.height !== height) surface.height = height;
+   if (surface.height !== extendedHeight) surface.height = extendedHeight;
   }
   ctx.setTransform(width / worldWidth, 0, 0, height / worldHeight, 0, 0);
   ac.setTransform(width / worldWidth, 0, 0, height / worldHeight, 0, 0);
@@ -190,7 +192,7 @@
  }
  // Keep sprites above both canvas furniture and SVG furniture, without taking taps.
  drawModernAvatar=(x,y,t,scale=1)=>{human={x,y,t,scale};};drawMongle=t=>{pet={t};};
- window.lifeRoomActors={begin(){syncResolution();human=pet=null;ac.clearRect(0,0,960,650);},end(t){
+ window.lifeRoomActors={begin(){syncResolution();human=pet=null;ac.clearRect(0,0,960,650+portraitFloorDepth);},end(t){
   drawMongleSprite(t);
   drawPochacco(t);
   if(human){const {x,y,scale}=human,seated=posture==='sit'||posture==='desk',lying=posture==='lie',img=currentAvatarFrame(lying?2:seated?1:0);if(img.complete&&img.naturalWidth){const bob=keys.size&&posture==='stand'?Math.abs(Math.sin(walk*11))*-2:Math.sin(t/1000)*.45,h=(lying?40:seated?51:65)*scale,w=h*img.naturalWidth/img.naturalHeight;ac.fillStyle='#6c574124';ac.beginPath();ac.ellipse(x,y+2,w*.34,4*scale,0,0,Math.PI*2);ac.fill();ac.drawImage(img,x-w/2,y-h+bob,w,h);}}
