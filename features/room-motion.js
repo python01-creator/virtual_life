@@ -195,7 +195,25 @@
  window.lifeRoomActors={begin(){syncResolution();human=pet=null;ac.clearRect(0,0,960,650+portraitFloorDepth);},end(t){
   drawMongleSprite(t);
   drawPochacco(t);
-  if(human){const {x,y,scale}=human,seated=posture==='sit'||posture==='desk',lying=posture==='lie',img=currentAvatarFrame(lying?2:seated?1:0);if(img.complete&&img.naturalWidth){const bob=keys.size&&posture==='stand'?Math.abs(Math.sin(walk*11))*-2:Math.sin(t/1000)*.45,h=(lying?40:seated?51:65)*scale,w=h*img.naturalWidth/img.naturalHeight;ac.fillStyle='#6c574124';ac.beginPath();ac.ellipse(x,y+2,w*.34,4*scale,0,0,Math.PI*2);ac.fill();ac.drawImage(img,x-w/2,y-h+bob,w,h);}}
+  if(human){const {x,y,scale}=human,seated=posture==='sit'||posture==='desk',lying=posture==='lie',img=currentAvatarFrame(lying?2:seated?1:0);if(img.complete&&img.naturalWidth){const bob=keys.size&&posture==='stand'?Math.abs(Math.sin(walk*11))*-2:Math.sin(t/1000)*.45,h=(lying?40:seated?51:65)*scale,w=h*img.naturalWidth/img.naturalHeight;ac.fillStyle='#6c574124';ac.beginPath();ac.ellipse(x,y+2,w*.34,4*scale,0,0,Math.PI*2);ac.fill();const action=window.lifeKitchenAction;
+  const elapsed=action?t-action.start:0;
+  if(action&&elapsed>=0&&elapsed<820&&player.x===action.x&&player.y===action.y&&posture==='stand'){
+   const progress=elapsed/820;
+   const reach=Math.sin(Math.PI*progress);
+   const sway=action.kind==='counter'?Math.sin(progress*Math.PI*6)*reach:reach;
+   ac.save();
+   ac.translate(x,y);
+   ac.rotate(sway*.09);
+   ac.drawImage(img,-w/2,-h-2*reach,w,h);
+   ac.strokeStyle='#e4ba9b';
+   ac.lineWidth=4*scale;
+   ac.lineCap='round';
+   ac.beginPath();
+   ac.moveTo(w*.18,-h*.43);
+   ac.lineTo(w*.28+reach*11*scale,-h*.45-reach*8*scale+sway*3*scale);
+   ac.stroke();
+   ac.restore();
+  }else ac.drawImage(img,x-w/2,y-h+bob,w,h);}}
  }};
  const solids=[['today',337,461,70,65],['focus',91,290,194,135],['study',298,148,146,171],['notion',635,261,185,120],['rest',584,446,226,83],['plant',80,445,60,95]];
  function obstacles(){const custom=window.lifeInterior?.obstacles?.();if(custom?.replace)return custom.rects;if(roomPrefs.activeSpace==='family')return [[205,250,200,253],[465,335,85,69],[650,366,160,129]];return solids.map(([id,x,y,w,h])=>{const v=roomPrefs.layout[id]||{x:0,y:0};return [x+v.x,y+v.y,w,h];}).concat(custom?.rects||[]);}
