@@ -195,32 +195,33 @@
  window.lifeRoomActors={begin(){syncResolution();human=pet=null;ac.clearRect(0,0,960,650+portraitFloorDepth);},end(t){
   drawMongleSprite(t);
   drawPochacco(t);
-  if(human){const {x,y,scale}=human,seated=posture==='sit'||posture==='desk',lying=posture==='lie',img=currentAvatarFrame(lying?2:seated?1:0);if(img.complete&&img.naturalWidth){const bob=keys.size&&posture==='stand'?Math.abs(Math.sin(walk*11))*-2:Math.sin(t/1000)*.45,h=(lying?40:seated?51:65)*scale,w=h*img.naturalWidth/img.naturalHeight;ac.fillStyle='#6c574124';ac.beginPath();ac.ellipse(x,y+2,w*.34,4*scale,0,0,Math.PI*2);ac.fill();const action=window.lifeKitchenAction;
+  if(human){const {x,y,scale}=human,seated=posture==='chair'||posture==='sit'||posture==='desk',lying=posture==='lie',img=currentAvatarFrame(lying?2:seated?1:0);if(img.complete&&img.naturalWidth){const bob=keys.size&&posture==='stand'?Math.abs(Math.sin(walk*11))*-2:Math.sin(t/1000)*.45,h=(lying?40:seated?51:65)*scale,w=h*img.naturalWidth/img.naturalHeight;ac.fillStyle='#6c574124';ac.beginPath();ac.ellipse(x,y+2,w*.34,4*scale,0,0,Math.PI*2);ac.fill();const action=window.lifeKitchenAction;
   const elapsed=action?t-action.start:0;
   if(action&&elapsed>=0&&elapsed<820&&player.x===action.x&&player.y===action.y&&posture==='stand'){
    const progress=elapsed/820;
-   const reach=Math.sin(Math.PI*progress);
+   const phase=Math.min(1,progress/.34,(1-progress)/.28);
+   const reach=phase*phase*(3-2*phase);
    const sway=action.kind==='counter'?Math.sin(progress*Math.PI*6)*reach:reach;
    ac.save();
    ac.translate(x,y);
-   ac.rotate(sway*.09);
+   ac.rotate(sway*.045);
    ac.drawImage(img,-w/2,-h-2*reach,w,h);
    // Animate the sprite's existing hand and sleeve, anchored at the shoulder.
    const male=img.src.includes('avatar-boy-');
-   const handY=.67;
+   const handY=male ? .67 : .66;
    const shoulderX=w*(male ? .27 : .24),shoulderY=h*(male ? .61 : .60);
    const left=-w/2,top=-h-2*reach;
    const drawPatch=(sx,sy,sw,sh,dx,dy,dw,dh)=>{
     ac.drawImage(img,sx*img.naturalWidth,sy*img.naturalHeight,
      sw*img.naturalWidth,sh*img.naturalHeight,dx,dy,dw,dh);
    };
-   ac.globalAlpha=reach;
+   ac.globalAlpha=Math.min(1,reach*4);
    drawPatch(.63,handY-.065,.09,.12,left+w*.52,top+h*(handY-.065),w*.105,h*.12);
    ac.save();
    ac.translate(left+shoulderX+w*.5,top+shoulderY);
-   ac.rotate(reach*(action.kind==='fridge'?2.15:1.35)+sway*.15);
+   ac.rotate(reach*(action.kind==='fridge'?2.42:1.35)+sway*.08);
    ac.beginPath();
-   ac.ellipse(-w*.12,h*.045,w*.105,h*.06,-.2,0,Math.PI*2);
+   ac.ellipse(-w*.107,h*.043,w*.12,h*.061,-.2,0,Math.PI*2);
    ac.clip();
    drawPatch(.52,handY-.075,.23,.15,-w*.22,-h*.035,w*.23,h*.15);
    ac.restore();

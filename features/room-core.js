@@ -109,7 +109,7 @@ function currentAvatarFrame(index) {
     ? boy : cuteAvatarFrames[index];
 }
 function drawModernAvatar(x,y,t,scale=1){
-const seated=posture==='sit'||posture==='desk',lying=posture==='lie';
+const seated=posture==='chair'||posture==='sit'||posture==='desk',lying=posture==='lie';
 const img=currentAvatarFrame(lying?2:seated?1:0);if(!img.complete||!img.naturalWidth)return;
 const moving=keys.size&&posture==='stand';const bob=moving?Math.abs(Math.sin(walk*11))*-2:Math.sin(t/1000)*.45;
 const height=(lying?40:seated?51:65)*scale,width=height*img.naturalWidth/img.naturalHeight;

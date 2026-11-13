@@ -156,7 +156,7 @@
  .kitchen-furniture.is-using .kitchen-door{animation:kitchen-door-open .82s ease both}
  .kitchen-steam{opacity:0}
  .kitchen-furniture.is-using .kitchen-steam{animation:kitchen-steam-rise .82s ease-out both}
- @keyframes kitchen-door-open{0%,22%,100%{transform:scaleX(1)}55%,76%{transform:scaleX(.3)}}
+ @keyframes kitchen-door-open{0%,34%,100%{transform:scaleX(1)}57%,72%{transform:scaleX(.3)}}
  @keyframes kitchen-steam-rise{0%{opacity:0;transform:translateY(6px)}40%{opacity:.9}100%{opacity:0;transform:translateY(-5px)}}
  .kitchen-recipe{padding:.65rem .85rem;margin:.55rem 0;background:#edf1e7;border-radius:12px}
  .kitchen-recipe h3,.kitchen-recipe p{margin:.3rem 0}
