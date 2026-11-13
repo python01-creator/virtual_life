@@ -205,13 +205,25 @@
    ac.translate(x,y);
    ac.rotate(sway*.09);
    ac.drawImage(img,-w/2,-h-2*reach,w,h);
-   ac.strokeStyle='#e4ba9b';
-   ac.lineWidth=4*scale;
-   ac.lineCap='round';
+   // Animate the sprite's existing hand and sleeve, anchored at the shoulder.
+   const male=img.src.includes('avatar-boy-');
+   const handY=.67;
+   const shoulderX=w*(male ? .27 : .24),shoulderY=h*(male ? .61 : .60);
+   const left=-w/2,top=-h-2*reach;
+   const drawPatch=(sx,sy,sw,sh,dx,dy,dw,dh)=>{
+    ac.drawImage(img,sx*img.naturalWidth,sy*img.naturalHeight,
+     sw*img.naturalWidth,sh*img.naturalHeight,dx,dy,dw,dh);
+   };
+   ac.globalAlpha=reach;
+   drawPatch(.63,handY-.065,.09,.12,left+w*.52,top+h*(handY-.065),w*.105,h*.12);
+   ac.save();
+   ac.translate(left+shoulderX+w*.5,top+shoulderY);
+   ac.rotate(reach*(action.kind==='fridge'?2.15:1.35)+sway*.15);
    ac.beginPath();
-   ac.moveTo(w*.18,-h*.43);
-   ac.lineTo(w*.28+reach*11*scale,-h*.45-reach*8*scale+sway*3*scale);
-   ac.stroke();
+   ac.ellipse(-w*.12,h*.045,w*.105,h*.06,-.2,0,Math.PI*2);
+   ac.clip();
+   drawPatch(.52,handY-.075,.23,.15,-w*.22,-h*.035,w*.23,h*.15);
+   ac.restore();
    ac.restore();
   }else ac.drawImage(img,x-w/2,y-h+bob,w,h);}}
  }};

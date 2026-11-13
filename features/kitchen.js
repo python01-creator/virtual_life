@@ -125,8 +125,8 @@
   };
   if(!walk||reducedMotion.matches||!window.lifeRoomInteraction){arrive();return;}
   const room=roomWorldBounds(),furniture=button.getBoundingClientRect();
-  const x=(furniture.left+furniture.width/2-room.left)*960/room.width;
-  const y=(furniture.bottom-room.top)*650/room.height+14;
+  const x=(furniture.left+furniture.width/2-room.left)*960/room.width+(id==='fridge'?-21:16);
+  const y=(furniture.bottom-room.top)*650/room.height+(id==='fridge'?-7:14);
   if(!window.lifeRoomInteraction.walkTo(x,Math.min(roomWalkBottom(),y),arrive))arrive();
  }
  for(const [id,label,x,width] of [['fridge','냉장고',427,80],['counter','조리대',510,132]]){
@@ -152,11 +152,11 @@
  body:is([data-place-kind="office"],[data-interior="office"],[data-interior="bedroom"]) .kitchen-furniture{display:none}
  .kitchen-magnet{position:absolute;top:44%;left:14%;max-width:76%;padding:1px 3px;background:#fff0b8;color:#594a37;font-size:clamp(5px,1vw,10px);line-height:1.15;border-radius:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
  .kitchen-door{transform-box:fill-box;transform-origin:left center}
- .kitchen-furniture.is-using .kitchen-magnet{position:absolute;top:44%;left:14%;max-width:76%;padding:1px 3px;background:#fff0b8;color:#594a37;font-size:clamp(5px,1vw,10px);line-height:1.15;border-radius:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
- .kitchen-door{animation:kitchen-door-open .82s ease both}
+ .kitchen-furniture.is-using .kitchen-magnet{visibility:hidden}
+ .kitchen-furniture.is-using .kitchen-door{animation:kitchen-door-open .82s ease both}
  .kitchen-steam{opacity:0}
  .kitchen-furniture.is-using .kitchen-steam{animation:kitchen-steam-rise .82s ease-out both}
- @keyframes kitchen-door-open{0%{transform:scaleX(1)}65%,100%{transform:scaleX(.3)}}
+ @keyframes kitchen-door-open{0%,22%,100%{transform:scaleX(1)}55%,76%{transform:scaleX(.3)}}
  @keyframes kitchen-steam-rise{0%{opacity:0;transform:translateY(6px)}40%{opacity:.9}100%{opacity:0;transform:translateY(-5px)}}
  .kitchen-recipe{padding:.65rem .85rem;margin:.55rem 0;background:#edf1e7;border-radius:12px}
  .kitchen-recipe h3,.kitchen-recipe p{margin:.3rem 0}
