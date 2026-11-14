@@ -68,6 +68,81 @@
  }};
  const observer=new MutationObserver(()=>{if(document.querySelector('dialog[open]'))cancel();});observer.observe(document.body,{subtree:true,attributes:true,attributeFilter:['open']});
  window.addEventListener('click',e=>{if(e.target.closest('.avatar-interaction,.quick,.dpad,.life-nav'))cancel();},true);
+ const ambience=document.createElement('button');
+ ambience.type='button';
+ ambience.className='study-ambience';
+ ambience.textContent='♫';
+ ambience.setAttribute('aria-label','공부 공간 소리 믹서');
+ wrap.append(ambience);
+ let ambienceAudio;
+ const tracks=[
+  {name:'빗소리',frequency:1300,type:'lowpass',level:.48},
+  {name:'카페',frequency:460,type:'bandpass',level:.32},
+  {name:'책장 넘기기',frequency:1100,type:'bandpass',level:.47}
+ ];
+ function makeAmbienceTrack(track,index){
+  const audio=ambienceAudio,rate=audio.sampleRate;
+  const buffer=audio.createBuffer(1,rate*12,rate);
+  const samples=buffer.getChannelData(0);
+  for(let i=0;i<samples.length;i++){
+   const t=i/rate;
+   const page=t%4.8;
+   const shape=index===2?Math.sin(Math.PI*Math.min(1,page/.55))**2:
+    index===1?.55+.21*Math.sin(t*3.7)+.12*Math.cos(t*11):.85;
+   samples[i]=(Math.random()*2-1)*shape*Math.min(1,i/220,(samples.length-1-i)/220);
+  }
+  const source=audio.createBufferSource(),filter=audio.createBiquadFilter(),gain=audio.createGain();
+  source.buffer=buffer;
+  source.loop=true;
+  filter.type=track.type;
+  filter.frequency.value=track.frequency;
+  gain.gain.value=0;
+  source.connect(filter).connect(gain).connect(audio.destination);
+  source.start();
+  track.gain=gain;
+ }
+ function setAmbienceVolume(track,volume){
+  track.volume=volume;
+  track.gain?.gain.setTargetAtTime(track.level*volume/100,ambienceAudio.currentTime,.08);
+ }
+ async function changeAmbienceVolume(track,volume){
+  if(!ambienceAudio){
+   const Audio=window.AudioContext||window.webkitAudioContext;
+   if(!Audio)throw new Error('Web Audio unavailable');
+   ambienceAudio=new Audio();
+   tracks.forEach(makeAmbienceTrack);
+  }
+  setAmbienceVolume(track,volume);
+  await ambienceAudio.resume();
+ }
+ window.lifeStudyAmbience={
+  rainOn:()=>Boolean(tracks[0].volume),
+  toggleRain:()=>changeAmbienceVolume(tracks[0],tracks[0].volume?0:45)
+ };
+ ambience.onclick=()=>{
+  lifeShow('<h2>공부 공간 소리</h2>'+tracks.map((track,index)=>
+   '<label class="field">'+track.name+'<input aria-label="'+track.name+'" type="range" min="0" max="100" value="'+(track.volume||0)+'" data-ambience="'+index+'"></label>'
+  ).join('')+'<button type="button" id="study-ambience-stop">모두 끄기</button>');
+  const sliders=[...document.querySelectorAll('[data-ambience]')];
+  for(const input of sliders)input.oninput=async()=>{
+   const track=tracks[Number(input.dataset.ambience)];
+   try{await changeAmbienceVolume(track,Number(input.value));}
+   catch{input.value=String(track.volume||0);toast('공부 공간 소리를 켜지 못했어요.');}
+  };
+  document.querySelector('#study-ambience-stop').onclick=()=>{
+   for(const input of sliders)input.value='0';
+   for(const track of tracks)setAmbienceVolume(track,0);
+  };
+ };
+ document.addEventListener('life-session-ended',()=>{
+  ambienceAudio?.close().catch(()=>{});
+  ambienceAudio=null;
+  for(const track of tracks){track.volume=0;track.gain=null;}
+ });
+ const ambienceStyle=document.createElement('style');
+ ambienceStyle.textContent='.canvas-wrap>.study-ambience{position:absolute;z-index:6;width:3.6%;height:5.5%;min-width:20px;min-height:20px;padding:0;border:1px solid #68735b;border-radius:6px;background:#dce7cf;color:#42563f;font-weight:700}.study-ambience[hidden]{display:none!important}';
+ document.head.append(ambienceStyle);
+ let wasFocusing=false;
  let directSofaSeat=false;
  function useSofa(){
   if(posture==='lie'&&directSofaSeat)return;
@@ -97,7 +172,7 @@
    useSofa();
    return;
   }
-  if(event.target.closest('.sofa-speaker'))return;
+  if(event.target.closest('.sofa-speaker,.study-ambience'))return;
   if(directSofaSeat){
    directSofaSeat=false;
    if(posture==='sit'||posture==='lie')standUp();
@@ -109,7 +184,23 @@
  const o=hit(e);if(o){activateObject(o);return;}if(Math.hypot(x-mongle.x,y-(mongle.y-10))<30){walkTo(mongle.x,mongle.y+48,patMongle);return;}walkTo(x,y);
  },true);
  window.addEventListener('life-place-changed',()=>{directSofaSeat=false;cancel();});canvas.addEventListener('keydown',e=>{if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','w','a','s','d','Escape'].includes(e.key))cancel();},true);document.addEventListener('visibilitychange',()=>{if(document.hidden)cancel();});
- const draw=drawRoom;drawRoom=function(t){const dt=Math.min((t-lastFrame)/1000||0,.04);lastFrame=t;if(route.length&&lifePage!=='room')cancel();if(route.length&&!document.hidden&&lifePage==='room'&&!document.querySelector('dialog[open]')){const p=route[0],dx=p.x-player.x,dy=p.y-player.y,d=Math.hypot(dx,dy),amount=245*dt;if(d<=amount+1){player.x=p.x;player.y=p.y;route.shift();if(!route.length){const cb=arrive;cancel();cb?.();}}else{player.x+=dx/d*amount;player.y+=dy/d*amount;walk+=dt;}}const result=draw(t);const sofa=objects.find(o=>o.id==='rest');speaker.hidden=roomEditing||roomPrefs.activeSpace!=='current'||(window.lifeInterior?.scene()??'study')!=='study'||window.lifeStaticFurniture?.isHidden('rest');if(sofa&&!speaker.hidden){const x=sofa.x+sofa.w+47<=895?sofa.x+sofa.w+9:sofa.x-43;speaker.style.left=x/9.6+'%';speaker.style.top=(sofa.y+14)/6.5+'%';}const home=roomPrefs.activeSpace!=='dream'&&roomPrefs.activeSpace!=='office';board.hidden=!home||roomEditing;if(home){roomTransform('board');rect(116,110,120,91,'#8c6b4b');rect(122,116,108,79,'#bb9466');[[134,126,'#f8ecc3'],[171,130,'#dce0b5'],[147,162,'#ead3ba'],[195,162,'#f0e5cc']].forEach(([x,y,c])=>{rect(x,y,24,25,c);rect(x+10,y-2,4,4,'#b16c58');rect(x+4,y+9,15,2,'#b8aa8a');});label('TODAY',176,222);if(night)rect(116,110,120,91,'#28314965');ctx.restore();}if(target){ctx.strokeStyle='#8b9f75';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(target.x,target.y,12,5,0,0,Math.PI*2);ctx.stroke();}return result;};
+ const draw=drawRoom;drawRoom=function(t){const dt=Math.min((t-lastFrame)/1000||0,.04);lastFrame=t;if(route.length&&lifePage!=='room')cancel();if(route.length&&!document.hidden&&lifePage==='room'&&!document.querySelector('dialog[open]')){const p=route[0],dx=p.x-player.x,dy=p.y-player.y,d=Math.hypot(dx,dy),amount=245*dt;if(d<=amount+1){player.x=p.x;player.y=p.y;route.shift();if(!route.length){const cb=arrive;cancel();cb?.();}}else{player.x+=dx/d*amount;player.y+=dy/d*amount;walk+=dt;}}const result=draw(t);
+ const study=objects.find(o=>o.id==='study');
+ const inStudy=roomPrefs.activeSpace==='current'&&(window.lifeInterior?.scene()??'study')==='study';
+ ambience.hidden=!inStudy||roomEditing||!study||window.lifeStaticFurniture?.isHidden('study');
+ if(!ambience.hidden){
+  ambience.style.left=Math.min(865,study.x+study.w+8)/9.6+'%';
+  ambience.style.top=(study.y+18)/6.5+'%';
+ }
+ const focusing=Boolean(window.lifeStudyFocusActive);
+ if(focusing&&!wasFocusing&&!ambience.hidden){
+  cancel();
+  posture='study-chair';
+  player.x=study.x+study.w/2;
+  player.y=study.y+99;
+ }
+ wasFocusing=focusing;
+const sofa=objects.find(o=>o.id==='rest');speaker.hidden=roomEditing||roomPrefs.activeSpace!=='current'||(window.lifeInterior?.scene()??'study')!=='study'||window.lifeStaticFurniture?.isHidden('rest');if(sofa&&!speaker.hidden){const x=sofa.x+sofa.w+47<=895?sofa.x+sofa.w+9:sofa.x-43;speaker.style.left=x/9.6+'%';speaker.style.top=(sofa.y+14)/6.5+'%';}const home=roomPrefs.activeSpace!=='dream'&&roomPrefs.activeSpace!=='office';board.hidden=!home||roomEditing;if(home){roomTransform('board');rect(116,110,120,91,'#8c6b4b');rect(122,116,108,79,'#bb9466');[[134,126,'#f8ecc3'],[171,130,'#dce0b5'],[147,162,'#ead3ba'],[195,162,'#f0e5cc']].forEach(([x,y,c])=>{rect(x,y,24,25,c);rect(x+10,y-2,4,4,'#b16c58');rect(x+4,y+9,15,2,'#b8aa8a');});label('TODAY',176,222);if(night)rect(116,110,120,91,'#28314965');ctx.restore();}if(target){ctx.strokeStyle='#8b9f75';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(target.x,target.y,12,5,0,0,Math.PI*2);ctx.stroke();}return result;};
  window.addEventListener('life-calendar-change',renderTodayCalendar);window.addEventListener('life-study-saved',renderTodayStudy);
  const style=document.createElement('style');style.textContent='.today-board-hit{position:absolute;left:12.08%;top:16.92%;width:12.5%;height:14%;border:2px solid transparent;border-radius:5px;background:transparent;cursor:pointer}.today-board-hit:hover,.today-board-hit:focus-visible{border-color:#fff0b0;outline:none}.today-board-hit[hidden]{display:none}.today-dashboard{display:grid;gap:14px;margin-top:22px}.today-dashboard>section{background:#f1f2e8;border:1px solid #dfe3d5;border-radius:15px;padding:17px}.today-dashboard h3{font-size:14px;margin:0 0 12px;color:#52624d}.today-dashboard [data-simple-tasks]{margin:0}.today-dashboard [data-simple-tasks] .task{gap:12px;margin:12px 0}.today-dashboard [data-simple-tasks] input[type=text]{font-size:14px;padding:9px 0}.today-event{display:grid;grid-template-columns:74px 1fr;gap:10px;padding:10px 0;border-top:1px solid #dce0d1}.today-event:first-child{border-top:0}.today-event time,.today-event small{font-size:11px;color:#74806d}.today-event strong,.today-event small{display:block}.today-event small{margin-top:4px}.today-empty{font-size:12px!important;margin:5px 0 12px!important}.today-study-text{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.8;font-size:13px;margin-bottom:12px;max-height:150px;overflow:auto}';document.head.append(style);
 })();
@@ -123,7 +214,7 @@
  const selector='.study-notebook-hit,.story-object-link,.todo-furniture-hit,.today-board-hit,.memory-object-link,.study-notebook-hit,.story-room-item,.writing-room-object,.growth-plant-link,.family-scene-hit,.notion-monitor-hit,.focus-clock-hit,.wall-light-switch';
  window.addEventListener('click',e=>{
   if(!matchMedia('(max-width:600px)').matches||roomEditing||lifePage!=='room'||document.querySelector('dialog[open]')||e.detail===0)return;
-  const wrap=e.target.closest('.canvas-wrap');if(!wrap||e.target.closest('.avatar-interaction,.all-layout-handle,.interior-item,.interior-exit,.furniture-catalog,.hq-desk-chair,.kitchen-furniture,.ocean-entry,.sofa-speaker'))return;
+  const wrap=e.target.closest('.canvas-wrap');if(!wrap||e.target.closest('.avatar-interaction,.all-layout-handle,.interior-item,.interior-exit,.furniture-catalog,.hq-desk-chair,.kitchen-furniture,.ocean-entry,.sofa-speaker,.study-ambience'))return;
   const target=e.target.closest(selector),candidates=[...wrap.querySelectorAll(selector)].filter(b=>!b.hidden&&b.getClientRects().length);
   const inside=(r)=>e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom;
   

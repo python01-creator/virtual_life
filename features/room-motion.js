@@ -341,6 +341,13 @@
    drawPatch(.52,handY-.075,.23,.15,-w*.22,-h*.035,w*.23,h*.15);
    ac.restore();
    ac.restore();
+  }else if(posture==='study-chair'&&window.lifeStudyFocusActive&&!reducedMotion.matches){
+   const writing=Math.sin(t/115)*.35;
+   ac.save();
+   ac.translate(x,y);
+   ac.rotate(Math.sin(t/390)*.014);
+   ac.drawImage(img,-w/2,-h+writing,w,h);
+   ac.restore();
   }else if(phase!==null&&!reducedMotion.matches)drawWalkingAvatar(img,x,y,w,h,phase);
   else ac.drawImage(img,x-w/2,y-h+bob,w,h);}}
  }};
