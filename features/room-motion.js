@@ -35,12 +35,35 @@
  pochacco.src = './assets/pochacco.webp';
  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
  let companion = null;
+ let pochaccoRestPosition = null;
  const companionOffsets = [[42, 8], [-42, 8], [0, 48], [42, 48], [-42, 48], [42, -36], [-42, -36], [0, -48]];
+
+ const bedtimeWalks = new Map();
+ function drawBedtimePet(key, image, start, destination, time){
+  let walk=bedtimeWalks.get(key);
+  if(!walk||walk.destination.x!==destination.x||walk.destination.y!==destination.y){
+   const distance=Math.hypot(destination.x-start.x,destination.y-start.y);
+   walk={start:{x:start.x,y:start.y},destination,time,duration:Math.max(350,distance*11)};
+   bedtimeWalks.set(key,walk);
+  }
+  const progress=reducedMotion.matches?1:Math.min(1,(time-walk.time)/walk.duration);
+  if(progress===1)return false;
+  const {x,y}=walk.start;
+  const row=destination.x<x?2:1;
+  const frame=Math.floor((time-walk.time)/135)%8;
+  ac.imageSmoothingEnabled=true;
+  ac.drawImage(image,frame*192,row*208,192,208,
+   x+(destination.x-x)*progress-25,y+(destination.y-y)*progress-45,50,54);
+  return true;
+ }
 
  function drawPochacco(t, poses) {
   if (!human || !pochacco.complete || !pochacco.naturalWidth) return;
   if (poses.hidePochacco) return;
   if (poses.pochacco) {
+   const start=pochaccoRestPosition || (companion?.scene==='bedroom'?companion:{x:human.x+44,y:human.y+42});
+   if(!poses.mongle)pochaccoRestPosition=poses.pochacco;
+   if(poses.mongle&&drawBedtimePet('pochacco',pochacco,start,poses.pochacco,t))return;
    ac.save();
    ac.translate(poses.pochacco.x,poses.pochacco.y);
    ac.rotate(-Math.PI/2);
@@ -49,6 +72,7 @@
    ac.restore();
    return;
   }
+  pochaccoRestPosition=null;
   const scene = window.lifeInterior?.roomKey?.() || roomPrefs.activeSpace;
   let target;
   for (const [offsetX, offsetY] of companionOffsets) {
@@ -182,6 +206,7 @@
 
  function drawMongleSprite(time, guest) {
   if (!pet || !mongleImage.complete || !mongleImage.naturalWidth) return;
+  if (guest&&drawBedtimePet('mongle',mongleImage,mongle,guest,time))return;
   if ((guest || window.lifeBedroomPetResting) && mongleRestImage.naturalWidth) {
    const {x,y} = guest || mongle;
    const width = 54;
@@ -245,11 +270,46 @@
   }
   ac.drawImage(img,0,0,sourceWidth,split,x-w/2,y-h-bob,w,torsoHeight+bob);
  }
+ function drawTuckedIn(pose,t){
+  const img=currentAvatarFrame(2);
+  if(!img.complete||!img.naturalWidth)return false;
+  const {x,y}=pose;
+  const breath=reducedMotion.matches?0:Math.sin(t/710)*.65;
+  ac.save();
+  ac.translate(x,y);
+  // Turn the lying sprite lengthwise and reveal its head above the quilt.
+  ac.beginPath();
+  ac.rect(-22,-13,44,27);
+  ac.clip();
+  ac.rotate(Math.PI/2);
+  ac.imageSmoothingEnabled=true;
+  ac.drawImage(img,-15,-16,66,32);
+  ac.restore();
+  ac.save();
+  ac.translate(x,y+12);
+  ac.fillStyle='#b6c1a9';
+  ac.beginPath();
+  ac.roundRect(-22,breath,44,48-breath,[8,8,5,5]);
+  ac.fill();
+  ac.strokeStyle='#8f9d85';
+  ac.lineWidth=1;
+  for(const line of [7,22,37]){
+   ac.beginPath();
+   ac.moveTo(-19,line+breath);
+   ac.quadraticCurveTo(0,line-2+breath,19,line+breath);
+   ac.stroke();
+  }
+  ac.restore();
+  return true;
+ }
  window.lifeRoomActors={begin(){syncResolution();human=pet=null;ac.clearRect(0,0,960,650+portraitFloorDepth);},end(t){
   const petPoses=window.lifeBedroomPetPoses?.() || {};
+  if(!petPoses.mongle)bedtimeWalks.clear();
   drawMongleSprite(t, petPoses.mongle);
   drawPochacco(t, petPoses);
   if(!human)previousPose=null;
+  const sleepPose=window.lifeBedSleepPose?.();
+  if(human&&sleepPose&&drawTuckedIn(sleepPose,t))return;
   if(human){const {x,y,scale}=human,phase=walkingPhase(player.x,player.y,t),seated=posture==='study-chair'||posture==='chair'||posture==='sit'||posture==='desk',lying=posture==='lie',img=currentAvatarFrame(lying?2:seated?1:0);if(img.complete&&img.naturalWidth){const bob=Math.sin(t/1000)*.45,h=(lying?40:seated?51:65)*scale,w=h*img.naturalWidth/img.naturalHeight;ac.fillStyle='#6c574124';ac.beginPath();ac.ellipse(x,y+2,w*.34,4*scale,0,0,Math.PI*2);ac.fill();const action=window.lifeKitchenAction;
   const elapsed=action?t-action.start:0;
   if(action&&elapsed>=0&&elapsed<820&&player.x===action.x&&player.y===action.y&&posture==='stand'){

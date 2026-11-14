@@ -23,12 +23,53 @@
  window.lifeStaticFurniture={items:specs.map(s=>({id:s[0],label:s[5]})),isHidden,restore(id){setHidden(id,false);}};
  const applyLayout=roomApplyLayout;roomApplyLayout=function(){applyLayout();for(const o of objects)if(isHidden(o.id)){o.x=-10000;o.y=-10000;}};
  const transform=roomTransform;roomTransform=function(id){transform(id);if(isHidden(id))ctx.globalAlpha=0;};
- const offset=id=>roomPrefs.layout[id]||{x:0,y:0};let drag=null;
+ window.lifeBindFurnitureDrag=function(button, readPosition, move, save){
+  let drag;
+  function apply(){
+   drag.frame=0;
+   if(!roomEditing)return;
+   move(drag.origin.x+(drag.x-drag.startX)*drag.scaleX,
+        drag.origin.y+(drag.y-drag.startY)*drag.scaleY);
+  }
+  button.onpointerdown=event=>{
+   if(!roomEditing||drag||event.button!==0)return;
+   event.preventDefault();
+   event.stopPropagation();
+   const bounds=wrap.getBoundingClientRect();
+   if(!bounds.width||!bounds.height)return;
+   drag={id:event.pointerId,origin:readPosition(),startX:event.clientX,startY:event.clientY,
+    x:event.clientX,y:event.clientY,scaleX:960/bounds.width,scaleY:650/bounds.height,frame:0,moved:false};
+   button.classList.add('is-dragging');
+   button.setPointerCapture(event.pointerId);
+  };
+  button.onpointermove=event=>{
+   if(drag?.id!==event.pointerId)return;
+   event.preventDefault();
+   drag.x=event.clientX;
+   drag.y=event.clientY;
+   drag.moved=true;
+   if(!drag.frame)drag.frame=requestAnimationFrame(apply);
+  };
+  function finish(event){
+   if(drag?.id!==event.pointerId)return;
+   cancelAnimationFrame(drag.frame);
+   if(event.type==='pointerup'){
+    drag.x=event.clientX;
+    drag.y=event.clientY;
+    drag.moved ||= drag.x!==drag.startX||drag.y!==drag.startY;
+   }
+   if(drag.moved&&roomEditing){apply();save();}
+   drag=null;
+   button.classList.remove('is-dragging');
+   event.stopPropagation();
+  }
+  button.onpointerup=button.onpointercancel=button.onlostpointercapture=finish;
+ };
+ const offset=id=>roomPrefs.layout[id]||{x:0,y:0};
  const handles=specs.map(s=>{const b=document.createElement('button'),remove=document.createElement('button');b.className='all-layout-handle';b.dataset.layoutKey='static:'+s[0];remove.dataset.layoutKey=b.dataset.layoutKey;b.textContent=s[5];b.setAttribute('aria-label',s[5]+'を移動'.replace('を移動',' 배치 이동'));b.hidden=true;remove.type='button';remove.className='all-layout-remove';remove.setAttribute('aria-label',s[5]+' 삭제');remove.hidden=true;wrap.append(b,remove);
  function change(x,y){const parent=s[0]==='story'?offset('focus'):s[0]==='writing-note'?offset('notion'):s[0]==='past-album'?offset('study'):{x:0,y:0};roomPrefs.layout[s[0]]={x:Math.max(65-s[1]-parent.x,Math.min(895-s[1]-s[3]-parent.x,x)),y:s[0]==='front-door'?0:Math.max(70-s[2]-parent.y,Math.min(575+roomBaseFloorExtension-s[2]-s[4]-parent.y,y))};roomApplyLayout();}
- b.onpointerdown=e=>{if(!roomEditing)return;e.preventDefault();e.stopPropagation();const v=offset(s[0]);drag={b,x:e.clientX,y:e.clientY,ox:v.x,oy:v.y};b.classList.add('is-dragging');b.setPointerCapture(e.pointerId);};
- b.onpointermove=e=>{if(drag?.b!==b)return;e.preventDefault();const r=wrap.getBoundingClientRect();change(Math.round(drag.ox+(e.clientX-drag.x)*960/r.width),Math.round(drag.oy+(e.clientY-drag.y)*650/r.height));};
- b.onpointerup=e=>{if(drag?.b!==b)return;drag=null;b.classList.remove('is-dragging');lifeRoomSave();e.stopPropagation();};b.onpointercancel=()=>{drag=null;b.classList.remove('is-dragging');};b.onclick=e=>{e.preventDefault();e.stopPropagation();};
+ window.lifeBindFurnitureDrag(b,()=>offset(s[0]),(x,y)=>change(Math.round(x),Math.round(y)),()=>lifeRoomSave());
+ b.onclick=e=>{e.preventDefault();e.stopPropagation();};
  b.onkeydown=e=>{const step=e.shiftKey?10:2,d={ArrowLeft:[-step,0],ArrowRight:[step,0],ArrowUp:[0,-step],ArrowDown:[0,step]}[e.key];if(!d)return;e.preventDefault();const v=offset(s[0]);change(v.x+d[0],v.y+d[1]);lifeRoomSave();};remove.onclick=e=>{e.preventDefault();e.stopPropagation();setHidden(s[0],true);toast(s[5]+'을 치웠어요. 가구 목록에서 언제든 복원할 수 있어요.');};return {b,remove,s};});
  const draw=drawRoom;drawRoom=function(t){const result=draw(t);if(!roomEditing&&selectedLayoutKey)selectLayout(null);const home=!['dream','office','family'].includes(roomPrefs.activeSpace);if(home){for(const [sel,id,parent]of dom){const b=wrap.querySelector(sel),base=baselines.get(sel);if(!b||!base)continue;const v=offset(id),p=parent?offset(parent):{x:0,y:0};b.hidden=isHidden(id);b.style.left=(base.x+v.x+p.x)/9.6+'%';b.style.top=(base.y+v.y+p.y)/6.5+'%';}}for(const {b,remove,s}of handles){const hidden=isHidden(s[0]);b.hidden=!roomEditing||!home||hidden;remove.hidden=!roomEditing||!home||hidden;const v=offset(s[0]),p=s[0]==='story'?offset('focus'):s[0]==='writing-note'?offset('notion'):s[0]==='past-album'?offset('study'):{x:0,y:0},left=s[1]+v.x+p.x,top=s[2]+v.y+p.y;Object.assign(b.style,{left:left/9.6+'%',top:top/6.5+'%',width:s[3]/9.6+'%',height:s[4]/6.5+'%'});Object.assign(remove.style,{left:(left+s[3]-13)/9.6+'%',top:Math.max(72,top-8)/6.5+'%'});}return result;};
  roomApplyLayout();

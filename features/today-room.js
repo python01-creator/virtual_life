@@ -82,11 +82,12 @@
    cancel();
    if(!directSofaSeat||posture!=='sit')pose('sit');
    directSofaSeat=true;
+   openPanel('rest');
    return;
   }
   if(directSofaSeat){
    directSofaSeat=false;
-   if(posture==='sit')standUp();
+   if(posture==='sit'||posture==='lie')standUp();
   }
  },true);
  wrap.addEventListener('click',e=>{if(roomEditing||e.target.closest('.wall-light-switch,.avatar-interaction,.switch-place-done,.layout-finish-visible'))return;const r=roomWorldBounds(),x=(e.clientX-r.left)*960/r.width,y=(e.clientY-r.top)*650/r.height;if(e.target!==canvas&&!e.target.closest(walkableFurniture))return;
