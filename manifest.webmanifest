@@ -1,1 +1,31 @@
-{"name":"나라는 집 · MY LIFE HQ","short_name":"나라는 집","description":"글과 취향, 사랑하는 존재와 함께한 기억이 머무는 작은 집","lang":"ko","start_url":"./","scope":"./","display":"standalone","background_color":"#f5f1e8","theme_color":"#546c52","icons":[{"src":"./icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any"}]}
+{
+  "name": "나라는 집 · MY LIFE HQ",
+  "short_name": "나라는 집",
+  "description": "글과 취향, 사랑하는 존재와 함께한 기억이 머무는 작은 집",
+  "lang": "ko",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f5f1e8",
+  "theme_color": "#546c52",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "./assets/app-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./assets/app-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
