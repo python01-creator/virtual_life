@@ -60,6 +60,106 @@
     document.querySelector('.header-right')?.append(button);
   }
 
+  async function accessRpc(name, args) {
+    const { data, error } = await client.rpc(name, args);
+    if (error) throw error;
+    return data;
+  }
+
+  function installApprovalButton() {
+    const button = document.createElement('button');
+    button.className = 'ghost';
+    document.querySelector('.header-right')?.append(button);
+    async function refresh() {
+      try {
+        const pending = await accessRpc('hq_pending');
+        button.textContent = '가입 신청 ' + pending.length + '건';
+        return pending;
+      } catch {
+        button.textContent = '가입 신청 확인';
+        throw new Error('가입 신청을 불러오지 못했어요.');
+      }
+    }
+    button.onclick = async () => {
+      lifeShow('<h2>가입 신청</h2><div id="hq-applicants" role="status">불러오는 중…</div>');
+      const list = el('hq-applicants');
+      try {
+        const pending = await refresh();
+        list.textContent = pending.length ? '' : '대기 중인 신청이 없어요.';
+        for (const applicant of pending) {
+          const row = document.createElement('p');
+          row.textContent = applicant.email + ' ';
+          const actions = [true, false].map(approve => {
+            const decision = document.createElement('button');
+            decision.type = 'button';
+            decision.className = 'ghost';
+            decision.textContent = approve ? '승인' : '거절';
+            decision.onclick = async () => {
+              actions.forEach(item => { item.disabled = true; });
+              try {
+                await accessRpc('hq_decide', { applicant: applicant.user_id, approve });
+                if (list.isConnected && lifeDialog.open) button.click();
+                else refresh().catch(() => {});
+              } catch {
+                actions.forEach(item => { item.disabled = false; });
+                toast('처리하지 못했어요. 다시 시도해 주세요.');
+              }
+            };
+            return decision;
+          });
+          row.append(...actions);
+          list.append(row);
+        }
+      } catch (error) { list.textContent = error.message; }
+    };
+    refresh().catch(() => {});
+    setInterval(() => { if (!document.hidden) refresh().catch(() => {}); }, 60000);
+  }
+
+  let checkingAccess = false;
+  async function admit(user) {
+    if (resetting || currentUser || checkingAccess) return;
+    if (config.approvalRequired === true) {
+      show('loading');
+      let access;
+      checkingAccess = true;
+      try { access = await accessRpc('hq_access'); }
+      catch { message('가입 상태를 확인하지 못했어요. 아래에서 다시 확인해 주세요.', true); }
+      finally { checkingAccess = false; }
+      if (resetting || currentUser) return;
+      if (access?.status !== 'approved') {
+        if (access) message({
+          pending: '가입 신청을 보냈어요. 관리자가 승인하면 이용할 수 있어요.',
+          rejected: '이 가입 신청은 승인되지 않았어요.',
+          unavailable: '가입 신청은 Google 계정으로 할 수 있어요.'
+        }[access.status] || '가입 상태를 확인해 주세요.');
+        const gate = el('auth-gate');
+        gate.setAttribute('aria-busy', 'false');
+        if (!el('hq-access-actions')) {
+          const actions = document.createElement('div');
+          actions.id = 'hq-access-actions';
+          for (const [label, action] of [
+            ['승인 상태 다시 확인', () => location.reload()],
+            ['로그아웃', async () => { const { error } = await client.auth.signOut(); if (!error) lockSession(); else message('로그아웃하지 못했어요.', true); }]
+          ]) {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.textContent = label;
+            button.onclick = action;
+            actions.append(button);
+          }
+          el('auth-message').after(actions);
+        }
+        return;
+      }
+      if (access.admin) installApprovalButton();
+    }
+    currentUser = user;
+    show('app');
+    installAccountButton();
+    releaseReady(user);
+  }
+
   // SESSION_PRIVACY_V1: lock immediately on logout, expiry, or account change.
   let resetting = false;
   function lockSession() {
@@ -178,7 +278,7 @@ window.lifeCloud.albums={
     message('안전하게 내 공간을 여는 중…');
     const form = el('auth-form');
     const googleButton=el('auth-google'),googleEnabled=config.googleAuthEnabled===true;
-    if(googleEnabled){googleButton.hidden=false;el('auth-divider').hidden=false;googleButton.onclick=async()=>{googleButton.disabled=true;message('Google 로그인 화면을 여는 중…');try{const {error}=await client.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.origin+location.pathname,queryParams:{prompt:'select_account'}}});if(error)throw error;}catch(error){googleButton.disabled=false;message('Google 로그인을 시작하지 못했어요. 연결 설정을 확인해 주세요.',true);}};}
+    if(googleEnabled){if(config.approvalRequired===true)googleButton.textContent='Google로 로그인 또는 가입 신청';googleButton.hidden=false;el('auth-divider').hidden=false;googleButton.onclick=async()=>{googleButton.disabled=true;message('Google 로그인 화면을 여는 중…');try{const {error}=await client.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.origin+location.pathname,queryParams:{prompt:'select_account'}}});if(error)throw error;}catch(error){googleButton.disabled=false;message('Google 로그인을 시작하지 못했어요. 연결 설정을 확인해 주세요.',true);}};}
 
     /* AUTH_MAIL_COOLDOWN_V1 */
     const sendButton=form.querySelector('button'),cooldownKey='life-auth-mail-cooldown-v1';let until=0,timer,sending=false;
@@ -190,7 +290,7 @@ window.lifeCloud.albums={
       event.preventDefault();if(sending||until>Date.now()){tick();return;}
       const email = new FormData(form).get('email').trim();
       sending=true;tick();message('로그인 링크를 보내는 중…');
-      try{const {error}=await client.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname}});
+      try{const {error}=await client.auth.signInWithOtp({email,options:{shouldCreateUser:false,emailRedirectTo:location.origin+location.pathname}});
         if(error){const detail=window.LifeLoginMail.explain(error);message(detail.text,true);if(detail.wait)cool(detail.wait);}
         else{message('로그인 메일을 보냈어요. 가장 최근에 받은 메일의 링크를 열어 주세요. 스팸함도 확인해 주세요.');cool(60);}
       }catch(error){message(window.LifeLoginMail.explain(error).text,true);}
@@ -200,11 +300,9 @@ window.lifeCloud.albums={
     try {
       const { data, error } = await client.auth.getSession();
       if (error) throw error;
-      currentUser = data.session?.user || null;
-      if (currentUser) {
-        show('app');
-        installAccountButton();
-        releaseReady(currentUser);
+      const user = data.session?.user;
+      if (user) {
+        await admit(user);
       } else {
         show('login');
         message(oauthError ? '로그인 링크가 만료됐거나 인증을 마치지 못했어요. Google로 계속하기를 다시 눌러 주세요. 기존 서버 기록은 그대로 있어요.' : '', !!oauthError);
@@ -217,10 +315,7 @@ window.lifeCloud.albums={
     client.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_OUT' || (currentUser && (!session?.user || session.user.id !== currentUser.id))) { lockSession(); return; }
       if (!currentUser && session?.user) {
-        currentUser = session.user;
-        show('app');
-        installAccountButton();
-        releaseReady(currentUser);
+        setTimeout(() => admit(session.user), 0);
       }
     });
   });
