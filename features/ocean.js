@@ -1,9 +1,10 @@
 (() => {
  const entry=document.createElement('button');
  entry.type='button';
- entry.className='ghost ocean-entry';
- entry.textContent='집 밖';
- entry.style.setProperty('display','inline-flex','important'); document.querySelector('.header-right').append(entry);
+ entry.className='ocean-entry';
+ entry.textContent='현관문';
+ entry.setAttribute('aria-label','현관문 · 집 밖으로');
+ document.querySelector('.canvas-wrap').append(entry);
 
  const outdoors=document.createElement('section');
  outdoors.className='hq-outdoors';
@@ -17,6 +18,30 @@
   room.inert=false;
   outdoors.replaceChildren();
   entry.focus({preventScroll:true});
+ }
+ function openPath(){
+  outdoors.hidden=false;
+  room.inert=true;
+  outdoors.innerHTML=`<header><h2>집 앞</h2><button type="button" data-home>집으로</button></header>
+   <div class="hq-coastal-path">
+    <span class="hq-path-house" aria-hidden="true">⌂</span>
+    <img class="hq-path-avatar" alt="">
+    <button type="button" class="hq-path-beach">해변까지 걷기</button>
+   </div>`;
+  outdoors.querySelector('[data-home]').onclick=goHome;
+  const avatar=outdoors.querySelector('.hq-path-avatar');
+  avatar.src=currentAvatarFrame(0).src;
+  const beach=outdoors.querySelector('.hq-path-beach');
+  beach.onclick=()=>{
+   beach.disabled=true;
+   if(matchMedia('(prefers-reduced-motion: reduce)').matches){openBeach();return;}
+   const travel=avatar.animate([
+    {left:'13%',top:'79%'},{left:'37%',top:'65%'},{left:'61%',top:'51%'},{left:'79%',top:'37%'}
+   ],{duration:1550,easing:'linear',fill:'forwards'});
+   stopOcean=()=>travel.cancel();
+   travel.finished.then(openBeach).catch(()=>{});
+  };
+  beach.focus({preventScroll:true});
  }
  function openBeach(){
   stopOcean();
@@ -224,13 +249,24 @@
   setSwimming(true);
   frame=requestAnimationFrame(draw);
  }
- entry.onclick=openBeach;
+ entry.onclick=()=>{
+  if(roomEditing||lifePage!=='room')return;
+  window.lifeRoomInteraction?.walkTo(845,224,openPath);
+ };
  outdoors.addEventListener('keydown',event=>{
   if(event.key==='Escape'){event.stopPropagation();goHome();}
  });
  document.addEventListener('life-session-ended',goHome);
  const style=document.createElement('style');
  style.textContent=`
+ .canvas-wrap>.ocean-entry{position:absolute;left:85%;top:12%;width:6%;height:19%;z-index:4;padding:0;border:2px solid #735d46;border-radius:7px 7px 2px 2px;background:linear-gradient(90deg,#95795d,#b79976 12%,#a88463 90%,#886a51);color:#fff5df;font-size:clamp(7px,1.1vw,13px);cursor:pointer}
+ .ocean-entry::after{content:'';position:absolute;right:15%;top:60%;width:12%;aspect-ratio:1;border-radius:50%;background:#f1d49b}
+ body:is([data-interior="office"],[data-interior="bedroom"],[data-place-kind="office"]) .ocean-entry{display:none}
+ .hq-coastal-path{position:relative;isolation:isolate;width:min(100%,840px);height:clamp(210px,58dvh,520px);overflow:hidden;border-radius:18px;background:linear-gradient(165deg,#c6e5df 0 29%,#5c9eac 30% 39%,#b1c89a 40% 100%)}
+ .hq-coastal-path::before{content:'';position:absolute;inset:0;background:#e3c59a;clip-path:polygon(4% 83%,74% 36%,88% 34%,18% 92%);z-index:-1}
+ .hq-path-house{position:absolute;left:7%;top:59%;color:#674e36;font-size:clamp(36px,8vw,76px);line-height:1}
+ .hq-path-avatar{position:absolute;left:13%;top:79%;width:clamp(24px,6%,52px);transform:translate(-50%,-100%);pointer-events:none}
+ .hq-path-beach{position:absolute;left:79%;top:32%;transform:translate(-50%,-50%);white-space:nowrap}
  .hq-outdoors[hidden]{display:none}
  .hq-outdoors{position:fixed;inset:0;z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:clamp(12px,3vw,32px);overflow:auto;background:#102f45;color:#f4fff9}
  .hq-outdoors header{display:flex;justify-content:space-between;align-items:center;gap:12px;width:min(100%,840px);padding:0;background:transparent;color:inherit}
