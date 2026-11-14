@@ -169,6 +169,12 @@
 
  function drawMongleSprite(time) {
   if (!pet || !mongleImage.complete || !mongleImage.naturalWidth) return;
+  if(window.lifeBedroomPetResting){
+   ac.imageSmoothingEnabled=true;
+   // Reuse the lowered pose and keep its paws aligned with the floor.
+   ac.drawImage(mongleImage,0,4*208+71,192,137,mongle.x-25,mongle.y-22,50,33);
+   return;
+  }
   const row = mongleTiming[mongle.row] ? mongle.row : 0;
   const timings = mongleTiming[row];
   if (row !== mongleAnimationRow) {
@@ -192,10 +198,43 @@
  }
  // Keep sprites above both canvas furniture and SVG furniture, without taking taps.
  drawModernAvatar=(x,y,t,scale=1)=>{human={x,y,t,scale};};drawMongle=t=>{pet={t};};
+ let previousPose;
+ let stride=0;
+ function walkingPhase(x,y,time){
+  const previous=previousPose;
+  previousPose={x,y,time};
+  const distance=previous&&time-previous.time<100?Math.hypot(x-previous.x,y-previous.y):0;
+  if(posture!=='stand'||distance<.1||distance>20){
+   stride=0;
+   return null;
+  }
+  stride=(stride+distance/74)%1;
+  return stride*Math.PI*2;
+ }
+ function drawWalkingAvatar(img,x,y,w,h,phase){
+  const sourceWidth=img.naturalWidth,sourceHeight=img.naturalHeight;
+  const split=Math.round(sourceHeight*.82);
+  const torsoHeight=h*split/sourceHeight;
+  const legHeight=h-torsoHeight;
+  const bob=Math.abs(Math.sin(phase))*h*.022;
+  const half=Math.floor(sourceWidth/2);
+  for(const side of [0,1]){
+   const step=phase+side*Math.PI;
+   const lift=Math.max(0,Math.sin(step))*h*.055;
+   const swing=Math.cos(step)*w*.045;
+   const sx=side?half:0;
+   const sw=side?sourceWidth-half:half;
+   const dx=side?x:x-w/2;
+   ac.drawImage(img,sx,split-2,sw,sourceHeight-split+2,
+    dx+swing,y-legHeight-lift-1,w/2,legHeight+1);
+  }
+  ac.drawImage(img,0,0,sourceWidth,split,x-w/2,y-h-bob,w,torsoHeight+bob);
+ }
  window.lifeRoomActors={begin(){syncResolution();human=pet=null;ac.clearRect(0,0,960,650+portraitFloorDepth);},end(t){
   drawMongleSprite(t);
   drawPochacco(t);
-  if(human){const {x,y,scale}=human,seated=posture==='study-chair'||posture==='chair'||posture==='sit'||posture==='desk',lying=posture==='lie',img=currentAvatarFrame(lying?2:seated?1:0);if(img.complete&&img.naturalWidth){const bob=keys.size&&posture==='stand'?Math.abs(Math.sin(walk*11))*-2:Math.sin(t/1000)*.45,h=(lying?40:seated?51:65)*scale,w=h*img.naturalWidth/img.naturalHeight;ac.fillStyle='#6c574124';ac.beginPath();ac.ellipse(x,y+2,w*.34,4*scale,0,0,Math.PI*2);ac.fill();const action=window.lifeKitchenAction;
+  if(!human)previousPose=null;
+  if(human){const {x,y,scale}=human,phase=walkingPhase(player.x,player.y,t),seated=posture==='study-chair'||posture==='chair'||posture==='sit'||posture==='desk',lying=posture==='lie',img=currentAvatarFrame(lying?2:seated?1:0);if(img.complete&&img.naturalWidth){const bob=Math.sin(t/1000)*.45,h=(lying?40:seated?51:65)*scale,w=h*img.naturalWidth/img.naturalHeight;ac.fillStyle='#6c574124';ac.beginPath();ac.ellipse(x,y+2,w*.34,4*scale,0,0,Math.PI*2);ac.fill();const action=window.lifeKitchenAction;
   const elapsed=action?t-action.start:0;
   if(action&&elapsed>=0&&elapsed<820&&player.x===action.x&&player.y===action.y&&posture==='stand'){
    const progress=elapsed/820;
@@ -226,10 +265,14 @@
    drawPatch(.52,handY-.075,.23,.15,-w*.22,-h*.035,w*.23,h*.15);
    ac.restore();
    ac.restore();
-  }else ac.drawImage(img,x-w/2,y-h+bob,w,h);}}
+  }else if(phase!==null&&!reducedMotion.matches)drawWalkingAvatar(img,x,y,w,h,phase);
+  else ac.drawImage(img,x-w/2,y-h+bob,w,h);}}
  }};
  const solids=[['today',337,461,70,65],['focus',91,290,194,135],['study',298,148,146,171],['notion',635,261,185,120],['rest',584,446,226,83],['plant',80,445,60,95]];
- function obstacles(){const custom=window.lifeInterior?.obstacles?.();if(custom?.replace)return custom.rects;if(roomPrefs.activeSpace==='family')return [[205,250,200,253],[465,335,85,69],[650,366,160,129]];return solids.map(([id,x,y,w,h])=>{const v=roomPrefs.layout[id]||{x:0,y:0};return [x+v.x,y+v.y,w,h];}).concat(custom?.rects||[]);}
+ function obstacles(){const custom=window.lifeInterior?.obstacles?.();if(custom?.replace)return custom.rects;if(roomPrefs.activeSpace==='family')return [[205,250,200,253],[465,335,85,69],[650,366,160,129]];const door=window.lifeFrontDoor;
+ const fixed=solids.filter(([id])=>!window.lifeStaticFurniture?.isHidden(id));
+ if(door&&!window.lifeStaticFurniture?.isHidden('front-door'))fixed.push(['front-door',door.x,door.y,door.width,door.height]);
+ return fixed.map(([id,x,y,w,h])=>{const v=roomPrefs.layout[id]||{x:0,y:0};return [x+v.x,y+v.y,w,h];}).concat(custom?.rects||[]);}
  const baseBlocked=blocked;blocked=function(x,y){if(roomPrefs.activeSpace==='dream'||roomPrefs.activeSpace==='office')return baseBlocked(x,y);return obstacles().some(([a,b,w,h])=>x>a-12&&x<a+w+12&&y>b-6&&y<b+h+10);};
  function free(p){if(!blocked(p.x,p.y))return;let best=null,dist=Infinity;for(let y=203;y<=roomWalkBottom()-2;y+=12)for(let x=82;x<=870;x+=12){if(blocked(x,y))continue;const d=Math.hypot(x-p.x,y-p.y);if(d<dist){best={x,y};dist=d;}}if(best)Object.assign(p,best);}
  window.lifeRoomMotion={updateMongle,prepare(){if(typeof roomPrefs==='undefined'||roomEditing)return;if(posture==='stand')free(player);if(!window.lifeBedroomPetResting)free(mongle);}};

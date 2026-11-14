@@ -1,6 +1,8 @@
 (() => {
  const entry=document.createElement('button');
  entry.type='button';
+ const door={x:816,y:78,width:58,height:124};
+ window.lifeFrontDoor=door;
  entry.className='ocean-entry';
  entry.textContent='현관문';
  entry.setAttribute('aria-label','현관문 · 집 밖으로');
@@ -12,8 +14,83 @@
  document.body.append(outdoors);
  const room=document.querySelector('main');
  let stopOcean=()=>{};
+ const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
+ let audio, surf, volume, muted=false;
+ function startSurf(){
+  if(muted||surf||!window.AudioContext)return;
+  audio??=new AudioContext();
+  audio.resume().catch(()=>{});
+  const buffer=audio.createBuffer(1,12*audio.sampleRate,audio.sampleRate);
+  const samples=buffer.getChannelData(0);
+  let low=0;
+  for(let i=0;i<samples.length;i++){
+   const noise=Math.random()*2-1;
+   low=.965*low+.035*noise;
+   const swell=.25+.75*Math.pow((1-Math.cos(i/samples.length*Math.PI*6))/2,2);
+   const edge=Math.min(1,i/400,(samples.length-1-i)/400);
+   samples[i]=(low*.85+noise*.12)*swell*edge;
+  }
+  surf=audio.createBufferSource();
+  volume=audio.createGain();
+  surf.buffer=buffer;
+  surf.loop=true;
+  surf.connect(volume).connect(audio.destination);
+  volume.gain.setValueAtTime(0,audio.currentTime);
+  volume.gain.linearRampToValueAtTime(.32,audio.currentTime+.45);
+  surf.start();
+ }
+ function stopSurf(){
+  if(!surf)return;
+  volume.gain.cancelScheduledValues(audio.currentTime);
+  volume.gain.setTargetAtTime(0,audio.currentTime,.05);
+  surf.stop(audio.currentTime+.22);
+  surf=null;
+ }
+ function drawBeach(canvas){
+  const ctx=canvas.getContext('2d');
+  let frame;
+  function paint(time){
+   const gradient=(top,bottom,colors)=>{
+    const fill=ctx.createLinearGradient(0,top,0,bottom);
+    colors.forEach(([at,color])=>fill.addColorStop(at,color));
+    return fill;
+   };
+   ctx.fillStyle=gradient(0,360,[[0,'#83bbd4'],[.33,'#e1f2ef'],[.34,'#367b91'],[.57,'#49a8ad'],[.82,'#a5d8c6'],[1,'#e6c49a']]);
+   ctx.fillRect(0,0,640,360);
+   ctx.fillStyle='#789ca7';
+   ctx.beginPath();
+   ctx.moveTo(0,123);
+   ctx.quadraticCurveTo(48,92,70,107);
+   ctx.quadraticCurveTo(105,100,153,123);
+   ctx.fill();
+   for(let row=0;row<17;row++){
+    const y=129+row*9;
+    ctx.strokeStyle=row%2?'#eafff858':'#327d9226';
+    ctx.beginPath();
+    for(let x=0;x<=640;x+=8){
+     ctx.lineTo(x,y+Math.sin(x/47+row+time/1100)*(1+row*.13));
+    }
+    ctx.stroke();
+   }
+   for(let layer=0;layer<3;layer++){
+    ctx.fillStyle=['#e9ffffbc','#b6a18b','#e4c49d'][layer];
+    ctx.beginPath();
+    ctx.moveTo(0,360);
+    for(let x=0;x<=640;x+=5){
+     const lap=Math.sin(time/820+x/136);
+     ctx.lineTo(x,274+x*.09+Math.sin(x/82)*10+lap*(layer===2?3:8)+layer*5);
+    }
+    ctx.lineTo(640,360);
+    ctx.fill();
+   }
+   if(!reducedMotion.matches)frame=requestAnimationFrame(paint);
+  }
+  paint(0);
+  return ()=>cancelAnimationFrame(frame);
+ }
  function goHome(){
   stopOcean();
+  stopSurf();
   outdoors.hidden=true;
   room.inert=false;
   outdoors.replaceChildren();
@@ -25,20 +102,29 @@
   outdoors.innerHTML=`<header><h2>집 앞</h2><button type="button" data-home>집으로</button></header>
    <div class="hq-coastal-path">
     <span class="hq-path-house" aria-hidden="true">⌂</span>
-    <img class="hq-path-avatar" alt="">
+    <div class="hq-path-avatar" aria-hidden="true">
+     <img class="hq-walk-body" alt="">
+     <img class="hq-walk-foot left" alt="">
+     <img class="hq-walk-foot right" alt="">
+    </div>
     <button type="button" class="hq-path-beach">해변까지 걷기</button>
    </div>`;
   outdoors.querySelector('[data-home]').onclick=goHome;
   const avatar=outdoors.querySelector('.hq-path-avatar');
-  avatar.src=currentAvatarFrame(0).src;
+  for(const part of avatar.querySelectorAll('img'))part.src=currentAvatarFrame(0).src;
   const beach=outdoors.querySelector('.hq-path-beach');
   beach.onclick=()=>{
    beach.disabled=true;
+   startSurf();
    if(matchMedia('(prefers-reduced-motion: reduce)').matches){openBeach();return;}
    const travel=avatar.animate([
     {left:'13%',top:'79%'},{left:'37%',top:'65%'},{left:'61%',top:'51%'},{left:'79%',top:'37%'}
    ],{duration:1550,easing:'linear',fill:'forwards'});
-   stopOcean=()=>travel.cancel();
+   avatar.classList.add('is-walking');
+   stopOcean=()=>{
+    travel.cancel();
+    avatar.classList.remove('is-walking');
+   };
    travel.finished.then(openBeach).catch(()=>{});
   };
   beach.focus({preventScroll:true});
@@ -50,13 +136,24 @@
   outdoors.hidden=false;
   room.inert=true;
   outdoors.innerHTML=`<header><h2>해변</h2><button type="button" data-home>집으로</button></header>
-   <button class="hq-beach-water" type="button"><span>바다에 들어가기</span></button>`;
+   <button class="hq-beach-water" type="button"><canvas width="640" height="360" aria-hidden="true"></canvas><span>바다에 들어가기</span></button>
+   <button type="button" data-surf aria-pressed="${!muted}">파도 소리</button>`;
   outdoors.querySelector('[data-home]').onclick=goHome;
   const water=outdoors.querySelector('.hq-beach-water');
+  stopOcean=drawBeach(water.querySelector('canvas'));
+  startSurf();
+  const sound=outdoors.querySelector('[data-surf]');
+  sound.onclick=()=>{
+   muted=!muted;
+   sound.setAttribute('aria-pressed',String(!muted));
+   if(muted)stopSurf();else startSurf();
+  };
   water.onclick=openOcean;
   water.focus({preventScroll:true});
  }
  function openOcean(){
+  stopOcean();
+  stopSurf();
   outdoors.innerHTML=`<header><h2>프리다이빙 바다</h2><button type="button" id="hq-ocean-exit">해변으로</button></header>
    <canvas id="hq-ocean" width="640" height="380" tabindex="0" aria-label="프리다이빙 바다. 방향키나 화면 터치로 이동"></canvas>
    <p id="hq-ocean-status" role="status">해변</p>
@@ -251,7 +348,8 @@
  }
  entry.onclick=()=>{
   if(roomEditing||lifePage!=='room')return;
-  if(!window.lifeRoomInteraction?.walkTo(845,224,openPath))openPath();
+  const offset=roomPrefs.layout['front-door']||{x:0,y:0};
+  if(!window.lifeRoomInteraction?.walkTo(door.x+offset.x+door.width/2,door.y+door.height+22,openPath))openPath();
  };
  outdoors.addEventListener('keydown',event=>{
   if(event.key==='Escape'){event.stopPropagation();goHome();}
@@ -266,14 +364,24 @@
  .hq-coastal-path::before{content:'';position:absolute;inset:0;background:#e3c59a;clip-path:polygon(4% 83%,74% 36%,88% 34%,18% 92%);z-index:-1}
  .hq-path-house{position:absolute;left:7%;top:59%;color:#674e36;font-size:clamp(36px,8vw,76px);line-height:1}
  .hq-path-avatar{position:absolute;left:13%;top:79%;width:clamp(24px,6%,52px);transform:translate(-50%,-100%);pointer-events:none}
+ .hq-path-avatar img{display:block;width:100%}
+ .hq-walk-body{position:relative}
+ .hq-walk-foot{position:absolute;inset:0;opacity:0}
+ .hq-path-avatar.is-walking .hq-walk-body{clip-path:inset(0 0 18% 0);animation:hq-walk-body 260ms ease-in-out infinite alternate}
+ .hq-path-avatar.is-walking .hq-walk-foot{opacity:1;animation:hq-walk-step 520ms ease-in-out infinite}
+ .hq-walk-foot.left{clip-path:inset(82% 50% 0 0);transform-origin:39% 83%}
+ .hq-walk-foot.right{clip-path:inset(82% 0 0 50%);transform-origin:61% 83%;animation-delay:-260ms!important}
+ @keyframes hq-walk-body{from{transform:translateY(0) rotate(-2deg)}to{transform:translateY(-2%) rotate(2deg)}}
+ @keyframes hq-walk-step{0%,100%{transform:translate(2%,0) rotate(-10deg)}48%{transform:translate(-4%,0) rotate(10deg)}72%{transform:translate(0,-4%) rotate(2deg)}}
  .hq-path-beach{position:absolute;left:79%;top:32%;transform:translate(-50%,-50%);white-space:nowrap}
  .hq-outdoors[hidden]{display:none}
  .hq-outdoors{position:fixed;inset:0;z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:clamp(12px,3vw,32px);overflow:auto;background:#102f45;color:#f4fff9}
  .hq-outdoors header{display:flex;justify-content:space-between;align-items:center;gap:12px;width:min(100%,840px);padding:0;background:transparent;color:inherit}
  .hq-outdoors h2,.hq-outdoors p{margin:0}
  .hq-outdoors .actions{margin:0}
- .hq-beach-water{width:min(100%,840px);min-height:55dvh;display:grid;place-items:center;border:0;border-radius:18px;background:radial-gradient(ellipse at 72% 22%,#ffebad 0 5%,transparent 5.5%),linear-gradient(175deg,#bacfdc 4%,#f4dbc1 35%,#539eac 36%,#347b93 69%,#daf6e4 70%,#dbb988 73%);color:#12394b}
- .hq-beach-water span{padding:.65em 1.1em;border-radius:24px;background:#f3fff2}
+ .hq-beach-water{position:relative;width:min(100%,840px,104dvh);padding:0;overflow:hidden;border:0;border-radius:18px;background:#537e8d;color:#12394b}
+ .hq-beach-water canvas{display:block;width:100%;height:auto}
+ .hq-beach-water span{position:absolute;top:56%;left:50%;transform:translate(-50%,-50%);white-space:nowrap;padding:.65em 1.1em;border-radius:24px;background:#f3fff2}
  #hq-ocean{display:block;width:min(100%,calc(68dvh * 640 / 380));height:auto;border-radius:14px;background:#154e72;touch-action:manipulation}
  `;
  document.head.append(style);
