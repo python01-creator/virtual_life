@@ -4,7 +4,7 @@
  const door={x:816,y:78,width:58,height:124};
  window.lifeFrontDoor=door;
  entry.className='ocean-entry';
- entry.textContent='현관문';
+ entry.innerHTML='<span class="ocean-door-leaf" aria-hidden="true"></span>';
  entry.setAttribute('aria-label','현관문 · 집 밖으로');
  document.querySelector('.canvas-wrap').append(entry);
 
@@ -346,10 +346,29 @@
   setSwimming(true);
   frame=requestAnimationFrame(draw);
  }
+ let doorOpening;
  entry.onclick=()=>{
-  if(roomEditing||lifePage!=='room')return;
+  if(doorOpening||roomEditing||lifePage!=='room')return;
   const offset=roomPrefs.layout['front-door']||{x:0,y:0};
-  if(!window.lifeRoomInteraction?.walkTo(door.x+offset.x+door.width/2,door.y+door.height+22,openPath))openPath();
+  const center=door.x+offset.x+door.width/2;
+  const threshold=door.y+offset.y+door.height;
+  const inFront=(x,y)=>Math.abs(x-center)<=door.width/2&&y>=threshold+14&&y<=threshold+44;
+  window.lifeRoomInteraction?.walkTo(center,threshold+26,()=>{
+   if(!inFront(player.x,player.y)||!entry.getClientRects().length)return;
+   if(reducedMotion.matches){openPath();return;}
+   const position={x:player.x,y:player.y};
+   window.lifeKitchenAction={kind:'door',start:performance.now(),...position};
+   doorOpening=entry.firstElementChild.animate(
+    [{transform:'rotateY(0deg)'},{transform:'rotateY(-76deg)'}],
+    {duration:520,easing:'ease-in-out',fill:'forwards'});
+   doorOpening.finished.then(()=>{
+    if(lifePage==='room'&&!roomEditing&&entry.getClientRects().length&&
+       player.x===position.x&&player.y===position.y&&!document.querySelector('dialog[open]'))openPath();
+   }).catch(()=>{}).finally(()=>{
+    doorOpening.cancel();
+    doorOpening=null;
+   });
+  },inFront);
  };
  outdoors.addEventListener('keydown',event=>{
   if(event.key==='Escape'){event.stopPropagation();goHome();}
@@ -357,8 +376,9 @@
  document.addEventListener('life-session-ended',goHome);
  const style=document.createElement('style');
  style.textContent=`
- .canvas-wrap>.ocean-entry{position:absolute;left:85%;top:12%;width:6%;height:19%;z-index:8;padding:0;border:2px solid #735d46;border-radius:7px 7px 2px 2px;background:linear-gradient(90deg,#95795d,#b79976 12%,#a88463 90%,#886a51);color:#fff5df;font-size:clamp(7px,1.1vw,13px);cursor:pointer}
- .ocean-entry::after{content:'';position:absolute;right:15%;top:60%;width:12%;aspect-ratio:1;border-radius:50%;background:#f1d49b}
+ .canvas-wrap>.ocean-entry{position:absolute;left:85%;top:12%;width:6%;height:19%;z-index:8;padding:0;border:2px solid #735d46;border-radius:7px 7px 2px 2px;background:#463426;perspective:160px;cursor:pointer}
+ .ocean-door-leaf{position:absolute;inset:0;border-radius:inherit;transform-origin:left center;background:linear-gradient(90deg,#95795d,#b79976 12%,#a88463 90%,#886a51);pointer-events:none}
+ .ocean-door-leaf::after{content:'';position:absolute;right:15%;top:60%;width:12%;aspect-ratio:1;border-radius:50%;background:#f1d49b}
  body:is([data-interior="office"],[data-interior="bedroom"],[data-place-kind="office"]) .ocean-entry{display:none}
  .hq-coastal-path{position:relative;isolation:isolate;width:min(100%,840px);height:clamp(210px,58dvh,520px);overflow:hidden;border-radius:18px;background:linear-gradient(165deg,#c6e5df 0 29%,#5c9eac 30% 39%,#b1c89a 40% 100%)}
  .hq-coastal-path::before{content:'';position:absolute;inset:0;background:#e3c59a;clip-path:polygon(4% 83%,74% 36%,88% 34%,18% 92%);z-index:-1}

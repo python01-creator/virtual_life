@@ -167,12 +167,16 @@
   Object.assign(mongle, { x, y, row: mongleFacing });
  }
 
+ const mongleRestImage = new Image();
+ mongleRestImage.src = './assets/mongle-chin-rest.webp';
+
  function drawMongleSprite(time) {
   if (!pet || !mongleImage.complete || !mongleImage.naturalWidth) return;
-  if(window.lifeBedroomPetResting){
-   ac.imageSmoothingEnabled=true;
-   // Reuse the lowered pose and keep its paws aligned with the floor.
-   ac.drawImage(mongleImage,0,4*208+71,192,137,mongle.x-25,mongle.y-22,50,33);
+  if (window.lifeBedroomPetResting && mongleRestImage.naturalWidth) {
+   const width = 54;
+   const height = width * mongleRestImage.naturalHeight / mongleRestImage.naturalWidth;
+   ac.imageSmoothingEnabled = true;
+   ac.drawImage(mongleRestImage, mongle.x - width / 2, mongle.y + 9 - height, width, height);
    return;
   }
   const row = mongleTiming[mongle.row] ? mongle.row : 0;
@@ -258,7 +262,7 @@
    drawPatch(.63,handY-.065,.09,.12,left+w*.52,top+h*(handY-.065),w*.105,h*.12);
    ac.save();
    ac.translate(left+shoulderX+w*.5,top+shoulderY);
-   ac.rotate(reach*(action.kind==='fridge'?2.42:1.35)+sway*.08);
+   ac.rotate(reach*(['fridge','door'].includes(action.kind)?2.42:1.35)+sway*.08);
    ac.beginPath();
    ac.ellipse(-w*.107,h*.043,w*.12,h*.061,-.2,0,Math.PI*2);
    ac.clip();
