@@ -46,7 +46,7 @@
  }
  function restBed(item){close();bedRest=item;posture='lie';player.x=item.x+specs.bed.w/2;player.y=item.y+100*specs.bed.h/253;canvas.focus({preventScroll:true});toast('내 침대에서 편안하게 쉬어요.');}
  function bedAction(item){restBed(item);}
- const standBase=standUp;standUp=function(){if(posture==='chair'){posture='stand';return;}if(bedRest&&posture!=='stand'){posture='stand';player.x=Math.min(865,bedRest.x+specs.bed.w+38);player.y=Math.min(roomWalkBottom()-5,bedRest.y+specs.bed.h-12);bedRest=null;return;}if(scene()!=='study'&&posture==='desk'){posture='stand';player.y=Math.min(roomWalkBottom()-5,player.y+34);mongle.until=0;bedRest=null;return;}bedRest=null;return standBase();};
+ const standBase=standUp;standUp=function(){if(posture==='chair'||posture==='study-chair'){posture='stand';return;}if(bedRest&&posture!=='stand'){posture='stand';player.x=Math.min(865,bedRest.x+specs.bed.w+38);player.y=Math.min(roomWalkBottom()-5,bedRest.y+specs.bed.h-12);bedRest=null;return;}if(scene()!=='study'&&posture==='desk'){posture='stand';player.y=Math.min(roomWalkBottom()-5,player.y+34);mongle.until=0;bedRest=null;return;}bedRest=null;return standBase();};
  const mongleStaysInBedroom=()=>roomPrefs.mongleStaysInBedroom===true;
  function restMongle(item){clearTimeout(petCareTimer);petRestItem=item;roomPrefs.mongleStaysInBedroom=true;window.lifeBedroomPetResting=true;mongle.until=Date.now()+4200;mongle.row=0;mongle.x=item.x+specs.doghouse.w/2;mongle.y=item.y+168*specs.doghouse.h/190;save();close();toast('몽글이는 침대방에서 쉬어요. 문이 닫혀 있어 다른 방에는 따라오지 않아요 ♡');}
  function careMongle(item,kind){clearTimeout(petCareTimer);petRestItem=item;window.lifeBedroomPetResting=mongleStaysInBedroom();const food=kind==='food';mongle.until=Date.now()+2600;mongle.row=0;mongle.x=item.x+(food?26:162)*specs.doghouse.w/187;mongle.y=item.y+169*specs.doghouse.h/190;close();toast(food?'몽글이가 밥을 맛있게 먹어요 ♡':'몽글이가 시원하게 물을 마셔요 ♡');const key=roomKey();petCareTimer=setTimeout(()=>{if(roomKey()===key&&scene()==='bedroom')mongle.until=0;},2600);}
@@ -84,12 +84,12 @@
  const chairs=new Map();
  function syncChairs(kind){
   const defaults=kind==='study'&&roomPrefs.activeSpace==='current'
-   ?objects.filter(item=>['focus','notion'].includes(item.id)&&!window.lifeStaticFurniture?.isHidden(item.id)):[];
+   ?objects.filter(item=>['focus','notion','study'].includes(item.id)&&!window.lifeStaticFurniture?.isHidden(item.id)):[];
   const desks=[...defaults.map(item=>({...item,standard:true})),...items().filter(item=>['focus','computer'].includes(item.type))];
   const visible=new Set();
   for(const desk of desks){
    const key=desk.id,spec=desk.standard?desk:specs[desk.type];
-   const x=desk.x+spec.w/2,y=Math.min(roomWalkBottom()-8,desk.y+spec.h+10);
+   const x=desk.x+spec.w/2,y=Math.min(roomWalkBottom()-8,desk.id==='study'?desk.y+99:desk.y+spec.h+10);
    visible.add(key);
    let chair=chairs.get(key);
    if(!chair){
@@ -106,7 +106,7 @@
    chair.onclick=()=>{
     if(roomEditing)return;
     window.lifeRoomInteraction?.walkTo(x,y,()=>{
-     posture='chair';player.x=x;player.y=y;
+     posture=desk.id==='study'?'study-chair':'chair';player.x=x;player.y=y;
      canvas.focus({preventScroll:true});
     });
    };

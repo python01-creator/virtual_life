@@ -44,7 +44,13 @@
   },260);
  }
  window.lifeFurnitureMotion=useFurniture;
- function activate(b,e){const r=roomWorldBounds(),rect=b.getBoundingClientRect(),label=(b.title||b.getAttribute('aria-label')||'가구').split(' · ')[0];const ok=walkTo((rect.left-r.left+rect.width/2)*960/r.width,Math.min(roomWalkBottom(),(rect.bottom-r.top)*650/r.height+30),()=>useFurniture(b,b.matches('.study-notebook-hit')?'study':b.matches('.notion-monitor-hit,.focus-clock-hit')?'focus':'writing',()=>b.onclick?.(e)));if(ok&&route.length){select(b);status(label+'로 이동 중…');}}
+ function activate(b,e){
+  if(posture==='study-chair'&&b.matches('.study-notebook-hit')){
+   cancel();
+   useFurniture(b,'study',()=>b.onclick?.(e));
+   return;
+  }
+  const r=roomWorldBounds(),rect=b.getBoundingClientRect(),label=(b.title||b.getAttribute('aria-label')||'가구').split(' · ')[0];const ok=walkTo((rect.left-r.left+rect.width/2)*960/r.width,Math.min(roomWalkBottom(),(rect.bottom-r.top)*650/r.height+30),()=>useFurniture(b,b.matches('.study-notebook-hit')?'study':b.matches('.notion-monitor-hit,.focus-clock-hit')?'focus':'writing',()=>b.onclick?.(e)));if(ok&&route.length){select(b);status(label+'로 이동 중…');}}
  window.lifeRoomInteraction={walkTo,cancel,activate};
  const observer=new MutationObserver(()=>{if(document.querySelector('dialog[open]'))cancel();});observer.observe(document.body,{subtree:true,attributes:true,attributeFilter:['open']});
  window.addEventListener('click',e=>{if(e.target.closest('.avatar-interaction,.quick,.dpad,.life-nav'))cancel();},true);
