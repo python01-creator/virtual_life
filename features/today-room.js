@@ -109,7 +109,7 @@
  const selector='.study-notebook-hit,.story-object-link,.todo-furniture-hit,.today-board-hit,.memory-object-link,.study-notebook-hit,.story-room-item,.writing-room-object,.growth-plant-link,.family-scene-hit,.notion-monitor-hit,.focus-clock-hit,.wall-light-switch';
  window.addEventListener('click',e=>{
   if(!matchMedia('(max-width:600px)').matches||roomEditing||lifePage!=='room'||document.querySelector('dialog[open]')||e.detail===0)return;
-  const wrap=e.target.closest('.canvas-wrap');if(!wrap||e.target.closest('.avatar-interaction,.all-layout-handle,.interior-item,.interior-exit,.furniture-catalog,.hq-desk-chair,.kitchen-furniture'))return;
+  const wrap=e.target.closest('.canvas-wrap');if(!wrap||e.target.closest('.avatar-interaction,.all-layout-handle,.interior-item,.interior-exit,.furniture-catalog,.hq-desk-chair,.kitchen-furniture,.ocean-entry'))return;
   const target=e.target.closest(selector),candidates=[...wrap.querySelectorAll(selector)].filter(b=>!b.hidden&&b.getClientRects().length);
   const inside=(r)=>e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom;
   
