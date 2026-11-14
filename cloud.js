@@ -70,6 +70,7 @@
     const button = document.createElement('button');
     button.className = 'ghost';
     document.querySelector('.header-right')?.append(button);
+    button.style.setProperty('display', 'inline-flex', 'important');
     async function refresh() {
       try {
         const pending = await accessRpc('hq_pending');
