@@ -77,19 +77,45 @@
  let ambienceAudio;
  const tracks=[
   {name:'빗소리',frequency:1300,type:'lowpass',level:.48},
-  {name:'카페',frequency:460,type:'bandpass',level:.32},
-  {name:'책장 넘기기',frequency:1100,type:'bandpass',level:.47}
+  {name:'카페',frequency:850,type:'lowpass',level:.44},
+  {name:'책장 넘기기',frequency:2700,type:'bandpass',level:.65}
  ];
  function makeAmbienceTrack(track,index){
   const audio=ambienceAudio,rate=audio.sampleRate;
   const buffer=audio.createBuffer(1,rate*12,rate);
   const samples=buffer.getChannelData(0);
+  const voices=Array.from({length:12},(_,n)=>({
+   pitch:88+n*9,phase:0,pace:1.55+n*.137,offset:n*.713,
+   vowel:360+(n%5)*65
+  }));
+  let paper=0;
   for(let i=0;i<samples.length;i++){
-   const t=i/rate;
-   const page=t%4.8;
-   const shape=index===2?Math.sin(Math.PI*Math.min(1,page/.55))**2:
-    index===1?.55+.21*Math.sin(t*3.7)+.12*Math.cos(t*11):.85;
-   samples[i]=(Math.random()*2-1)*shape*Math.min(1,i/220,(samples.length-1-i)/220);
+   const t=i/rate,noise=Math.random()*2-1;
+   let sample=noise*.85;
+   if(index===1){
+    sample=noise*.07;
+    for(const voice of voices){
+     const syllable=(t*voice.pace+voice.offset)%1;
+     const phrase=.24+.76*Math.max(0,Math.sin(t*1.3+voice.offset));
+     const pitch=voice.pitch+9*Math.sin(t*5+voice.offset)+5*Math.cos(t*11+voice.offset);
+     voice.phase+=pitch*2*Math.PI/rate;
+     const syllableGain=Math.sin(Math.PI*syllable)**2*phrase;
+     for(let h=2;h<=6;h++){
+      const formant=Math.exp(-(((h*pitch-voice.vowel)/230)**2));
+      sample+=Math.sin(voice.phase*h)*syllableGain*formant*.032;
+     }
+    }
+   }else if(index===2){
+    const page=t<6?t-1.15:t-7.6;
+    paper=.78*paper+.22*noise;
+    const flap=(offset,width)=>{
+     const age=(page-offset)/width;
+     return age>=0&&age<1?Math.sin(Math.PI*age)**2:0;
+    };
+    sample=(noise-paper)*(.52*flap(0,.15)+.76*flap(.09,.24)+.33*flap(.27,.12))
+      +paper*.7*flap(.11,.31);
+   }
+   samples[i]=sample*Math.min(1,i/220,(samples.length-1-i)/220);
   }
   const source=audio.createBufferSource(),filter=audio.createBiquadFilter(),gain=audio.createGain();
   source.buffer=buffer;
