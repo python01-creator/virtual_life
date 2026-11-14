@@ -70,14 +70,17 @@
     const button = document.createElement('button');
     button.className = 'ghost';
     document.querySelector('.header-right')?.append(button);
-    button.style.setProperty('display', 'inline-flex', 'important');
+    button.hidden = true;
     async function refresh() {
       try {
         const pending = await accessRpc('hq_pending');
-        button.textContent = '가입 신청 ' + pending.length + '건';
+        button.textContent = '신청 ' + pending.length;
+        button.setAttribute('aria-label', '가입 신청 ' + pending.length + '건');
+        button.hidden = pending.length === 0;
+        button.style.setProperty('display', button.hidden ? 'none' : 'inline-flex', 'important');
         return pending;
       } catch {
-        button.textContent = '가입 신청 확인';
+
         throw new Error('가입 신청을 불러오지 못했어요.');
       }
     }
