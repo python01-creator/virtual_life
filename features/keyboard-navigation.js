@@ -29,7 +29,7 @@
   return best?.el||null;
  }
  function mark(el){if(highlighted===el)return;highlighted?.classList.remove('keyboard-room-target');highlighted=el;highlighted?.classList.add('keyboard-room-target');}
- function nearestFurniture(){const el=pickFurniture();mark(el);if(el)return()=>{keys.clear();window.lifeRoomInteraction?.cancel();const action=el.onclick;const event=new MouseEvent('click',{bubbles:true,cancelable:true,detail:0});if(window.lifeRoomInteraction?.activateFromKeyboard(el,event))return;if(typeof action==='function')action.call(el,event);else el.click();};if(!window.lifeInterior||window.lifeInterior.scene()==='study'){const object=getNearest();if(object)return()=>openPanel(object.id);}return null;}
+ function nearestFurniture(){const el=pickFurniture();mark(el);if(el)return()=>{keys.clear();window.lifeRoomInteraction?.cancel();const action=el.onclick;const event=new MouseEvent('click',{bubbles:true,cancelable:true,detail:0});if(window.lifeRoomInteraction?.activateFromKeyboard(el,event))return;if(typeof action==='function')action.call(el,event);else el.click();};if(!window.lifeInterior||window.lifeInterior.scene()==='study'){const object=getNearest();if(object)return()=>window.lifeRoomInteraction.activateObject(object);}return null;}
  window.lifeKeyboardNavigation={nearestFurniture};
  window.addEventListener('keydown',e=>{
   if(e.isComposing||e.ctrlKey||e.metaKey||e.altKey||roomEditing)return;
