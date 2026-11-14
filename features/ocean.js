@@ -55,33 +55,66 @@
     colors.forEach(([at,color])=>fill.addColorStop(at,color));
     return fill;
    };
-   ctx.fillStyle=gradient(0,360,[[0,'#83bbd4'],[.33,'#e1f2ef'],[.34,'#367b91'],[.57,'#49a8ad'],[.82,'#a5d8c6'],[1,'#e6c49a']]);
-   ctx.fillRect(0,0,640,360);
-   ctx.fillStyle='#789ca7';
-   ctx.beginPath();
-   ctx.moveTo(0,123);
-   ctx.quadraticCurveTo(48,92,70,107);
-   ctx.quadraticCurveTo(105,100,153,123);
-   ctx.fill();
-   for(let row=0;row<17;row++){
-    const y=129+row*9;
-    ctx.strokeStyle=row%2?'#eafff858':'#327d9226';
+   ctx.fillStyle=gradient(0,125,[[0,'#6aa9cc'],[.68,'#b9dae4'],[1,'#eff0db']]);
+   ctx.fillRect(0,0,640,125);
+   for(const [x,y,rx,ry] of [[94,48,57,10],[139,44,31,11],[466,62,80,8],[495,56,34,10]]){
+    const mist=ctx.createRadialGradient(x,y,0,x,y,rx);
+    mist.addColorStop(0,'#fffdf1a0');
+    mist.addColorStop(1,'#fffdf100');
+    ctx.fillStyle=mist;
     ctx.beginPath();
-    for(let x=0;x<=640;x+=8){
-     ctx.lineTo(x,y+Math.sin(x/47+row+time/1100)*(1+row*.13));
+    ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2);
+    ctx.fill();
+   }
+   ctx.fillStyle=gradient(124,350,[[0,'#28647f'],[.32,'#338594'],[.72,'#66b7b1'],[1,'#a2c9b2']]);
+   ctx.fillRect(0,124,640,236);
+   for(let row=0;row<30;row++){
+    const depth=row/29;
+    const y=126+depth*depth*200;
+    const swell=Math.sin(row*2.4+time/1150);
+    ctx.strokeStyle=row%3===0?'#dafff147':'#14576c2a';
+    ctx.lineWidth=.4+depth*1.8;
+    ctx.beginPath();
+    for(let x=0;x<=640;x+=5){
+     const ripple=Math.sin(x/(23+depth*28)+row+time/1700);
+     ctx.lineTo(x,y+ripple*depth*4+swell*depth*3);
     }
     ctx.stroke();
    }
-   for(let layer=0;layer<3;layer++){
-    ctx.fillStyle=['#e9ffffbc','#b6a18b','#e4c49d'][layer];
+   const shore=(x)=>262+x*.095+Math.sin(x/102)*9;
+   const tide=Math.sin(time/960)*13+Math.sin(time/1900)*5;
+   const waterEdge=x=>shore(x)+tide+Math.sin(x/39-time/820)*4+Math.sin(x/15+time/950)*1.6;
+   function below(edge,fill){
+    ctx.fillStyle=fill;
     ctx.beginPath();
     ctx.moveTo(0,360);
-    for(let x=0;x<=640;x+=5){
-     const lap=Math.sin(time/820+x/136);
-     ctx.lineTo(x,274+x*.09+Math.sin(x/82)*10+lap*(layer===2?3:8)+layer*5);
-    }
+    for(let x=0;x<=640;x+=4)ctx.lineTo(x,edge(x));
     ctx.lineTo(640,360);
     ctx.fill();
+   }
+   below(waterEdge,gradient(250,360,[[0,'#a88a6b'],[.45,'#cfaf87'],[1,'#ecd0a2']]));
+   below(x=>shore(x)+24+(waterEdge(x)-shore(x))*.25,'#e9cba182');
+   ctx.fillStyle='#795c4438';
+   for(let grain=0;grain<320;grain++){
+    const x=(grain*173.17)%640,y=282+(grain*31.73)%78;
+    if(y>shore(x)+24+(waterEdge(x)-shore(x))*.25)ctx.fillRect(x,y,grain%7===0?1.6:.8,.8);
+   }
+   for(let band=0;band<3;band++){
+    ctx.strokeStyle=['#f7fff2e0','#effff4a0','#ebfff455'][band];
+    ctx.lineWidth=[2.2,1.3,.8][band];
+    ctx.beginPath();
+    for(let x=0;x<=640;x+=3){
+     const y=waterEdge(x)-band*4+Math.sin(x/9-band+time/600)*band;
+     if(x===0||(band&&Math.sin(x/21+band)<-.4))ctx.moveTo(x,y);
+     else ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+   }
+   for(let speck=0;speck<150;speck++){
+    const x=speck*89.31%640;
+    const drift=(speck*3.17+time/490)%15;
+    ctx.fillStyle=`rgba(246,255,245,${(1-drift/15)*.65})`;
+    ctx.fillRect(x,waterEdge(x)-drift,1+speck%3,.85);
    }
    if(!reducedMotion.matches)frame=requestAnimationFrame(paint);
   }
@@ -119,7 +152,7 @@
    if(matchMedia('(prefers-reduced-motion: reduce)').matches){openBeach();return;}
    const travel=avatar.animate([
     {left:'13%',top:'79%'},{left:'37%',top:'65%'},{left:'61%',top:'51%'},{left:'79%',top:'37%'}
-   ],{duration:1550,easing:'linear',fill:'forwards'});
+   ],{duration:2600,easing:'linear',fill:'forwards'});
    avatar.classList.add('is-walking');
    stopOcean=()=>{
     travel.cancel();
@@ -352,8 +385,8 @@
   const offset=roomPrefs.layout['front-door']||{x:0,y:0};
   const center=door.x+offset.x+door.width/2;
   const threshold=door.y+offset.y+door.height;
-  const inFront=(x,y)=>Math.abs(x-center)<=door.width/2&&y>=threshold+14&&y<=threshold+44;
-  window.lifeRoomInteraction?.walkTo(center,threshold+26,()=>{
+  const inFront=(x,y)=>Math.abs(x-center)<=door.width/2&&y>=threshold+28&&y<=threshold+56;
+  window.lifeRoomInteraction?.walkTo(center,threshold+40,()=>{
    if(!inFront(player.x,player.y)||!entry.getClientRects().length)return;
    if(reducedMotion.matches){openPath();return;}
    const position={x:player.x,y:player.y};
@@ -376,7 +409,7 @@
  document.addEventListener('life-session-ended',goHome);
  const style=document.createElement('style');
  style.textContent=`
- .canvas-wrap>.ocean-entry{position:absolute;left:85%;top:12%;width:6%;height:19%;z-index:8;padding:0;border:2px solid #735d46;border-radius:7px 7px 2px 2px;background:#463426;perspective:160px;cursor:pointer}
+ .canvas-wrap>.ocean-entry{position:absolute;left:85%;top:12%;width:6%;height:19%;z-index:6;padding:0;border:2px solid #735d46;border-radius:7px 7px 2px 2px;background:#463426;perspective:160px;cursor:pointer}
  .ocean-door-leaf{position:absolute;inset:0;border-radius:inherit;transform-origin:left center;background:linear-gradient(90deg,#95795d,#b79976 12%,#a88463 90%,#886a51);pointer-events:none}
  .ocean-door-leaf::after{content:'';position:absolute;right:15%;top:60%;width:12%;aspect-ratio:1;border-radius:50%;background:#f1d49b}
  body:is([data-interior="office"],[data-interior="bedroom"],[data-place-kind="office"]) .ocean-entry{display:none}
@@ -387,10 +420,10 @@
  .hq-path-avatar img{display:block;width:100%}
  .hq-walk-body{position:relative}
  .hq-walk-foot{position:absolute;inset:0;opacity:0}
- .hq-path-avatar.is-walking .hq-walk-body{clip-path:inset(0 0 18% 0);animation:hq-walk-body 260ms ease-in-out infinite alternate}
- .hq-path-avatar.is-walking .hq-walk-foot{opacity:1;animation:hq-walk-step 520ms ease-in-out infinite}
+ .hq-path-avatar.is-walking .hq-walk-body{clip-path:inset(0 0 18% 0);animation:hq-walk-body 345ms ease-in-out infinite alternate}
+ .hq-path-avatar.is-walking .hq-walk-foot{opacity:1;animation:hq-walk-step 690ms ease-in-out infinite}
  .hq-walk-foot.left{clip-path:inset(82% 50% 0 0);transform-origin:39% 83%}
- .hq-walk-foot.right{clip-path:inset(82% 0 0 50%);transform-origin:61% 83%;animation-delay:-260ms!important}
+ .hq-walk-foot.right{clip-path:inset(82% 0 0 50%);transform-origin:61% 83%;animation-delay:-345ms!important}
  @keyframes hq-walk-body{from{transform:translateY(0) rotate(-2deg)}to{transform:translateY(-2%) rotate(2deg)}}
  @keyframes hq-walk-step{0%,100%{transform:translate(2%,0) rotate(-10deg)}48%{transform:translate(-4%,0) rotate(10deg)}72%{transform:translate(0,-4%) rotate(2deg)}}
  .hq-path-beach{position:absolute;left:79%;top:32%;transform:translate(-50%,-50%);white-space:nowrap}
