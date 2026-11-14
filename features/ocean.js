@@ -2,15 +2,40 @@
  const entry=document.createElement('button');
  entry.type='button';
  entry.className='ghost ocean-entry';
- entry.textContent='🌊 바다';
+ entry.textContent='집 밖';
  entry.style.setProperty('display','inline-flex','important'); document.querySelector('.header-right').append(entry);
 
- function openOcean(){
+ const outdoors=document.createElement('section');
+ outdoors.className='hq-outdoors';
+ outdoors.hidden=true;
+ document.body.append(outdoors);
+ const room=document.querySelector('main');
+ let stopOcean=()=>{};
+ function goHome(){
+  stopOcean();
+  outdoors.hidden=true;
+  room.inert=false;
+  outdoors.replaceChildren();
+  entry.focus({preventScroll:true});
+ }
+ function openBeach(){
+  stopOcean();
   window.lifeRoomInteraction?.cancel();
-  lifeShow(`<h2>프리다이빙 바다</h2>
+  keys.clear();
+  outdoors.hidden=false;
+  room.inert=true;
+  outdoors.innerHTML=`<header><h2>해변</h2><button type="button" data-home>집으로</button></header>
+   <button class="hq-beach-water" type="button"><span>바다에 들어가기</span></button>`;
+  outdoors.querySelector('[data-home]').onclick=goHome;
+  const water=outdoors.querySelector('.hq-beach-water');
+  water.onclick=openOcean;
+  water.focus({preventScroll:true});
+ }
+ function openOcean(){
+  outdoors.innerHTML=`<header><h2>프리다이빙 바다</h2><button type="button" id="hq-ocean-exit">해변으로</button></header>
    <canvas id="hq-ocean" width="640" height="380" tabindex="0" aria-label="프리다이빙 바다. 방향키나 화면 터치로 이동"></canvas>
    <p id="hq-ocean-status" role="status">해변</p>
-   <div class="actions"><button class="primary" id="hq-dive">잠수하기</button><button class="ghost" id="hq-surface">수면으로</button><button class="ghost" id="hq-ocean-exit">방으로 돌아가기</button></div>`);
+   <div class="actions"><button class="primary" id="hq-dive">잠수하기</button><button class="ghost" id="hq-surface">수면으로</button></div>`;
   const canvas=document.querySelector('#hq-ocean'),ctx=canvas.getContext('2d');
   const dive=document.querySelector('#hq-dive'),surface=document.querySelector('#hq-surface');
   const status=document.querySelector('#hq-ocean-status');
@@ -29,7 +54,7 @@
   }
   dive.onclick=()=>setSwimming(true);
   surface.onclick=()=>setSwimming(false);
-  document.querySelector('#hq-ocean-exit').onclick=()=>lifeDialog.close();
+  document.querySelector('#hq-ocean-exit').onclick=openBeach;
   canvas.onclick=event=>{
    if(!swimming)return;
    const bounds=canvas.getBoundingClientRect();
@@ -101,7 +126,7 @@
    ctx.fillRect(17,-6,7,4);
   }
   function draw(time){
-   if(!canvas.isConnected||!lifeDialog.open)return;
+   if(!canvas.isConnected||outdoors.hidden)return;
    const step=Math.min(32,last?time-last:16)*.005;
    const dx=target.x-position.x,dy=target.y-position.y;
    const desired=Math.max(-1.15,Math.min(1.15,Math.atan2(dy,Math.abs(dx)+12)));
@@ -195,12 +220,25 @@
    ctx.restore();
    frame=requestAnimationFrame(draw);
   }
-  lifeDialog.addEventListener('close',()=>cancelAnimationFrame(frame),{once:true});
-  setSwimming(false);
+  stopOcean=()=>cancelAnimationFrame(frame);
+  setSwimming(true);
   frame=requestAnimationFrame(draw);
  }
- entry.onclick=openOcean;
+ entry.onclick=openBeach;
+ outdoors.addEventListener('keydown',event=>{
+  if(event.key==='Escape'){event.stopPropagation();goHome();}
+ });
+ document.addEventListener('life-session-ended',goHome);
  const style=document.createElement('style');
- style.textContent='.header-right>.ocean-entry{display:inline-flex!important;white-space:nowrap}#hq-ocean{display:block;width:min(100%,calc(58dvh * 640 / 380));height:auto;margin-inline:auto;border-radius:14px;background:#154e72;touch-action:manipulation}';
+ style.textContent=`
+ .hq-outdoors[hidden]{display:none}
+ .hq-outdoors{position:fixed;inset:0;z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:clamp(12px,3vw,32px);overflow:auto;background:#102f45;color:#f4fff9}
+ .hq-outdoors header{display:flex;justify-content:space-between;align-items:center;gap:12px;width:min(100%,840px);padding:0;background:transparent;color:inherit}
+ .hq-outdoors h2,.hq-outdoors p{margin:0}
+ .hq-outdoors .actions{margin:0}
+ .hq-beach-water{width:min(100%,840px);min-height:55dvh;display:grid;place-items:center;border:0;border-radius:18px;background:radial-gradient(ellipse at 72% 22%,#ffebad 0 5%,transparent 5.5%),linear-gradient(175deg,#bacfdc 4%,#f4dbc1 35%,#539eac 36%,#347b93 69%,#daf6e4 70%,#dbb988 73%);color:#12394b}
+ .hq-beach-water span{padding:.65em 1.1em;border-radius:24px;background:#f3fff2}
+ #hq-ocean{display:block;width:min(100%,calc(68dvh * 640 / 380));height:auto;border-radius:14px;background:#154e72;touch-action:manipulation}
+ `;
  document.head.append(style);
 })();
