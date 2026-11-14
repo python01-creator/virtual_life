@@ -21,13 +21,15 @@
  // Project wall/desktop objects onto reachable floor in front of their actual position.
  function reachableFloor(){const step=12,points=[],grid=new Map();for(let y=195;y<=roomWalkBottom();y+=step)for(let x=82;x<=870;x+=step){if(blocked(x,y))continue;const p={x,y,key:x+','+y};points.push(p);grid.set(p.key,p);}let start=null,distance=Infinity;for(const p of points){const d=Math.hypot(p.x-player.x,p.y-player.y);if(d<distance){distance=d;start=p;}}if(!start)return [];const queue=[start],seen=new Set([start.key]);for(let i=0;i<queue.length;i++){const p=queue[i];for(const [dx,dy]of [[step,0],[-step,0],[0,step],[0,-step]]){const next=grid.get((p.x+dx)+','+(p.y+dy));if(next&&!seen.has(next.key)){seen.add(next.key);queue.push(next);}}}return queue;}
  let highlighted=null;
- function pickFurniture(){const list=roomTargets(),small=list.filter(item=>item.el.matches(smallFurniture));let best=null,distance=65;
+ function pickFurniture(){const list=roomTargets();
+  if(posture==='study-chair'){const notebook=list.find(item=>item.el.matches('.study-notebook-hit'));if(notebook)return notebook.el;}
+  const small=list.filter(item=>item.el.matches(smallFurniture));let best=null,distance=65;
   if(small.length){const floor=reachableFloor();for(const item of small){const aligned=floor.filter(p=>p.x>=item.x-8&&p.x<=item.x+item.w+8&&p.y>=item.y+item.h);if(!aligned.length)continue;const front=Math.min(...aligned.map(p=>p.y));const spots=aligned.filter(p=>p.y<=front+12);for(const p of spots){const d=Math.hypot(p.x-player.x,p.y-player.y);if(d<distance){distance=d;best=item;}}}}
   if(!best){distance=110;for(const item of list)if(item.distance<distance){best=item;distance=item.distance;}}
   return best?.el||null;
  }
  function mark(el){if(highlighted===el)return;highlighted?.classList.remove('keyboard-room-target');highlighted=el;highlighted?.classList.add('keyboard-room-target');}
- function nearestFurniture(){const el=pickFurniture();mark(el);if(el)return()=>{keys.clear();window.lifeRoomInteraction?.cancel();const action=el.onclick;if(typeof action==='function')action.call(el,new MouseEvent('click',{bubbles:true,cancelable:true,detail:0}));else el.click();};if(!window.lifeInterior||window.lifeInterior.scene()==='study'){const object=getNearest();if(object)return()=>openPanel(object.id);}return null;}
+ function nearestFurniture(){const el=pickFurniture();mark(el);if(el)return()=>{keys.clear();window.lifeRoomInteraction?.cancel();const action=el.onclick;const event=new MouseEvent('click',{bubbles:true,cancelable:true,detail:0});if(window.lifeRoomInteraction?.activateFromKeyboard(el,event))return;if(typeof action==='function')action.call(el,event);else el.click();};if(!window.lifeInterior||window.lifeInterior.scene()==='study'){const object=getNearest();if(object)return()=>openPanel(object.id);}return null;}
  window.lifeKeyboardNavigation={nearestFurniture};
  window.addEventListener('keydown',e=>{
   if(e.isComposing||e.ctrlKey||e.metaKey||e.altKey||roomEditing)return;

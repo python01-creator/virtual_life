@@ -101,7 +101,7 @@
  }
  const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
  let useRequest=0,usingButton=null;
- function useFurniture(button,id,walk){
+ function useFurniture(button,id){
   if(roomEditing)return;
   const token=++useRequest;
   window.lifeKitchenAction=null;
@@ -123,7 +123,7 @@
     window.lifeKitchenAction=null;
    },820);
   };
-  if(!walk||reducedMotion.matches||!window.lifeRoomInteraction){arrive();return;}
+  if(reducedMotion.matches||!window.lifeRoomInteraction){arrive();return;}
   const room=roomWorldBounds(),furniture=button.getBoundingClientRect();
   const x=(furniture.left+furniture.width/2-room.left)*960/room.width+(id==='fridge'?-21:16);
   const y=(furniture.bottom-room.top)*650/room.height+(id==='fridge'?-7:14);
@@ -134,7 +134,7 @@
   button.type='button';button.className='kitchen-furniture';button.title=label;button.setAttribute('aria-label',label);
   button.style.left=x/9.6+'%';button.style.width=width/9.6+'%';
   button.innerHTML=`<svg viewBox="0 0 ${width} 108" aria-hidden="true">${glyphs[id]}</svg>`;
-  button.onclick=event=>useFurniture(button,id,event.detail!==0);
+  button.onclick=()=>useFurniture(button,id);
   if(id==='fridge')button.append(fridgeNote);
   wrap.append(button);
  }

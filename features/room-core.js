@@ -103,7 +103,16 @@ const boyAvatarFrames = ['stand', 'sit', 'lie'].map(pose => {
   image.src = `./assets/avatar-boy-balanced-${pose}.webp`;
   return image;
 });
+const studySeatFrames = ['cute','boy'].map(variant => {
+ const image = new Image();
+ image.src = './assets/avatar-'+variant+'-study.webp';
+ return image;
+});
 function currentAvatarFrame(index) {
+  if (index === 1 && posture === 'study-chair') {
+    const study = studySeatFrames[window.lifePlayerProfile?.avatar === 'male' ? 1 : 0];
+    if (study.complete && study.naturalWidth) return study;
+  }
   const boy = boyAvatarFrames[index];
   return window.lifePlayerProfile?.avatar === 'male' && boy.complete && boy.naturalWidth
     ? boy : cuteAvatarFrames[index];

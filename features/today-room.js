@@ -21,10 +21,11 @@
  function simpleToday(){document.querySelectorAll('dialog[open]').forEach(d=>d.close());const content=document.querySelector('#panel-content');content.innerHTML='<div class="eyebrow">TODAY · 한눈에 보기</div><h2>오늘의 하루</h2><p>일정과 할 일, 공부 목표를 한곳에서 확인해요.</p><div class="today-dashboard"><section><h3>▦ 오늘 일정</h3><div data-today-calendar></div></section><section><h3>✓ 오늘 할 일</h3><div data-simple-tasks></div><p class="task-count" data-simple-count></p></section><section><h3>▥ 공부 목표</h3><div data-today-study></div></section></div>';renderThree();renderTodayCalendar();renderTodayStudy();keys.clear();document.querySelector('#panel').showModal();window.lifeCalendar?.refreshToday();}
  window.lifeSimpleToday={render:renderThree,open:simpleToday};renderTasks=renderThree;const panelBase=openPanel;openPanel=function(k){if(k==='today')return simpleToday();return panelBase(k);};document.querySelectorAll('.quick [data-open]').forEach(b=>b.onclick=e=>{e.preventDefault();openPanel(b.dataset.open);});renderThree();
  const board=document.createElement('button');board.className='today-board-hit';board.setAttribute('aria-label','TODAY 보드 · 세 가지 할 일');board.title='TODAY · 오늘 할 일 3개';board.onclick=simpleToday;wrap.append(board);
+ let furnitureMotion;
  function cancel(){clearTimeout(furnitureMotion);furnitureMotion=null;route=[];arrive=null;target=null;select(null);status('');}
  const step=16,cols=50,point=i=>({x:82+(i%cols)*step,y:195+Math.floor(i/cols)*step});
  function walkTo(x,y,fn){const bottom=roomWalkBottom(),rows=Math.floor((bottom-195)/step)+1;cancel();if(posture!=='stand')standUp();keys.clear();let start=-1,goal=-1,sd=Infinity,gd=Infinity;const valid=[];for(let i=0;i<cols*rows;i++){const p=point(i);if(p.x>870||p.y>bottom||blocked(p.x,p.y)){valid[i]=false;continue;}valid[i]=true;const a=Math.hypot(p.x-player.x,p.y-player.y),b=Math.hypot(p.x-x,p.y-y);if(a<sd){sd=a;start=i;}if(b<gd){gd=b;goal=i;}}if(start<0||goal<0){toast('갈 수 있는 바닥을 눌러 주세요.');return;}const queue=[start],prev=new Map([[start,-1]]);for(let n=0;n<queue.length;n++){const i=queue[n],c=i%cols;for(const j of [c>0?i-1:-1,c<cols-1?i+1:-1,i-cols,i+cols])if(j>=0&&j<cols*rows&&valid[j]&&!prev.has(j)){prev.set(j,i);queue.push(j);}}goal=queue.reduce((best,i)=>{const p=point(i),b=point(best);return Math.hypot(p.x-x,p.y-y)<Math.hypot(b.x-x,b.y-y)?i:best;},start);/* Open from the nearest reachable floor tile, including wall objects behind desks. */const path=[];for(let i=goal;i!==start;i=prev.get(i))path.unshift(point(i));route=path;arrive=fn||null;target=point(goal);if(!path.length){const cb=arrive;cancel();cb?.();}canvas.focus({preventScroll:true});return true;}
- let furnitureMotion;
+
  const reducedFurnitureMotion=matchMedia('(prefers-reduced-motion: reduce)');
  function useFurniture(target,kind,action){
   if(reducedFurnitureMotion.matches){action();return;}
@@ -51,7 +52,12 @@
    return;
   }
   const r=roomWorldBounds(),rect=b.getBoundingClientRect(),label=(b.title||b.getAttribute('aria-label')||'가구').split(' · ')[0];const ok=walkTo((rect.left-r.left+rect.width/2)*960/r.width,Math.min(roomWalkBottom(),(rect.bottom-r.top)*650/r.height+30),()=>useFurniture(b,b.matches('.study-notebook-hit')?'study':b.matches('.notion-monitor-hit,.focus-clock-hit')?'focus':'writing',()=>b.onclick?.(e)));if(ok&&route.length){select(b);status(label+'로 이동 중…');}}
- window.lifeRoomInteraction={walkTo,cancel,activate};
+ const walkableFurniture='.study-notebook-hit,.story-object-link,.todo-furniture-hit,.today-board-hit,.memory-object-link,.study-notebook-hit,.story-room-item,.writing-room-object,.growth-plant-link,.family-scene-hit,.notion-monitor-hit,.focus-clock-hit';
+ window.lifeRoomInteraction={walkTo,cancel,activate,activateFromKeyboard(button,event){
+  if(!button.matches(walkableFurniture)||typeof button.onclick!=='function')return false;
+  activate(button,event);
+  return true;
+ }};
  const observer=new MutationObserver(()=>{if(document.querySelector('dialog[open]'))cancel();});observer.observe(document.body,{subtree:true,attributes:true,attributeFilter:['open']});
  window.addEventListener('click',e=>{if(e.target.closest('.avatar-interaction,.quick,.dpad,.life-nav'))cancel();},true);
  let directSofaSeat=false;
@@ -74,9 +80,9 @@
    if(posture==='sit')standUp();
   }
  },true);
- wrap.addEventListener('click',e=>{if(roomEditing||e.target.closest('.wall-light-switch,.avatar-interaction,.switch-place-done,.layout-finish-visible'))return;const r=roomWorldBounds(),x=(e.clientX-r.left)*960/r.width,y=(e.clientY-r.top)*650/r.height;if(e.target!==canvas&&!e.target.closest('.study-notebook-hit,.story-object-link,.todo-furniture-hit,.today-board-hit,.memory-object-link,.study-notebook-hit,.story-room-item,.writing-room-object,.growth-plant-link,.family-scene-hit,.notion-monitor-hit,.focus-clock-hit'))return;
+ wrap.addEventListener('click',e=>{if(roomEditing||e.target.closest('.wall-light-switch,.avatar-interaction,.switch-place-done,.layout-finish-visible'))return;const r=roomWorldBounds(),x=(e.clientX-r.left)*960/r.width,y=(e.clientY-r.top)*650/r.height;if(e.target!==canvas&&!e.target.closest(walkableFurniture))return;
  e.preventDefault();e.stopImmediatePropagation();
- const b=e.target.closest('.study-notebook-hit,.story-object-link,.todo-furniture-hit,.today-board-hit,.memory-object-link,.study-notebook-hit,.story-room-item,.writing-room-object,.growth-plant-link,.family-scene-hit,.notion-monitor-hit,.focus-clock-hit');if(b){activate(b,e);return;}
+ const b=e.target.closest(walkableFurniture);if(b){activate(b,e);return;}
  const o=hit(e);if(o){const ok=walkTo(o.x+o.w/2,Math.min(roomWalkBottom(),o.y+o.h+28),()=>useFurniture(null,o.id,()=>o.id==='today'?window.lifeTodoOnly?.():openPanel(o.id)));if(ok&&route.length)status(o.label+'로 이동 중…');return;}if(Math.hypot(x-mongle.x,y-(mongle.y-10))<30){walkTo(mongle.x,mongle.y+48,patMongle);return;}walkTo(x,y);
  },true);
  window.addEventListener('life-place-changed',()=>{directSofaSeat=false;cancel();});canvas.addEventListener('keydown',e=>{if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','w','a','s','d','Escape'].includes(e.key))cancel();},true);document.addEventListener('visibilitychange',()=>{if(document.hidden)cancel();});
