@@ -3,7 +3,7 @@
  entry.type='button';
  entry.className='ghost ocean-entry';
  entry.textContent='🌊 바다';
- document.querySelector('.header-right').append(entry);
+ entry.style.setProperty('display','inline-flex','important'); document.querySelector('.header-right').append(entry);
 
  function openOcean(){
   window.lifeRoomInteraction?.cancel();
