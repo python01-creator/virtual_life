@@ -15,36 +15,17 @@
  const room=document.querySelector('main');
  let stopOcean=()=>{};
  const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
- let audio, surf, volume, muted=false;
+ const surf=new Audio('./assets/ambience-ocean.mp3');
+ surf.preload='none';
+ surf.loop=true;
+ surf.volume=.48;
+ let muted=false;
  function startSurf(){
-  if(muted||surf||!window.AudioContext)return;
-  audio??=new AudioContext();
-  audio.resume().catch(()=>{});
-  const buffer=audio.createBuffer(1,12*audio.sampleRate,audio.sampleRate);
-  const samples=buffer.getChannelData(0);
-  let low=0;
-  for(let i=0;i<samples.length;i++){
-   const noise=Math.random()*2-1;
-   low=.965*low+.035*noise;
-   const swell=.25+.75*Math.pow((1-Math.cos(i/samples.length*Math.PI*6))/2,2);
-   const edge=Math.min(1,i/400,(samples.length-1-i)/400);
-   samples[i]=(low*.85+noise*.12)*swell*edge;
-  }
-  surf=audio.createBufferSource();
-  volume=audio.createGain();
-  surf.buffer=buffer;
-  surf.loop=true;
-  surf.connect(volume).connect(audio.destination);
-  volume.gain.setValueAtTime(0,audio.currentTime);
-  volume.gain.linearRampToValueAtTime(.32,audio.currentTime+.45);
-  surf.start();
+  if(!muted)surf.play().catch(()=>{});
  }
  function stopSurf(){
-  if(!surf)return;
-  volume.gain.cancelScheduledValues(audio.currentTime);
-  volume.gain.setTargetAtTime(0,audio.currentTime,.05);
-  surf.stop(audio.currentTime+.22);
-  surf=null;
+  surf.pause();
+  surf.currentTime=0;
  }
  function drawBeach(canvas){
   const ctx=canvas.getContext('2d');
