@@ -185,6 +185,67 @@
   const avatar=currentAvatarFrame(0);
   const waterline=100;
   const position={x:320,y:70},target={...position};
+  const worldWidth=2100;
+  const species=[
+   ['산호 나비고기','#ffd577','#ff966a'],['청록 비늘돔','#79f4de','#6a91df'],
+   ['딸기 안티아스','#ff9bc0','#f97273'],['은빛 유리돔','#edfff9','#8cc9ea'],
+   ['보라 엔젤피시','#c6b2ff','#696aaf'],['노을 흰동가리','#ff9063','#fff3cd']
+  ];
+  const fish=species.map(([name,color,accent],i)=>({name,color,accent,x:455+i*290,y:179+(i*47)%120,i}));
+  const collectionKey='life-ocean-fish:'+ (window.lifeCloud?.userId||'local');
+  let collected=new Set();
+  try{const saved=JSON.parse(localStorage.getItem(collectionKey)||'[]');if(Array.isArray(saved))collected=new Set(saved.filter(i=>Number.isInteger(i)&&i>=0&&i<species.length));}catch{}
+  const log=document.createElement('button');
+  log.type='button';
+  log.className='ghost';
+  log.onclick=()=>{
+   const panel=outdoors.querySelector('.hq-fish-log');
+   panel.hidden=!panel.hidden;
+   log.setAttribute('aria-expanded',String(!panel.hidden));
+  };
+  log.setAttribute('aria-expanded','false');
+  const list=document.createElement('ul');
+  list.className='hq-fish-log';
+  list.hidden=true;
+  outdoors.querySelector('.actions').append(log);
+  outdoors.append(list);
+  function updateCollection(){
+   log.textContent='물고기 도감 '+collected.size+'/'+species.length;
+   list.replaceChildren(...species.map(([name],i)=>{
+    const row=document.createElement('li');
+    row.textContent=collected.has(i)?name:'아직 발견하지 못한 물고기';
+    return row;
+   }));
+  }
+  updateCollection();
+  let cameraX=0;
+  const clampX=x=>Math.max(42,Math.min(worldWidth-42,x));
+  const clampY=y=>Math.max(126,Math.min(338,y));
+  function drawFish(x,y,fish,time,heading){
+   ctx.save();
+   ctx.translate(x,y);
+   ctx.scale(heading,1);
+   const size=fish.i%3===1?1.15:1;
+   ctx.scale(size,size);
+   const tail=Math.sin(time/105+fish.i)*3;
+   ctx.fillStyle=fish.accent;
+   ctx.beginPath();
+   ctx.moveTo(-10,0);ctx.quadraticCurveTo(-20,-7,-26,-10+tail);
+   ctx.quadraticCurveTo(-23,0,-26,9+tail);ctx.closePath();ctx.fill();
+   const skin=ctx.createLinearGradient(0,-10,0,10);
+   skin.addColorStop(0,'#fff8db');skin.addColorStop(.28,fish.color);skin.addColorStop(1,fish.accent);
+   ctx.fillStyle=skin;
+   ctx.beginPath();ctx.ellipse(0,0,16,9,0,0,Math.PI*2);ctx.fill();
+   ctx.save();ctx.clip();
+   ctx.strokeStyle=fish.accent;ctx.lineWidth=2;
+   for(const stripe of [-7,-1,5]){
+    ctx.beginPath();ctx.moveTo(stripe-3,-10);ctx.quadraticCurveTo(stripe+4,0,stripe-4,10);ctx.stroke();
+   }
+   ctx.restore();
+   ctx.fillStyle='#143942';
+   ctx.beginPath();ctx.arc(10,-2,2.2,0,Math.PI*2);ctx.fill();
+   ctx.restore();
+  }
   let swimming=false,frame=0,last=0,angle=0;
   function setSwimming(value){
    swimming=value;
@@ -192,7 +253,7 @@
    target.y=value?190:70;
    dive.disabled=value;
    surface.disabled=!value;
-   status.textContent=value?'물속 · 방향키나 터치로 헤엄치기':'해변 · 잠수하기를 눌러 바다에 들어가요';
+   status.textContent=value?'방향키나 터치로 물고기 가까이 헤엄쳐 보세요':'해변 · 잠수하기를 눌러 바다에 들어가요';
    canvas.focus({preventScroll:true});
   }
   dive.onclick=()=>setSwimming(true);
@@ -201,16 +262,16 @@
   canvas.onclick=event=>{
    if(!swimming)return;
    const bounds=canvas.getBoundingClientRect();
-   target.x=Math.max(42,Math.min(598,(event.clientX-bounds.left)*640/bounds.width));
-   target.y=Math.max(126,Math.min(338,(event.clientY-bounds.top)*380/bounds.height));
+   target.x=clampX((event.clientX-bounds.left)*640/bounds.width+cameraX);
+   target.y=clampY((event.clientY-bounds.top)*380/bounds.height);
   };
   canvas.onkeydown=event=>{
    const delta={ArrowLeft:[-32,0],ArrowRight:[32,0],ArrowUp:[0,-26],ArrowDown:[0,26]}[event.key];
    if(!swimming||!delta)return;
    event.preventDefault();
    event.stopPropagation();
-   target.x=Math.max(42,Math.min(598,target.x+delta[0]));
-   target.y=Math.max(126,Math.min(338,target.y+delta[1]));
+   target.x=clampX(target.x+delta[0]);
+   target.y=clampY(target.y+delta[1]);
   };
   let facing=1;
   function drawDiver(time,dx,dy){
@@ -277,10 +338,11 @@
    last=time;
    position.x+=(target.x-position.x)*step;
    position.y+=(target.y-position.y)*step;
+   cameraX+=(Math.max(0,Math.min(worldWidth-640,position.x-320))-cameraX)*Math.min(1,step*1.7);
    const sea=ctx.createLinearGradient(0,waterline,0,380);
-   sea.addColorStop(0,'#81dfd5');
-   sea.addColorStop(.35,'#278ea6');
-   sea.addColorStop(1,'#102f56');
+   sea.addColorStop(0,'#b0ffde');
+   sea.addColorStop(.35,'#2dbfa4');
+   sea.addColorStop(1,'#125c64');
    const sky=ctx.createLinearGradient(0,0,0,waterline);
    sky.addColorStop(0,'#bedfe6');
    sky.addColorStop(1,'#fae5bd');
@@ -316,11 +378,11 @@
     ctx.fill();
    }
    for(let layer=0;layer<2;layer++){
-    ctx.fillStyle=layer?'#123b50':'#205d70';
+    ctx.fillStyle=layer?'#225c62':'#3b8582';
     ctx.beginPath();
     ctx.moveTo(0,380);
     for(let x=0;x<=640;x+=8){
-     const y=343+layer*18+Math.sin(x/51+layer)*9+Math.cos(x/27)*4;
+     const y=343+layer*18+Math.sin((x+cameraX*.64)/51+layer)*9+Math.cos((x+cameraX*.5)/27)*4;
      ctx.lineTo(x,y);
     }
     ctx.lineTo(640,380);
@@ -341,17 +403,32 @@
    ctx.beginPath();
    for(let x=0;x<=640;x+=8)ctx.lineTo(x,waterline+Math.sin(x/23+time/600)*3);
    ctx.stroke();
-   for(let i=0;i<7;i++){
-    const x=(i*103+time*(.018+i*.002))%690-25,y=150+i*26;
-    ctx.fillStyle=i%2?'#f2cc91':'#e2f8df';
-    ctx.beginPath();
-    ctx.ellipse(x,y,9,4,0,0,Math.PI*2);
-    ctx.moveTo(x-6,y);
-    ctx.lineTo(x-14,y-5);
-    ctx.lineTo(x-14,y+5);
-    ctx.fill();
-   }
    ctx.save();
+   ctx.translate(-cameraX,0);
+   for(let i=0;i<30;i++){
+    const x=54+i*72,y=372-(i%4)*4;
+    if(x<cameraX-35||x>cameraX+675)continue;
+    ctx.strokeStyle=['#9ed7a6','#e69d9a','#91d4c2','#bbadcf'][i%4];
+    ctx.lineWidth=2.4;
+    ctx.lineCap='round';
+    for(const branch of [-1,0,1]){
+     const sway=Math.sin(time/1200+i)*4;
+     ctx.beginPath();ctx.moveTo(x,y);
+     ctx.quadraticCurveTo(x+branch*5,y-12,x+branch*13+sway,y-20-i%5*5);
+     ctx.stroke();
+    }
+   }
+   for(const f of fish){
+    const phase=time/(1450+f.i*140)+f.i;
+    const x=f.x+Math.sin(phase)*(44+f.i*4),y=f.y+Math.sin(phase*1.5)*15;
+    if(swimming&&Math.hypot(position.x-x,position.y-y)<30&&!collected.has(f.i)){
+     collected.add(f.i);
+     try{localStorage.setItem(collectionKey,JSON.stringify([...collected]));}catch{}
+     status.textContent=f.name+' 발견!';
+     updateCollection();
+    }
+    if(x>=cameraX-32&&x<=cameraX+672)drawFish(x,y,f,time,Math.cos(phase)>=0?1:-1);
+   }
    ctx.translate(position.x,position.y);
    if(position.y>waterline+16){
     ctx.translate(0,Math.sin(time/330)*1.2);
@@ -423,6 +500,7 @@
  .hq-beach-water{position:relative;width:min(100%,840px,104dvh);padding:0;overflow:hidden;border:0;border-radius:18px;background:#537e8d;color:#12394b}
  .hq-beach-water canvas{display:block;width:100%;height:auto}
  .hq-beach-water span{position:absolute;top:56%;left:50%;transform:translate(-50%,-50%);white-space:nowrap;padding:.65em 1.1em;border-radius:24px;background:#f3fff2}
+ .hq-fish-log{margin:0;padding:8px 24px;max-height:22dvh;overflow:auto;background:#164d52;border-radius:10px}
  #hq-ocean{display:block;width:min(100%,calc(68dvh * 640 / 380));height:auto;border-radius:14px;background:#154e72;touch-action:manipulation}
  `;
  document.head.append(style);
