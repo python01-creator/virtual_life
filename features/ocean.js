@@ -15,17 +15,24 @@
  const room=document.querySelector('main');
  let stopOcean=()=>{};
  const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
- const surf=new Audio('./assets/ambience-ocean.mp3');
- surf.preload='none';
- surf.loop=true;
- surf.volume=.48;
- let muted=false;
- function startSurf(){
-  if(!muted)surf.play().catch(()=>{});
+ const beachSurf=new Audio('./assets/ambience-beach.mp3');
+ const diveSurf=new Audio('./assets/ambience-dive.mp3');
+ for(const track of [beachSurf,diveSurf]){
+  track.preload='none';
+  track.loop=true;
+  track.volume=.48;
+ }
+ let activeSurf=null,muted=false;
+ function startSurf(track=beachSurf){
+  if(activeSurf!==track)stopSurf();
+  activeSurf=track;
+  if(!muted)track.play().catch(()=>{});
  }
  function stopSurf(){
-  surf.pause();
-  surf.currentTime=0;
+  if(!activeSurf)return;
+  activeSurf.pause();
+  activeSurf.currentTime=0;
+  activeSurf=null;
  }
  function drawBeach(canvas){
   const ctx=canvas.getContext('2d');
@@ -167,7 +174,7 @@
  }
  function openOcean(){
   stopOcean();
-  stopSurf();
+  startSurf(diveSurf);
   outdoors.innerHTML=`<header><h2>프리다이빙 바다</h2><button type="button" id="hq-ocean-exit">해변으로</button></header>
    <canvas id="hq-ocean" width="640" height="380" tabindex="0" aria-label="프리다이빙 바다. 방향키나 화면 터치로 이동"></canvas>
    <p id="hq-ocean-status" role="status">해변</p>
