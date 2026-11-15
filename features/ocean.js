@@ -34,7 +34,7 @@
   activeSurf.currentTime=0;
   activeSurf=null;
  }
- function drawBeach(canvas){
+ function drawBeach(canvas,{watcher=true}={}){
   const ctx=canvas.getContext('2d');
   const avatar=currentAvatarFrame(0);
   const silhouette=document.createElement('canvas');
@@ -132,7 +132,7 @@
     ctx.fillStyle=`rgba(246,255,245,${(1-drift/15)*.65})`;
     ctx.fillRect(x,waterEdge(x)-drift,1+speck%3,.85);
    }
-   drawWatcher(time);
+   if(watcher)drawWatcher(time);
    if(!reducedMotion.matches)frame=requestAnimationFrame(paint);
   }
   const repaint=()=>{if(reducedMotion.matches)paint(0);};
@@ -156,7 +156,8 @@
   room.inert=true;
   outdoors.innerHTML=`<header><h2>집 앞</h2><button type="button" data-home>집으로</button></header>
    <div class="hq-coastal-path">
-    <span class="hq-path-house" aria-hidden="true">⌂</span>
+    <canvas width="640" height="360" aria-hidden="true"></canvas>
+    <div class="hq-sand-prints" aria-hidden="true"></div>
     <div class="hq-path-avatar" aria-hidden="true">
      <img class="hq-walk-body" alt="">
      <img class="hq-walk-foot left" alt="">
@@ -165,6 +166,12 @@
     <button type="button" class="hq-path-beach">해변까지 걷기</button>
    </div>`;
   outdoors.querySelector('[data-home]').onclick=goHome;
+  const path=outdoors.querySelector('.hq-coastal-path');
+  const stopPath=drawBeach(path.querySelector('canvas'),{watcher:false});
+  stopOcean=stopPath;
+  const prints=path.querySelector('.hq-sand-prints');
+  const walkDuration=2600;
+  const steps=11;
   const avatar=outdoors.querySelector('.hq-path-avatar');
   for(const part of avatar.querySelectorAll('img'))part.src=currentAvatarFrame(0).src;
   const beach=outdoors.querySelector('.hq-path-beach');
@@ -173,10 +180,19 @@
    startSurf();
    if(matchMedia('(prefers-reduced-motion: reduce)').matches){openBeach();return;}
    const travel=avatar.animate([
-    {left:'13%',top:'79%'},{left:'37%',top:'65%'},{left:'61%',top:'51%'},{left:'79%',top:'37%'}
-   ],{duration:2600,easing:'linear',fill:'forwards'});
+    {left:'13%',top:'88%'},{left:'37%',top:'90%'},{left:'61%',top:'92%'},{left:'79%',top:'94%'}
+   ],{duration:walkDuration,easing:'linear',fill:'forwards'});
+   for(let step=0;step<steps;step++){
+    const progress=step/steps;
+    const print=document.createElement('i');
+    print.style.left=(13+progress*66)+'%';
+    print.style.top=(88+progress*6+(step%2?.7:-.7))+'%';
+    print.style.animationDelay=(progress*walkDuration)+'ms';
+    prints.append(print);
+   }
    avatar.classList.add('is-walking');
    stopOcean=()=>{
+    stopPath();
     travel.cancel();
     avatar.classList.remove('is-walking');
    };
@@ -512,10 +528,12 @@
  .ocean-door-leaf{position:absolute;inset:0;border-radius:inherit;transform-origin:left center;background:linear-gradient(90deg,#95795d,#b79976 12%,#a88463 90%,#886a51);pointer-events:none}
  .ocean-door-leaf::after{content:'';position:absolute;right:15%;top:60%;width:12%;aspect-ratio:1;border-radius:50%;background:#f1d49b}
  body:is([data-interior="office"],[data-interior="bedroom"],[data-place-kind="office"]) .ocean-entry{display:none}
- .hq-coastal-path{position:relative;isolation:isolate;width:min(100%,840px);height:clamp(210px,58dvh,520px);overflow:hidden;border-radius:18px;background:linear-gradient(165deg,#c6e5df 0 29%,#5c9eac 30% 39%,#b1c89a 40% 100%)}
- .hq-coastal-path::before{content:'';position:absolute;inset:0;background:#e3c59a;clip-path:polygon(4% 83%,74% 36%,88% 34%,18% 92%);z-index:-1}
- .hq-path-house{position:absolute;left:7%;top:59%;color:#674e36;font-size:clamp(36px,8vw,76px);line-height:1}
- .hq-path-avatar{position:absolute;left:13%;top:79%;width:clamp(24px,6%,52px);transform:translate(-50%,-100%);pointer-events:none}
+ .hq-coastal-path{position:relative;isolation:isolate;width:min(100%,840px,104dvh);aspect-ratio:16/9;overflow:hidden;border-radius:18px;background:#e3c59a}
+ .hq-coastal-path canvas{display:block;width:100%;height:100%}
+ .hq-sand-prints{position:absolute;inset:0;pointer-events:none}
+ .hq-sand-prints i{position:absolute;width:1.1%;height:1.4%;border-radius:55%;background:#9e775a75;box-shadow:inset 0 1px 1px #76523960;transform:rotate(73deg);opacity:0;animation:hq-sand-step 2.5s ease-out forwards}
+ @keyframes hq-sand-step{0%{opacity:0}4%,40%{opacity:.85}100%{opacity:.12}}
+ .hq-path-avatar{position:absolute;left:13%;top:88%;width:clamp(24px,6%,52px);transform:translate(-50%,-100%);pointer-events:none}
  .hq-path-avatar img{display:block;width:100%}
  .hq-walk-body{position:relative}
  .hq-walk-foot{position:absolute;inset:0;opacity:0}
@@ -525,7 +543,7 @@
  .hq-walk-foot.right{clip-path:inset(82% 0 0 50%);transform-origin:61% 83%;animation-delay:-345ms!important}
  @keyframes hq-walk-body{from{transform:translateY(0) rotate(-2deg)}to{transform:translateY(-2%) rotate(2deg)}}
  @keyframes hq-walk-step{0%,100%{transform:translate(2%,0) rotate(-10deg)}48%{transform:translate(-4%,0) rotate(10deg)}72%{transform:translate(0,-4%) rotate(2deg)}}
- .hq-path-beach{position:absolute;left:79%;top:32%;transform:translate(-50%,-50%);white-space:nowrap}
+ .hq-path-beach{position:absolute;left:79%;top:71%;transform:translate(-50%,-50%);white-space:nowrap}
  .hq-outdoors[hidden]{display:none}
  .hq-outdoors{position:fixed;inset:0;z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:clamp(12px,3vw,32px);overflow:auto;background:#102f45;color:#f4fff9}
  .hq-outdoors header{display:flex;justify-content:space-between;align-items:center;gap:12px;width:min(100%,840px);padding:0;background:transparent;color:inherit}
