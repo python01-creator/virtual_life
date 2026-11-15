@@ -70,7 +70,7 @@
  window.addEventListener('click',e=>{if(e.target.closest('.avatar-interaction,.quick,.dpad,.life-nav'))cancel();},true);
  const tracks=[
   {name:'빗소리',file:'rain',level:.48},
-  {name:'카페',file:'crowd',level:.32},
+  {name:'기내',file:'crowd',level:.32},
   {name:'책장 넘기기',file:'paper',level:.65,interval:6500},
   {name:'장작 타는 소리',file:'fire',level:.48},
   {name:'밤의 소리',file:'night',level:.48}
