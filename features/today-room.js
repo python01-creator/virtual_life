@@ -68,34 +68,15 @@
  }};
  const observer=new MutationObserver(()=>{if(document.querySelector('dialog[open]'))cancel();});observer.observe(document.body,{subtree:true,attributes:true,attributeFilter:['open']});
  window.addEventListener('click',e=>{if(e.target.closest('.avatar-interaction,.quick,.dpad,.life-nav'))cancel();},true);
- let ambienceAudio;
  const tracks=[
-  {name:'빗소리',frequency:1300,type:'lowpass',level:.48},
+  {name:'빗소리',file:'rain',level:.48},
   {name:'카페',file:'crowd',level:.32},
   {name:'책장 넘기기',file:'paper',level:.65,interval:6500},
   {name:'장작 타는 소리',file:'fire',level:.48},
   {name:'밤의 소리',file:'night',level:.48}
  ];
- function makeAmbienceTrack(track){
-  const audio=ambienceAudio,rate=audio.sampleRate;
-  const buffer=audio.createBuffer(1,rate*12,rate);
-  const samples=buffer.getChannelData(0);
-  for(let i=0;i<samples.length;i++){
-   samples[i]=(Math.random()*2-1)*.85*Math.min(1,i/220,(samples.length-1-i)/220);
-  }
-  const source=audio.createBufferSource(),filter=audio.createBiquadFilter(),gain=audio.createGain();
-  source.buffer=buffer;
-  source.loop=true;
-  filter.type=track.type;
-  filter.frequency.value=track.frequency;
-  gain.gain.value=0;
-  source.connect(filter).connect(gain).connect(audio.destination);
-  source.start();
-  track.gain=gain;
- }
  function setAmbienceVolume(track,volume){
   track.volume=volume;
-  track.gain?.gain.setTargetAtTime(track.level*volume/100,ambienceAudio.currentTime,.08);
   if(track.media)track.media.volume=track.level*volume/100;
   if(!volume){
    clearInterval(track.repeat);
@@ -104,35 +85,24 @@
   }
  }
  async function changeAmbienceVolume(track,volume){
-  if(track.file){
-   if(!volume){setAmbienceVolume(track,0);return;}
-   if(!track.media){
-    track.media=new Audio('./assets/ambience-'+track.file+'.mp3');
-    track.media.loop=!track.interval;
-   }
-   const starting=!track.volume;
-   setAmbienceVolume(track,volume);
-   if(!starting)return;
-   try{
-    await track.media.play();
-    if(track.interval&&track.volume)track.repeat=setInterval(()=>{
-     track.media.currentTime=0;
-     track.media.play().catch(()=>{});
-    },track.interval);
-   }catch(error){
-    setAmbienceVolume(track,0);
-    throw error;
-   }
-   return;
+  if(!volume){setAmbienceVolume(track,0);return;}
+  if(!track.media){
+   track.media=new Audio('./assets/ambience-'+track.file+'.mp3');
+   track.media.loop=!track.interval;
   }
-  if(!ambienceAudio){
-   const Audio=window.AudioContext||window.webkitAudioContext;
-   if(!Audio)throw new Error('Web Audio unavailable');
-   ambienceAudio=new Audio();
-   makeAmbienceTrack(track);
-  }
+  const starting=!track.volume;
   setAmbienceVolume(track,volume);
-  await ambienceAudio.resume();
+  if(!starting)return;
+  try{
+   await track.media.play();
+   if(track.interval&&track.volume)track.repeat=setInterval(()=>{
+    track.media.currentTime=0;
+    track.media.play().catch(()=>{});
+   },track.interval);
+  }catch(error){
+   setAmbienceVolume(track,0);
+   throw error;
+  }
  }
  window.lifeStudyAmbience={
   open:openSpeaker,
@@ -155,9 +125,7 @@
   };
  }
  document.addEventListener('life-session-ended',()=>{
-  ambienceAudio?.close().catch(()=>{});
-  ambienceAudio=null;
-  for(const track of tracks){track.gain=null;setAmbienceVolume(track,0);}
+  for(const track of tracks)setAmbienceVolume(track,0);
  });
  let wasFocusing=false;
  let directSofaSeat=false;
