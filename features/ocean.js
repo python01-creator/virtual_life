@@ -36,6 +36,34 @@
  }
  function drawBeach(canvas){
   const ctx=canvas.getContext('2d');
+  const avatar=currentAvatarFrame(0);
+  const silhouette=document.createElement('canvas');
+  silhouette.width=80;
+  silhouette.height=80;
+  const figure=silhouette.getContext('2d');
+  let prepared=false;
+  function drawWatcher(time){
+   if(!prepared&&avatar.complete&&avatar.naturalWidth){
+    const height=73,width=height*avatar.naturalWidth/avatar.naturalHeight;
+    figure.drawImage(avatar,(80-width)/2,4,width,height);
+    figure.globalCompositeOperation='source-atop';
+    const shade=figure.createLinearGradient(20,0,62,80);
+    shade.addColorStop(0,'#66625a');
+    shade.addColorStop(.45,'#554d48');
+    shade.addColorStop(.46,'#637568');
+    shade.addColorStop(1,'#353f3b');
+    figure.fillStyle=shade;
+    figure.fillRect(0,0,80,80);
+    prepared=true;
+   }
+   if(!prepared)return;
+   ctx.fillStyle='#4f403742';
+   ctx.beginPath();
+   ctx.ellipse(158,334,17,3,0,0,Math.PI*2);
+   ctx.fill();
+   const sway=reducedMotion.matches?0:Math.sin(time/1250)*.55;
+   ctx.drawImage(silhouette,118+sway,257);
+  }
   let frame;
   function paint(time){
    const gradient=(top,bottom,colors)=>{
@@ -104,10 +132,16 @@
     ctx.fillStyle=`rgba(246,255,245,${(1-drift/15)*.65})`;
     ctx.fillRect(x,waterEdge(x)-drift,1+speck%3,.85);
    }
+   drawWatcher(time);
    if(!reducedMotion.matches)frame=requestAnimationFrame(paint);
   }
+  const repaint=()=>{if(reducedMotion.matches)paint(0);};
+  avatar.addEventListener('load',repaint);
   paint(0);
-  return ()=>cancelAnimationFrame(frame);
+  return ()=>{
+   avatar.removeEventListener('load',repaint);
+   cancelAnimationFrame(frame);
+  };
  }
  function goHome(){
   stopOcean();
