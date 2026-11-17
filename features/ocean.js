@@ -521,7 +521,7 @@
   const center=door.x+offset.x+door.width/2;
   const threshold=door.y+offset.y+door.height;
   const inFront=(x,y)=>Math.abs(x-center)<=door.width/2&&y>=threshold+28&&y<=threshold+56;
-  window.lifeRoomInteraction?.walkTo(center,threshold+40,()=>{
+  const walking=window.lifeRoomInteraction?.walkTo(center,threshold+40,()=>{
    if(!inFront(player.x,player.y)||!entry.getClientRects().length)return;
    if(reducedMotion.matches){openPath();return;}
    const position={x:player.x,y:player.y};
@@ -537,6 +537,7 @@
     doorOpening=null;
    });
   },inFront);
+  if(!walking)openPath();
  };
  outdoors.addEventListener('keydown',event=>{
   if(event.key==='Escape'){event.stopPropagation();goHome();}
