@@ -356,7 +356,7 @@
  const fixed=solids.filter(([id])=>!window.lifeStaticFurniture?.isHidden(id));
  if(door&&!window.lifeStaticFurniture?.isHidden('front-door'))fixed.push(['front-door',door.x,door.y,door.width,door.height]);
  return fixed.map(([id,x,y,w,h])=>{const v=roomPrefs.layout[id]||{x:0,y:0};return [x+v.x,y+v.y,w,h];}).concat(custom?.rects||[]);}
- const baseBlocked=blocked;blocked=function(x,y){if(roomPrefs.activeSpace==='dream'||roomPrefs.activeSpace==='office')return baseBlocked(x,y);return obstacles().some(([a,b,w,h])=>x>a-12&&x<a+w+12&&y>b-6&&y<b+h+10);};
+ const baseBlocked=blocked;blocked=function(x,y){if(roomPrefs.activeSpace==='dream')return baseBlocked(x,y);return obstacles().some(([a,b,w,h])=>x>a-12&&x<a+w+12&&y>b-6&&y<b+h+10);};
  function free(p){if(!blocked(p.x,p.y))return;let best=null,dist=Infinity;for(let y=203;y<=roomWalkBottom()-2;y+=12)for(let x=82;x<=870;x+=12){if(blocked(x,y))continue;const d=Math.hypot(x-p.x,y-p.y);if(d<dist){best={x,y};dist=d;}}if(best)Object.assign(p,best);}
  window.lifeRoomMotion={updateMongle,prepare(){if(typeof roomPrefs==='undefined'||roomEditing)return;if(posture==='stand')free(player);if(!window.lifeBedroomPetResting)free(mongle);}};
  const style=document.createElement('style');style.textContent='#room,#room-actors{image-rendering:auto!important}#room-actors{position:absolute;inset:0;width:100%;height:100%;z-index:7;pointer-events:none!important;background:transparent;cursor:inherit}.study-notebook-hit{min-width:0!important;min-height:0!important}.canvas-wrap button{touch-action:manipulation}.family-room-floor{pointer-events:none}.family-scene-hit{pointer-events:auto}';document.head.append(style);
