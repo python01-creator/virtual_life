@@ -71,19 +71,39 @@
     colors.forEach(([at,color])=>fill.addColorStop(at,color));
     return fill;
    };
-   ctx.fillStyle=gradient(0,125,[[0,'#6aa9cc'],[.68,'#b9dae4'],[1,'#eff0db']]);
+   ctx.fillStyle=gradient(0,125,[[0,'#89baf0'],[1,'#b1d5f5']]);
    ctx.fillRect(0,0,640,125);
-   for(const [x,y,rx,ry] of [[94,48,57,10],[139,44,31,11],[466,62,80,8],[495,56,34,10]]){
-    const mist=ctx.createRadialGradient(x,y,0,x,y,rx);
-    mist.addColorStop(0,'#fffdf1a0');
-    mist.addColorStop(1,'#fffdf100');
-    ctx.fillStyle=mist;
-    ctx.beginPath();
-    ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2);
-    ctx.fill();
-   }
-   ctx.fillStyle=gradient(124,350,[[0,'#28647f'],[.32,'#338594'],[.72,'#66b7b1'],[1,'#a2c9b2']]);
+   ctx.fillStyle=gradient(124,240,[[0,'#17668f'],[.31,'#209eb7'],[.65,'#6dd3cd'],[1,'#d2e8d8']]);
    ctx.fillRect(0,124,640,236);
+   // A low breakwater and wind turbines along the far shore.
+   ctx.fillStyle='#354b51';
+   ctx.fillRect(317,127,323,5);
+   ctx.fillRect(369,123,271,5);
+   ctx.fillRect(502,119,138,5);
+   for(let rock=0;rock<46;rock++){
+    ctx.fillStyle=rock%3===0?'#273e47':'#567077';
+    ctx.fillRect(319+rock*7,126+rock%4,4+rock%3,2);
+   }
+   for(const [x,y,height] of [[425,64,59],[501,96,27],[546,85,38],[605,100,23]]){
+    ctx.fillStyle='#e5f2f4';
+    ctx.fillRect(x-1,y,3,height);
+    ctx.fillStyle='#a8c5d1';
+    ctx.fillRect(x+1,y,1,height);
+    ctx.save();
+    ctx.translate(x,y);
+    ctx.fillStyle='#f4fcfd';
+    for(let blade=0;blade<3;blade++){
+     const angle=-Math.PI/2+blade*Math.PI*2/3+(x%5)*.09;
+     const length=height*.66;
+     ctx.beginPath();
+     ctx.moveTo(-1,1);
+     ctx.lineTo(Math.cos(angle)*length,Math.sin(angle)*length);
+     ctx.lineTo(2,-1);
+     ctx.fill();
+    }
+    ctx.fillRect(-2,-2,4,4);
+    ctx.restore();
+   }
    for(let row=0;row<30;row++){
     const depth=row/29;
     const y=126+depth*depth*200;
@@ -97,8 +117,8 @@
     }
     ctx.stroke();
    }
-   const shore=(x)=>262+x*.095+Math.sin(x/102)*9;
-   const tide=Math.sin(time/960)*13+Math.sin(time/1900)*5;
+   const shore=(x)=>226+x*.026+Math.sin(x/102)*6;
+   const tide=Math.sin(time/960)*6+Math.sin(time/1900)*3;
    const waterEdge=x=>shore(x)+tide+Math.sin(x/39-time/820)*4+Math.sin(x/15+time/950)*1.6;
    function below(edge,fill){
     ctx.fillStyle=fill;
@@ -108,11 +128,11 @@
     ctx.lineTo(640,360);
     ctx.fill();
    }
-   below(waterEdge,gradient(250,360,[[0,'#a88a6b'],[.45,'#cfaf87'],[1,'#ecd0a2']]));
-   below(x=>shore(x)+24+(waterEdge(x)-shore(x))*.25,'#e9cba182');
-   ctx.fillStyle='#795c4438';
+   below(waterEdge,gradient(220,360,[[0,'#d2d7bd'],[.25,'#ece2c6'],[1,'#faf0d5']]));
+   below(x=>shore(x)+24+(waterEdge(x)-shore(x))*.25,'#fff6de90');
+   ctx.fillStyle='#a8977035';
    for(let grain=0;grain<320;grain++){
-    const x=(grain*173.17)%640,y=282+(grain*31.73)%78;
+    const x=(grain*173.17)%640,y=250+(grain*31.73)%110;
     if(y>shore(x)+24+(waterEdge(x)-shore(x))*.25)ctx.fillRect(x,y,grain%7===0?1.6:.8,.8);
    }
    for(let band=0;band<3;band++){
