@@ -30,9 +30,6 @@
  function useFurniture(target,kind,action){
   if(reducedFurnitureMotion.matches){action();return;}
   if(kind==='work'&&target){
-   target.querySelector('.hq-id-card')?.animate(
-    [{transform:'translate(0,0)'},{transform:'translate(24px,2px) rotate(-8deg)',offset:.55},{transform:'translate(0,0)'}],
-    {duration:260,easing:'ease-in-out'});
    target.querySelector('.hq-reader-light')?.animate(
     [{fill:'#a9baa5'},{fill:'#a8ffad'},{fill:'#a9baa5'}],{duration:260});
   }

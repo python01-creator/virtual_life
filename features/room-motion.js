@@ -349,7 +349,23 @@
    ac.drawImage(img,-w/2,-h+writing,w,h);
    ac.restore();
   }else if(phase!==null&&!reducedMotion.matches)drawWalkingAvatar(img,x,y,w,h,phase);
-  else ac.drawImage(img,x-w/2,y-h+bob,w,h);}}
+  else ac.drawImage(img,x-w/2,y-h+bob,w,h);
+   if(window.lifeInterior?.scene()==='office'&&!lying){
+    const handX=x+w*.26,handY=y-h*.32+bob;
+    ac.save();
+    ac.translate(handX,handY);
+    ac.rotate(.14);
+    ac.strokeStyle='#fffaf1';
+    ac.lineWidth=1;
+    ac.beginPath();
+    ac.moveTo(-2,4);ac.quadraticCurveTo(-4,-4,2,-2);ac.lineTo(2,4);ac.stroke();
+    ac.fillStyle='#fffaf1';
+    ac.beginPath();ac.roundRect(-3.5,3,7,10,1.5);ac.fill();
+    ac.fillStyle='#9bac9f';ac.fillRect(-1.5,5,3,4);
+    ac.fillRect(-2,10,4,1);
+    ac.restore();
+   }
+  }}
  }};
  const solids=[['today',337,461,70,65],['focus',91,290,194,135],['study',298,148,146,171],['notion',635,261,185,120],['rest',584,446,226,83],['plant',80,445,60,95]];
  function obstacles(){const custom=window.lifeInterior?.obstacles?.();if(custom?.replace)return custom.rects;if(roomPrefs.activeSpace==='family')return [[205,250,200,253],[465,335,85,69],[650,366,160,129]];const door=window.lifeFrontDoor;
