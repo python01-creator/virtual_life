@@ -16,7 +16,7 @@
  function finishAt(now,remaining,deadline,lunchByDate={}){if(remaining<=0)return now;if(effective(now,deadline,lunchByDate)<remaining)return null;let lo=now,hi=deadline;for(let i=0;i<45;i++){const mid=(lo+hi)/2;if(effective(now,mid,lunchByDate)>=remaining)hi=mid;else lo=mid;}return Math.ceil(hi);}
  function leaveTotal(byDate,from,to){
   return Object.entries(byDate).reduce((total,[date,days])=>
-   total+(date>=from&&date<to&&(days===1||days===.5)?days:0),0);
+   total+(date>=from&&date<to&&(days===1||days===.5||days===.25)?days:0),0);
  }
  const api={hour,day,startDay,dateKey,weekStart,lunchFor,effective,sum,stats,inLunch,overlaps,policy,cutoff,finishAt,leaveTotal};if(typeof module==='object'&&module.exports)module.exports=api;else root.WorkTimeCore=api;
 })(typeof window==='object'?window:globalThis);
@@ -77,7 +77,7 @@
  const dateStamp=date=>Date.parse(date+'T00:00:00+09:00');
  const shortDate=date=>date.slice(5).replace('-','/');
  const clock=t=>new Date(t).toLocaleTimeString('ko-KR',{timeZone:'Asia/Seoul',hour:'2-digit',minute:'2-digit'});
- const leaveBadge=date=>data.leaveByDate[date]===1?'<small>연차</small>':data.leaveByDate[date]===.5?'<small>반차</small>':'';
+ const leaveBadge=date=>data.leaveByDate[date]===1?'<small>연차</small>':data.leaveByDate[date]===.5?'<small>반차</small>':data.leaveByDate[date]===.25?'<small>반반차 · 2시간</small>':'';
  function weeklyLeave(week){
   const end=Math.min(week+7*C.day,C.startDay(Date.now())+C.day);
   return C.leaveTotal(data.leaveByDate,C.dateKey(week),C.dateKey(end))*8*C.hour;
@@ -108,11 +108,11 @@
  function leaveSettings(){
   correcting=true;
   dialog.innerHTML=`<h2>연차 관리</h2>
-   <p class="work-note">연차는 8시간, 반차는 4시간으로 해당 날짜가 되면 주간 40시간 목표에 반영돼요.</p>
+   <p class="work-note">연차는 8시간, 반차는 4시간, 반반차는 2시간으로 해당 날짜가 되면 주간 40시간 목표에 반영돼요.</p>
    <form id="work-leave-form">
     <label>날짜<input name="date" type="date" required value="${C.dateKey(Date.now())}"></label>
-    <label>휴가<select name="leave"><option value="0">없음</option><option value="1">연차 1일</option><option value="0.5">반차 0.5일</option></select></label>
-    <label>올해 부여받은 연차 (일, 선택)<input name="allowance" type="number" min="0" step="0.5" inputmode="decimal"></label>
+    <label>휴가<select name="leave"><option value="0">없음</option><option value="1">연차 1일</option><option value="0.5">반차 0.5일 · 4시간</option><option value="0.25">반반차 0.25일 · 2시간</option></select></label>
+    <label>올해 부여받은 연차 (일, 선택)<input name="allowance" type="number" min="0" step="0.25" inputmode="decimal"></label>
     <p id="work-leave-balance"></p>
     <p id="work-leave-error" role="alert"></p>
     <button class="primary">저장</button>
