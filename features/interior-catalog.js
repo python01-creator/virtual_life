@@ -121,6 +121,7 @@
   rect(370,92,225,97,'#8ea39a');rect(378,100,209,81,'#b9d8dc');
   // Soft pixel scenery: sky, cloud, distant buildings and treetops.
   rect(378,100,209,47,'#b9d8dc');rect(378,147,209,34,'#aabca8');rect(397,117,31,7,'#eef1e5');rect(404,111,23,9,'#eef1e5');rect(427,119,20,5,'#eef1e5');rect(388,153,31,28,'#8fa29b');rect(423,160,26,21,'#96a9a0');rect(533,151,43,30,'#8b9f98');rect(551,143,17,38,'#93a69e');rect(468,165,12,16,'#829978');rect(481,158,15,23,'#8ba17e');rect(497,167,13,14,'#7f9675');
+  if(kind==='bedroom')drawCoastalView(378,100,209,81);
   rect(480,100,5,81,'#f7f0dd');rect(378,140,209,4,'#f7f0dd');
   if(kind==='bedroom'){rect(352,87,18,110,'#d0c5d7');rect(595,87,18,110,'#d0c5d7');rect(795,95,55,115,'#a58b67');rect(801,101,43,104,'#c6ad86');rect(807,108,31,44,'#bac6ac');rect(837,168,5,5,'#836d50');label('서재로',822,233);}else{label('OFFICE',200,95);}if(night)rect(65,70,830,505+roomFloorDepth(),'#28314965');
  }
