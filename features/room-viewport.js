@@ -25,7 +25,7 @@
  `;document.head.append(css);
  const portrait=matchMedia('(max-width: 900px) and (orientation: portrait) and (pointer: coarse)');
  let frame=0;function fit(){frame=0;const main=room.closest('main');if(!main||main.hidden||!main.getClientRects().length)return;let chrome=10;for(const el of room.children){if(el===viewport)continue;const style=getComputedStyle(el);if(style.display==='none'||style.position==='absolute'||style.position==='fixed')continue;chrome+=el.getBoundingClientRect().height+(parseFloat(style.marginTop)||0)+(parseFloat(style.marginBottom)||0);}const width=viewport.clientWidth,available=(window.visualViewport?.height||innerHeight)-(viewport.getBoundingClientRect().top+window.scrollY)-chrome;
- const depth=portrait.matches&&!document.documentElement.classList.contains('cover-screen-mode')&&width>0
+ const depth=!document.documentElement.classList.contains('cover-screen-mode')&&width>0
   ?Math.max(0,Math.min(640,Math.floor(available*852/width-578))):0;
  if(depth!==portraitFloorDepth){
   portraitFloorDepth=depth;
