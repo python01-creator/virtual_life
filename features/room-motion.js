@@ -274,31 +274,32 @@
   const img=currentAvatarFrame(2);
   if(!img.complete||!img.naturalWidth)return false;
   const {x,y}=pose;
-  const breath=reducedMotion.matches?0:Math.sin(t/710)*.65;
+  const breath=reducedMotion.matches?0:Math.sin(t*Math.PI*2/4600)*.3;
   ac.save();
   ac.translate(x,y);
-  // Turn the lying sprite lengthwise and reveal its head above the quilt.
-  ac.beginPath();
-  ac.rect(-22,-13,44,27);
-  ac.clip();
-  ac.rotate(Math.PI/2);
-  ac.imageSmoothingEnabled=true;
-  ac.drawImage(img,-15,-16,66,32);
-  ac.restore();
+  ac.fillStyle='#fff7e9';
+  ac.beginPath();ac.roundRect(-25,-19,50,29,8);ac.fill();
   ac.save();
-  ac.translate(x,y+12);
-  ac.fillStyle='#b6c1a9';
+  ac.beginPath();ac.ellipse(0,-2,21,20,0,0,Math.PI*2);ac.clip();
+  // Keep the sleeping face upright on the pillow, above the shoulders.
+  const headWidth=img.naturalWidth*.66;
+  const headHeight=Math.min(img.naturalHeight,img.naturalWidth*.63);
+  ac.imageSmoothingEnabled=true;
+  ac.drawImage(img,0,0,headWidth,headHeight,-22,-22,44,42);
+  ac.restore();
+  const quilt=ac.createLinearGradient(-24,0,24,0);
+  quilt.addColorStop(0,'#9da990');quilt.addColorStop(.48,'#bec8ae');quilt.addColorStop(1,'#a0ad94');
+  ac.fillStyle=quilt;
   ac.beginPath();
-  ac.roundRect(-22,breath,44,48-breath,[8,8,5,5]);
-  ac.fill();
-  ac.strokeStyle='#8f9d85';
-  ac.lineWidth=1;
-  for(const line of [7,22,37]){
-   ac.beginPath();
-   ac.moveTo(-19,line+breath);
-   ac.quadraticCurveTo(0,line-2+breath,19,line+breath);
-   ac.stroke();
+  ac.moveTo(-24,15);ac.quadraticCurveTo(0,9+breath,24,15);
+  ac.lineTo(24,65);ac.quadraticCurveTo(0,70,-24,65);ac.closePath();ac.fill();
+  ac.strokeStyle='#8f9d85';ac.lineWidth=.8;
+  for(const line of [30,45,60]){
+   ac.beginPath();ac.moveTo(-22,line);ac.quadraticCurveTo(0,line-2+breath,22,line);ac.stroke();
   }
+  ac.fillStyle='#d2dac5';
+  ac.beginPath();ac.moveTo(-24,15);ac.quadraticCurveTo(0,9+breath,24,15);
+  ac.lineTo(24,21);ac.quadraticCurveTo(0,15+breath,-24,21);ac.closePath();ac.fill();
   ac.restore();
   return true;
  }
