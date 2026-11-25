@@ -199,11 +199,19 @@
  function lunchSettings(){correcting=true;const date=C.dateKey(Date.now());dialog.innerHTML=`<h2>점심시간 조정</h2><p class="work-note">기본은 13:00–14:00이에요. 선택한 날짜의 합계에 적용돼요.</p><form id="work-lunch-form"><label>날짜<input name="date" type="date" required value="${date}"></label><label><input name="none" type="checkbox" style="display:inline;width:auto"> 이날은 점심시간 제외 안 함</label><div class="work-time-fields"><label>점심 시작<input name="start" type="time" required></label><label>점심 종료<input name="end" type="time" required></label></div><p role="alert" id="lunch-error"></p><button class="primary">점심시간 저장</button><button type="button" class="ghost" id="lunch-back">돌아가기</button></form>`;const form=dialog.querySelector('form'),load=()=>{const t=Date.parse(form.elements.date.value+'T00:00:00+09:00');if(!Number.isFinite(t))return;const l=C.lunchFor(t,data.lunchByDate);form.elements.none.checked=!l;form.elements.start.value=timeValue(l?.start??780);form.elements.end.value=timeValue(l?.end??840);toggle();},toggle=()=>{form.elements.start.disabled=form.elements.end.disabled=form.elements.none.checked;};form.elements.date.onchange=load;form.elements.none.onchange=toggle;load();dialog.querySelector('#lunch-back').onclick=()=>{correcting=false;render(true);};form.onsubmit=async e=>{e.preventDefault();if(saving)return;const date=form.elements.date.value,start=timeMinutes(form.elements.start.value),end=timeMinutes(form.elements.end.value),none=form.elements.none.checked,error=dialog.querySelector('#lunch-error');if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||!none&&(!Number.isFinite(start)||!Number.isFinite(end)||start<0||end>1440||end<=start)){error.textContent='점심 시작과 종료 순서를 확인해 주세요.';return;}const submit=form.querySelector('button[type=submit],button.primary');submit.disabled=true;try{await read(true);const n=copy(data);n.lunchByDate={...(n.lunchByDate||{}),[date]:none?{enabled:false}:{start,end}};record(n,'점심시간 수정',n.active?.mode||n.mode);if(n.active?.personal!==false&&n.active?.mode==='remote'){const now=Date.now(),limit=C.cutoff(n.active.start,'remote',!!n.active.exception);n.active.stopAt=C.finishAt(now,Math.max(0,20*C.hour-C.stats(n.rows,n.active,now,n.lunchByDate).weekRemote),limit,n.lunchByDate)??limit;}if(await write(n)){correcting=false;message=date+' 점심시간을 저장했어요.';render(true);}else error.textContent='저장하지 못했어요. 다시 시도해 주세요.';}finally{submit.disabled=false;}};}
  function adjustActive(){if(!data.active)return;correcting=true;const original=copy(data.active),val=t=>new Date(t+9*C.hour).toISOString().slice(0,16);dialog.innerHTML=`<h2>출근시간 수정</h2><p class="work-note">시작 시각만 바꿔요. 퇴근 전까지 실시간 기록이 계속돼요.</p><form id="work-active-form"><label>출근 · 한국 시간<input name="start" type="datetime-local" required max="${val(Date.now())}" value="${val(original.start)}"></label><p id="active-error" role="alert"></p><button class="primary">수정하고 실시간 기록 계속</button><button type="button" class="ghost" id="active-back">돌아가기</button></form>`;const form=dialog.querySelector('form');dialog.querySelector('#active-back').onclick=()=>{correcting=false;render(true);};form.onsubmit=async e=>{e.preventDefault();if(saving)return;const from=Date.parse(form.elements.start.value+'+09:00'),now=Date.now(),error=dialog.querySelector('#active-error');if(!Number.isFinite(from)||from>now){error.textContent='출근시간은 현재 시각 이전으로 입력해 주세요.';return;}await read(true);if(!data.active||data.active.id!==original.id||data.active.start!==original.start){error.textContent='다른 창이나 기기에서 근무 기록이 바뀌었어요. 돌아가서 다시 확인해 주세요.';return;}if(C.overlaps(data.rows,{start:from,end:now})){error.textContent='다른 근무 기록과 시간이 겹쳐요.';return;}const n=copy(data),a=n.active,personal=a.personal!==false,limit=personal?C.cutoff(from,a.mode,!!a.exception):Number.MAX_SAFE_INTEGER;if(personal&&(C.policy(from,a.mode,!!a.exception)||limit<now)){error.textContent='설정한 회사 근무규칙의 허용 시간을 벗어났어요.';return;}n.log.unshift({at:now,type:'진행 중 출근시간 수정',before:copy(a)});a.start=from;a.stopAt=limit;if(personal&&a.mode==='remote'&&C.stats(n.rows,a,now,n.lunchByDate).weekRemote>20*C.hour){error.textContent='수정하면 이번 주 재택 시간이 20시간을 넘어요.';return;}if(personal&&a.mode==='remote')a.stopAt=C.finishAt(now,20*C.hour-C.stats(n.rows,a,now,n.lunchByDate).weekRemote,limit,n.lunchByDate)??limit;form.querySelector('button').disabled=true;if(await write(n)){correcting=false;message='출근시간을 수정했어요. 실시간 기록은 계속돼요.';render(true);}else{error.textContent='저장하지 못했어요. 기존 출근시간은 그대로예요.';form.querySelector('button').disabled=false;}};}
  let correcting=false;
- function correct(id){
-  const original=data.rows.find(row=>row.id===id);
-  if(!original)return;
+ function recordSignature(row){return JSON.stringify(Object.keys(row).sort().map(key=>[key,row[key]]));}
+ async function correct(id){
   correcting=true;
-  const snapshot=JSON.stringify(original),val=t=>new Date(t+9*C.hour).toISOString().slice(0,16);
+  dialog.innerHTML='<h2>출퇴근 기록 수정</h2><p role="status">최신 기록을 불러오는 중…</p>';
+  try{await read(true,true);}catch{
+   dialog.innerHTML='<h2>출퇴근 기록 수정</h2><p role="alert">서버 기록을 불러오지 못했어요. 연결을 확인한 뒤 다시 시도해 주세요.</p><button type="button" id="correct-retry">다시 불러오기</button><button type="button" id="correct-cancel">돌아가기</button>';
+   dialog.querySelector('#correct-retry').onclick=()=>correct(id);
+   dialog.querySelector('#correct-cancel').onclick=()=>{correcting=false;render(true);};return;
+  }
+  if(!dialog.open){correcting=false;return;}
+  const original=data.rows.find(row=>row.id===id);
+  if(!original){correcting=false;message='기록이 변경됐어요. 목록에서 다시 선택해 주세요.';render(true);return;}
+  const snapshot=recordSignature(original),val=t=>new Date(t+9*C.hour).toISOString().slice(0,16);
   dialog.innerHTML=`<h2>출퇴근 기록 수정</h2><form id="work-correct">
    <label>출근 · 한국 시간<input name="start" type="datetime-local" required value="${val(original.start)}"></label>
    <label>퇴근 · 한국 시간<input name="end" type="datetime-local" required value="${val(original.end)}"></label>
@@ -229,14 +237,19 @@
    try{
     await read(true,true);
     const current=data.rows.find(row=>row.id===id);
-    if(!current||JSON.stringify(current)!==snapshot){error.textContent='다른 창이나 기기에서 기록이 바뀌었어요. 돌아가서 다시 열어 주세요.';return;}
+    if(!current||recordSignature(current)!==snapshot){error.textContent='다른 창이나 기기에서 기록이 바뀌었어요. 아래 버튼으로 최신 기록을 불러온 뒤 다시 수정해 주세요.';if(!form.querySelector('#correct-reload')){const reload=document.createElement('button');reload.type='button';reload.id='correct-reload';reload.textContent='최신 기록 다시 불러오기';reload.onclick=()=>correct(id);error.after(reload);}return;}
     if(C.overlaps(data.rows,{start:from,end:to},id)||data.active&&from<Date.now()&&to>data.active.start){
      error.textContent='다른 근무 기록과 시간이 겹쳐요.';return;
+    }
+    const mode=form.elements.mode.value==='remote'?'remote':'office',note=form.elements.memo.value.trim();
+    const start=form.elements.start.value===val(original.start)?original.start:from,end=form.elements.end.value===val(original.end)?original.end:to;
+    if(start===original.start&&end===original.end&&mode===original.mode&&note===(original.note||'')){
+     message='변경된 내용이 없어요. 기존 기록을 그대로 유지했어요.';back();return;
     }
     const n=copy(data),item=n.rows.find(row=>row.id===id);
     n.log.unshift({at:Date.now(),type:'출퇴근 기록 수정',before:copy(item),note:form.elements.reason.value.trim()});
     // Completed records describe actual work; start-time policy must not block corrections.
-    Object.assign(item,{start:from,end:to,stopAt:Number.MAX_SAFE_INTEGER,mode:form.elements.mode.value==='remote'?'remote':'office',note:form.elements.memo.value.trim()});
+    Object.assign(item,{start,end,stopAt:Number.MAX_SAFE_INTEGER,mode,note});
     if(await write(n)){historyWeek=C.weekStart(from);message='출퇴근 기록을 수정해 서버에 저장했어요.';back();}
     else error.textContent='저장하지 못했어요. 입력한 내용은 유지돼요. 다시 시도해 주세요.';
    }catch{error.textContent='서버 기록을 확인하지 못했어요. 연결을 확인하고 다시 저장해 주세요.';}
