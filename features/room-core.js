@@ -237,7 +237,41 @@ function drawSageRug() {
   }
 }
 
+// Floor finishes follow furniture without changing saved layouts or walkable space.
+function drawFunctionalFloors() {
+  if (roomPrefs.activeSpace === 'family' || document.body.dataset.placeKind === 'office') return;
+  const visible = id => !window.lifeStaticFurniture?.isHidden(id);
+  const offset = id => roomPrefs.layout[id] || {x:0,y:0};
+  ctx.save();
+  ctx.beginPath();ctx.rect(74,184,812,390+roomFloorDepth());ctx.clip();
+  if (visible('focus')) {
+    const p=offset('focus'), x=85+p.x, y=303+p.y;
+    ctx.beginPath();ctx.roundRect(x,y,210,118,9);
+    ctx.fillStyle='#b5ac95';ctx.fill();
+    ctx.beginPath();ctx.roundRect(x+3,y+3,204,112,7);
+    ctx.fillStyle='#ded5bd';ctx.fill();
+    ctx.save();ctx.clip();
+    for(let row=y+6;row<y+115;row+=5)rect(x+4,row,202,1,'#f8f1dd55');
+    ctx.restore();
+    ctx.beginPath();ctx.roundRect(x+9,y+9,192,100,4);
+    ctx.strokeStyle='#bdb395';ctx.lineWidth=1;ctx.stroke();
+  }
+  // Separate patches preserve a walking gap when kitchen pieces are moved apart.
+  for (const [id,bx,w] of [['kitchen-fridge',427,80],['kitchen-counter',510,132]]) {
+    if(!visible(id))continue;
+    const p=offset(id),x=bx+p.x-7,y=500.5+p.y+43,h=79;
+    rect(x,y,w+14,h,'#b8b8a4');
+    rect(x+2,y+2,w+10,h-4,'#e5e2cf');
+    for(let tx=x+2;tx<x+w+12;tx+=24)
+      for(let ty=y+2;ty<y+h-2;ty+=24){
+        rect(tx,ty,Math.min(22,x+w+12-tx),Math.min(22,y+h-2-ty),'#f1edde');
+      }
+  }
+  ctx.restore();
+}
+
 function drawRoom(t){if(roomPrefs.activeSpace==='dream'){drawDreamRoom3D(t);return;}ctx.clearRect(0,0,960,650+portraitFloorDepth);rect(0,0,960,650+portraitFloorDepth,'#dce4cf');for(let y=25;y<650+portraitFloorDepth;y+=43)for(let x=14;x<960;x+=47)rect(x+(y%2)*12,y,3,3,'#cdd8be');rect(55,66,850,524+roomFloorDepth(),'#a58f71');rect(49,54,862,537+roomFloorDepth(),'#6f7760');rect(58,62,844,522+roomFloorDepth(),lifeThemes[roomPrefs.theme].floor);rect(66,70,828,110,lifeThemes[roomPrefs.theme].wall);rect(66,171,828,12,'#a79776');for(let x=68;x<894;x+=67){rect(x,184,1,389+roomFloorDepth(),'#cdb68e');for(let y=185;y<574+roomFloorDepth();y+=32)rect(x,y,Math.min(65,894-x),1,'#d4bd96');}rect(66,183,828,5,'#b29b77');rect(66,574+roomFloorDepth(),828,10,'#9b8366');rect(66,70,7,504+roomFloorDepth(),'#b49f7d');rect(887,70,7,504+roomFloorDepth(),'#b49f7d');
+drawFunctionalFloors();
 drawWindowView();
 // TODAY sticky-note furniture.
 roomTransform('today');ctx.translate(337,461);ctx.scale(.68,.68);ctx.translate(-323,-450);
