@@ -49,7 +49,7 @@
  const n=copy(data);n.mode=mode;n.active={id:crypto.randomUUID(),start:now,mode,personal,automatic:false,stopAt:end,exception:personal?reason:''};record(n,fromPlace?'회사 선택 · 출근':'근무 시작',mode);if(!await write(n))return;if(fromPlace)undo={id:n.active.id,until:Date.now()+10000};message=fromPlace?'회사를 선택한 시각으로 출근했어요. 잘못 눌렀다면 10초 안에 취소할 수 있어요.':personal?(mode==='remote'?'재택':'회사')+' 근무를 시작했어요.':'근무를 시작했어요.';if(!office&&mode==='remote')pose('desk');render(true);}
  async function undoStart(){if(!undo||Date.now()>undo.until)return;await read(true);if(data.active?.id!==undo.id)return;const n=copy(data);n.active=null;record(n,'잘못 누른 출근 취소','office');if(await write(n)){undo=null;window.lifeRoomInteraction?.cancel();standUp();message='출근 기록을 취소했어요.';render(true);}}
  const dialog=document.createElement('dialog');dialog.id='workday-dialog';dialog.setAttribute('aria-label','근무 시간 관리');document.body.append(dialog);
- const button=document.createElement('button');button.id='workday-status-button';button.className='ghost';button.textContent='◷ 근무 시간';button.hidden=true;button.onclick=show;document.querySelector('.header-right').append(button);
+ const button=document.createElement('button');button.id='workday-status-button';button.className='ghost';button.textContent='◷ 근무 기록';button.hidden=false;button.onclick=show;document.querySelector('.header-right').append(button);
  const deskButton=document.createElement('button');deskButton.className='office-desk-hit';deskButton.hidden=true;deskButton.setAttribute('aria-label','내 자리의 노트북 · 업무 기록 열기');deskButton.title='내 자리 · 업무 기록';deskButton.onclick=show;document.querySelector('.canvas-wrap').append(deskButton);
  canvas.addEventListener('keydown',e=>{if(office&&['e','Enter'].includes(e.key)&&Math.hypot(player.x-500,player.y-360)<125){e.preventDefault();e.stopImmediatePropagation();show();}},true);
  async function show(){correcting=false;keys.clear();render(true);if(!dialog.open)dialog.showModal();await read(true);if(dialog.open&&!correcting)render(true);}
@@ -153,7 +153,7 @@
   };
  }
  function render(force=false){if(correcting&&!force)return;const now=Date.now(),a=data.active,personal=a?a.personal!==false:data.personal===true;
- button.hidden=!a;button.textContent=a?'● 근무 중':'◷ 근무 시간';button.classList.toggle('work-active',!!a);if(a)button.style.setProperty('display','inline-flex','important');else button.style.removeProperty('display');
+ button.hidden=false;button.textContent=a?'● 근무 중':'◷ 근무 기록';button.classList.toggle('work-active',!!a);if(a)button.style.setProperty('display','inline-flex','important');else button.style.removeProperty('display');
  if(!dialog.open&&!force)return;const signature=JSON.stringify(data);if(!force&&signature===viewState&&dialog.querySelector('.work-weekly')){refreshMetrics();return;}
  if(dialog.open&&!force&&dialog.contains(document.activeElement)&&document.activeElement.matches("input,textarea,select"))return;
  const today=C.dateKey(now),all=data.rows.concat(a?[{...a,end:now}]:[]);
