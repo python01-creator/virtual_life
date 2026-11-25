@@ -153,7 +153,7 @@
   };
  }
  function render(force=false){if(correcting&&!force)return;const now=Date.now(),a=data.active,personal=a?a.personal!==false:data.personal===true;
- button.hidden=false;button.textContent=a?'● 근무 중':'◷ 근무 기록';button.classList.toggle('work-active',!!a);if(a)button.style.setProperty('display','inline-flex','important');else button.style.removeProperty('display');
+ button.hidden=false;button.textContent=a?'● 근무 중':'◷ 근무 기록';button.classList.toggle('work-active',!!a);button.style.setProperty('display','inline-flex','important');
  if(!dialog.open&&!force)return;const signature=JSON.stringify(data);if(!force&&signature===viewState&&dialog.querySelector('.work-weekly')){refreshMetrics();return;}
  if(dialog.open&&!force&&dialog.contains(document.activeElement)&&document.activeElement.matches("input,textarea,select"))return;
  const today=C.dateKey(now),all=data.rows.concat(a?[{...a,end:now}]:[]);
