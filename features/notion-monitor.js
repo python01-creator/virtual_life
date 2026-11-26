@@ -6,7 +6,13 @@
  content.querySelectorAll('[data-hub-tab]').forEach(tab=>tab.onclick=()=>{
   content.querySelectorAll('[data-hub-tab]').forEach(t=>t.setAttribute('aria-pressed',String(t===tab)));
   const kind=tab.dataset.hubTab;
-  if(kind==='work'){const work=[...document.querySelectorAll('.header-right button')].find(x=>x.textContent.includes('근무 시간'));if(work?.onclick){panel.close();work.onclick();}else area.textContent='근무기록을 준비하고 있어요. 잠시 뒤 다시 눌러 주세요.';return;}
+  if(kind==='work'){
+   const work=document.querySelector('#workday-status-button');
+   if(window.lifeWorkday?.open){panel.close();window.lifeWorkday.open();}
+   else if(typeof work?.onclick==='function'){panel.close();work.onclick();}
+   else{area.textContent='근무기록을 불러오지 못했어요. 다시 시도해 주세요.';const retry=document.createElement('button');retry.type='button';retry.className='ghost';retry.textContent='다시 시도';retry.onclick=()=>tab.onclick();area.append(retry);}
+   return;
+  }
   let url=kind==='home'?state.links.notion:'';if(kind==='diary')try{url=localStorage.getItem(lifeKey('notion-diary-url'))||'';}catch{}
   area.replaceChildren();const title=kind==='home'?'노션 개인홈':'노션 일기장';
   if(safeURL(url)){window.open(safeURL(url),'_blank','noopener,noreferrer');panel.close();return;}
